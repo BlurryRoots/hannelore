@@ -80,9 +80,6 @@ Game::Game ()
 	this->camera_speed = 2.0f;
 	this->mouse_speed = 0.005f;
 
-	this->model_rotation = glm::vec3 (0, 0, 0);
-	this->model_position = glm::vec3 (0, 0, 0);
-
 	this->is_initialized = false;
 }
 
@@ -118,8 +115,9 @@ Game::update (double dt) {
 	}
 
 	// rotate model
-	this->models[0].rotation_z += dt;
-	this->models[1].rotation_z -= dt;
+	for (auto & model : this->models) {
+		model.transform.rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
+	}
 
 	// Get a handle for our "MVP" uniform.
 	// Only at initialisation time.
@@ -160,13 +158,16 @@ Game::render () {
 	);
 
 	for (auto & model : this->models) {
-		GLuint angle_uniform = glGetUniformLocation (
-			this->program.id (), "angle"
+		GLuint model_matrix = glGetUniformLocation (
+			this->program.id (), "model_matrix"
 		);
-		glProgramUniform1f (
+		glm::mat4 m = model.transform.to_matrix ();
+		glProgramUniformMatrix4fv (
 			this->program.id (),
-			angle_uniform,
-			model.rotation_z
+			model_matrix,
+			1,
+			GL_FALSE,
+			& m[0][0]
 		);
 
 		model.bind ();

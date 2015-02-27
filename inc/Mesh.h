@@ -1,6 +1,8 @@
 #ifndef __MESH__
 #define __MESH__
 
+#include <Transform.h>
+
 struct Vertex {
 	GLfloat position[3];
 	GLfloat uv[2];
@@ -36,7 +38,7 @@ private:
 
 public:
 
-	float rotation_z;
+	Transform transform;
 
 	Mesh (
 		std::vector<Vertex> vertices,
@@ -45,8 +47,7 @@ public:
 	)
 	: 	vertexbuffer (0), vertices (vertices),
 		colorbuffer (0), colors (colors),
-		indexbuffer (0), indices (indices),
-		rotation_z (0) {
+		indexbuffer (0), indices (indices) {
 			glGenBuffers (1, & vertexbuffer);
 			glGenBuffers (1, & colorbuffer);
 			glGenBuffers (1, & indexbuffer);

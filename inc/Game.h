@@ -25,6 +25,7 @@
 #include <Shader.h>
 #include <ShaderProgram.h>
 #include <Mesh.h>
+#include <Transform.h>
 
 class Game {
 
@@ -49,8 +50,7 @@ private:
 	glm::vec2 mouse_position_offset;
 	glm::vec2 mouse_center;
 
-	glm::vec3 model_rotation;
-	glm::vec3 model_position;
+	Transform model_transform;
 
 	std::vector<Mesh> models;
 
