@@ -28,7 +28,7 @@ create_square_mesh () {
 		{0.0, 0.0, 1.0}
 	});
 	c.push_back (Color {
-		{0.0, 1.0, 0.0}
+		{0.0, 0.0, 0.0}
 	});
 
 	std::vector<GLuint> i;
@@ -69,9 +69,9 @@ create_triangle_mesh () {
 }
 
 Game::Game ()
-	: program ("basic.vs", "basic.fs") {
+	: program ("shaders/basic.vert", "shaders/basic.frag") {
 	this->models.push_back (create_square_mesh ());
-	this->models.push_back (create_triangle_mesh ());
+	//this->models.push_back (create_triangle_mesh ());
 
 	for (auto & model : this->models) {
 		model.upload ();

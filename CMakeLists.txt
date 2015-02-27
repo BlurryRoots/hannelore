@@ -34,13 +34,24 @@ include_directories (inc)
 
 
 # executables
-add_executable (main ${source_files})
+set (shader_path res/shaders)
+file (COPY ${shader_path} DESTINATION '${EXECUTABLE_OUTPUT_PATH}')
+add_executable (main ${source_files} ${shader_files})
 target_link_libraries (main glfw ${GLFW_LIBRARIES} libglew_static)
-
 
 # 'make run' execute main into the bin directory
 add_custom_target (run
     COMMAND ${EXECUTABLE_OUTPUT_PATH}/main
-    DEPENDS main
-    WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+    	DEPENDS main
+    	WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+		"${PROJECT_SOURCE_DIR}/res"
+		$<TARGET_FILE_DIR:main>
 )
+
+# command to copy resources
+#add_custom_command(TARGET main POST_BUILD
+#	COMMAND ${CMAKE_COMMAND} -E copy_directory
+#		"${PROJECT_SOURCE_DIR}/res"
+#		$<TARGET_FILE_DIR:main>
+#)

@@ -117,8 +117,8 @@ public:
 		   3,                  // size
 		   GL_FLOAT,           // type
 		   GL_FALSE,           // normalized?
-		   0,                  // stride
-		   (void*)0            // array buffer offset
+		   sizeof (struct Color), // stride
+		   (void*)offsetof (struct Color, rgba)  // array buffer offset
 		);
 
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, indexbuffer);
