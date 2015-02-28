@@ -196,6 +196,22 @@ Game::update (double dt) {
 		model.transform.rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
 	}
 
+	GLuint angle_uniform = glGetUniformLocation (
+		this->program.id (), "angle"
+
+	);
+	float angle;
+	glGetUniformfv (
+		this->program.id (),
+		angle_uniform,
+		& angle
+	);
+	glProgramUniform1f (
+		this->program.id (),
+		angle_uniform,
+		angle + (float)dt
+	);
+
 	// Get a handle for our "MVP" uniform.
 	// Only at initialisation time.
 

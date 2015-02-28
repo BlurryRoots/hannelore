@@ -39,14 +39,20 @@ set (shader_path res/shaders)
 add_executable (main ${source_files} ${shader_files})
 target_link_libraries (main glfw ${GLFW_LIBRARIES} libglew_static)
 
+# command to copy resources when using default target
+add_custom_command (TARGET main PRE_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		"${PROJECT_SOURCE_DIR}/res"
+		$<TARGET_FILE_DIR:main>
+)
+
 # 'make run' execute main into the bin directory
 add_custom_target (run
     COMMAND ${EXECUTABLE_OUTPUT_PATH}/main
     	DEPENDS main
     	WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
 )
-
-# command to copy resources
+# command to copy resources when using run command
 add_custom_command (TARGET run PRE_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		"${PROJECT_SOURCE_DIR}/res"
