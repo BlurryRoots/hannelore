@@ -39,6 +39,83 @@ create_square_mesh () {
 }
 
 static Mesh
+create_cube_mesh () {
+	std::vector<Vertex> v;
+	v.push_back (Vertex {
+		{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
+	});
+	v.push_back (Vertex {
+		{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
+	});
+	v.push_back (Vertex {
+		{ 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f}
+	});
+	v.push_back (Vertex {
+		{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f}
+	});
+	v.push_back (Vertex {
+		{-0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}
+	});
+	v.push_back (Vertex {
+		{ 0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}
+	});
+	v.push_back (Vertex {
+		{ 0.5f, -0.5f,  -0.5f}, {0.0f, 0.0f}
+	});
+	v.push_back (Vertex {
+		{-0.5f, -0.5f,  -0.5f}, {0.0f, 0.0f}
+	});
+
+	std::vector<Color> c;
+	c.push_back (Color {
+		{1.0, 0.0, 0.0}
+	});
+	c.push_back (Color {
+		{0.0, 1.0, 0.0}
+	});
+	c.push_back (Color {
+		{0.0, 0.0, 1.0}
+	});
+	c.push_back (Color {
+		{0.0, 0.0, 0.0}
+	});
+	c.push_back (Color {
+		{1.0, 1.0, 1.0}
+	});
+	c.push_back (Color {
+		{1.0, 1.0, 1.0}
+	});
+	c.push_back (Color {
+		{1.0, 1.0, 1.0}
+	});
+	c.push_back (Color {
+		{1.0, 1.0, 1.0}
+	});
+
+	std::vector<GLuint> i;
+	// front
+	i.push_back (1); i.push_back (2); i.push_back (0);
+	i.push_back (2); i.push_back (0); i.push_back (3);
+    // top
+	i.push_back (3); i.push_back (2); i.push_back (6);
+	i.push_back (6); i.push_back (7); i.push_back (3);
+    // back
+	i.push_back (7); i.push_back (6); i.push_back (5);
+	i.push_back (5); i.push_back (4); i.push_back (7);
+    // bottom
+	i.push_back (4); i.push_back (5); i.push_back (1);
+	i.push_back (1); i.push_back (0); i.push_back (4);
+    // left
+	i.push_back (4); i.push_back (0); i.push_back (3);
+	i.push_back (3); i.push_back (7); i.push_back (4);
+    // right
+	i.push_back (1); i.push_back (5); i.push_back (6);
+	i.push_back (6); i.push_back (2); i.push_back (1);
+
+	return Mesh (v, c, i);
+}
+
+static Mesh
 create_triangle_mesh () {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
@@ -70,7 +147,7 @@ create_triangle_mesh () {
 
 Game::Game ()
 	: program ("shaders/basic.vert", "shaders/basic.frag") {
-	this->models.push_back (create_square_mesh ());
+	this->models.push_back (create_cube_mesh ());
 	//this->models.push_back (create_triangle_mesh ());
 
 	for (auto & model : this->models) {
