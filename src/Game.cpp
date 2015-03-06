@@ -3,8 +3,8 @@
 
 #include <Guid.h>
 
-static Mesh
-create_square_mesh (Guid guid) {
+Mesh *
+Game::create_square_mesh () {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
@@ -37,11 +37,11 @@ create_square_mesh (Guid guid) {
 	i.push_back (1); i.push_back (2); i.push_back (0);
 	i.push_back (2); i.push_back (0); i.push_back (3);
 
-	return Mesh (guid, v, c, i);
+	return this->mesh_loader.load (v, c, i);
 }
 
-static Mesh
-create_cube_mesh (Guid guid) {
+Mesh *
+Game::create_cube_mesh () {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
@@ -114,11 +114,11 @@ create_cube_mesh (Guid guid) {
 	i.push_back (1); i.push_back (5); i.push_back (6);
 	i.push_back (6); i.push_back (2); i.push_back (1);
 
-	return Mesh (guid, v, c, i);
+	return this->mesh_loader.load (v, c, i);
 }
 
-static Mesh
-create_triangle_mesh (Guid guid) {
+Mesh *
+Game::create_triangle_mesh () {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
@@ -144,23 +144,16 @@ create_triangle_mesh (Guid guid) {
 	std::vector<GLuint> i;
 	i.push_back (1); i.push_back (2); i.push_back (0);
 
-	std::cout << "Trinagle with guid " << guid << std::endl;
-	return Mesh (guid, v, c, i);
+	return this->mesh_loader.load (v, c, i);
 }
 
 Game::Game ()
 	: program ("shaders/basic.vert", "shaders/basic.frag") {
-	GuidGenerator generator;
+	Mesh * m1 = this->create_cube_mesh ();
+	m1->transform.translate (glm::vec3 (0, 1, 0));
 
-	this->models.push_back (create_cube_mesh (generator.newGuid ()));
-	this->models.back ().transform.translate (glm::vec3 (0, 1, 0));
-
-	this->models.push_back (create_triangle_mesh (generator.newGuid ()));
-	this->models.back ().transform.translate (glm::vec3 (0, -1, 0));
-
-	for (auto & model : this->models) {
-		model.upload ();
-	}
+	Mesh * m2 = this->create_triangle_mesh ();
+	m2->transform.translate (glm::vec3 (0, -1, 0));
 
 	this->camera_speed = 2.0f;
 	this->mouse_speed = 0.005f;
@@ -174,9 +167,7 @@ Game::~Game () {
 void
 Game::dispose () {
 	this->program.destroy ();
-	for (auto & model : this->models) {
-		model.dispose ();
-	}
+	this->mesh_loader.dispose_all ();
 }
 
 void
@@ -200,10 +191,8 @@ Game::update (double dt) {
 	}
 
 	// rotate model
-	float yi = 0;
-	for (auto & model : this->models) {
-		model.transform.rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
-		++yi;
+	for (auto & model : this->mesh_loader.meshes) {
+		model->transform.rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
 	}
 
 	GLuint angle_uniform = glGetUniformLocation (
@@ -260,11 +249,11 @@ Game::render () {
 		(float)this->width / (float)this->height
 	);
 
-	for (auto & model : this->models) {
+	for (auto & model : this->mesh_loader.meshes) {
 		GLuint model_matrix = glGetUniformLocation (
 			this->program.id (), "model_matrix"
 		);
-		glm::mat4 m = model.transform.to_matrix ();
+		glm::mat4 m = model->transform.to_matrix ();
 		glProgramUniformMatrix4fv (
 			this->program.id (),
 			model_matrix,
@@ -273,9 +262,7 @@ Game::render () {
 			& m[0][0]
 		);
 
-		model.bind ();
-		model.draw ();
-		model.unbind ();
+		this->mesh_renderer.render (model);
 	}
 }
 

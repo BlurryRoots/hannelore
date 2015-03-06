@@ -26,6 +26,8 @@
 #include <ShaderProgram.h>
 #include <Mesh.h>
 #include <Transform.h>
+#include <MeshLoader.h>
+#include <MeshRenderer.h>
 
 class Game {
 
@@ -37,11 +39,6 @@ private:
 
 	ShaderProgram program;
 
-	// This will identify our vertex buffer
-	GLuint vertexbuffer;
-	GLuint colorbuffer;
-	GLuint indexbuffer;
-
 	float camera_speed;
 	glm::vec3 camera_movement;
 
@@ -50,9 +47,17 @@ private:
 	glm::vec2 mouse_position_offset;
 	glm::vec2 mouse_center;
 
-	Transform model_transform;
+	MeshLoader mesh_loader;
+	MeshRenderer mesh_renderer;
 
-	std::vector<Mesh> models;
+	Mesh *
+	create_square_mesh ();
+
+	Mesh *
+	create_cube_mesh ();
+
+	Mesh *
+	create_triangle_mesh ();
 
 public:
 	Game ();
