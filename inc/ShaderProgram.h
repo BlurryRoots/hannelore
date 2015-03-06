@@ -18,32 +18,68 @@ class
 ShaderProgram {
 
 private:
-	std::map<std::string, GLint> _attributeNames;
-	std::map<std::string, GLint> _uniformNames;
-	GLuint _program;
+	GLuint handle;
 
-	void init(Shader vs, Shader fs);
+	void init (Shader vs, Shader fs);
 
 public:
-	ShaderProgram(Shader vs, Shader fs);
+	ShaderProgram (Shader vs, Shader fs);
 
-	ShaderProgram(const char* vsFileName, const char* fsFileName);
+	ShaderProgram (const char* vsFileName, const char* fsFileName);
 
-	bool valid() const;
+	bool is_valid () const;
 
-	bool use() const;
+	bool use () const;
 
-	void destroy();
+	void dispose ();
 
-	GLuint id ();
+	GLuint get_handle ();
 
-	GLint getAttribute(string attributeName);
 
-	GLint getUniform(string uniformName);
+//void glGetUniformfv( 	GLuint program,
+//  	GLint location,
+//  	GLfloat *params);
+//
+	GLfloat get_uniform_f (std::string name);
+//void glGetUniformiv( 	GLuint program,
+//  	GLint location,
+//  	GLint *params);
+//
+	GLint get_uniform_i (std::string name);
+//void glGetUniformuiv( 	GLuint program,
+//  	GLint location,
+//  	GLuint *params);
+//
+	GLuint get_uniform_ui (std::string name);
+//void glGetUniformdv( 	GLuint program,
+//  	GLint location,
+//  	GLdouble *params);
+//
+	GLdouble get_uniform_d (std::string name);
+//void glGetnUniformfv( 	GLuint program,
+//  	GLint location,
+//  	GLsizei bufSize,
+//  	GLfloat *params);
+//
+//void glGetnUniformiv( 	GLuint program,
+//  	GLint location,
+//  	GLsizei bufSize,
+//  	GLint *params);
+//
+//void glGetnUniformuiv( 	GLuint program,
+//  	GLint location,
+//  	GLsizei bufSize,
+//  	GLuint *params);
+//
+//void glGetnUniformdv( 	GLuint program,
+//  	GLint location,
+//  	GLsizei bufSize,
+//  	GLdouble *params);
+//
 
-	bool hasAttribute(string attributeName);
+	bool hasAttribute (std::string attributeName);
 
-	bool hasUniform(string uniformName);
+	bool hasUniform (std::string uniformName);
 
 };
 

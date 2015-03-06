@@ -11,7 +11,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-using namespace std;
 /**
 * A GLSL shader loaded from disk.
 */
@@ -38,20 +37,20 @@ public:
 	* @return whether the shader is available for use.
 	*/
 	bool
-	valid () const;
+	is_valid () const;
 
 	/**
 	* Tells OpenGL to mark the shader for deletion.
 	*/
 	void
-	destroy ();
+	dispose ();
 
 	/**
 	* Returns the internal shader identifier used by OpenGL.
 	* @return the OpenGL shader identifier
 	*/
 	GLuint
-	shaderId() const;
+	get_handle () const;
 };
 
 #endif

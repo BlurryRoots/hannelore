@@ -166,7 +166,7 @@ Game::~Game () {
 
 void
 Game::dispose () {
-	this->program.destroy ();
+	this->program.dispose ();
 	this->mesh_loader.dispose_all ();
 }
 
@@ -196,17 +196,17 @@ Game::update (double dt) {
 	}
 
 	GLuint angle_uniform = glGetUniformLocation (
-		this->program.id (), "angle"
+		this->program.get_handle (), "angle"
 
 	);
 	float angle;
 	glGetUniformfv (
-		this->program.id (),
+		this->program.get_handle (),
 		angle_uniform,
 		& angle
 	);
 	glProgramUniform1f (
-		this->program.id (),
+		this->program.get_handle (),
 		angle_uniform,
 		angle + (float)dt
 	);
@@ -219,7 +219,7 @@ Game::update (double dt) {
 	// For each model you render, since the MVP will be different (at least the M part)
 	/*
 	glProgramUniformMatrix4fv(
-		this->program.id (),
+		this->program.get_handle (),
 		mvp_uniform,
 		1,
 		GL_FALSE,
@@ -240,22 +240,22 @@ Game::render () {
 	this->program.use ();
 
 	GLuint aspect_uniform = glGetUniformLocation (
-		this->program.id (), "aspect"
+		this->program.get_handle (), "aspect"
 
 	);
 	glProgramUniform1f (
-		this->program.id (),
+		this->program.get_handle (),
 		aspect_uniform,
 		(float)this->width / (float)this->height
 	);
 
 	for (auto & model : this->mesh_loader.meshes) {
 		GLuint model_matrix = glGetUniformLocation (
-			this->program.id (), "model_matrix"
+			this->program.get_handle (), "model_matrix"
 		);
 		glm::mat4 m = model->transform.to_matrix ();
 		glProgramUniformMatrix4fv (
-			this->program.id (),
+			this->program.get_handle (),
 			model_matrix,
 			1,
 			GL_FALSE,

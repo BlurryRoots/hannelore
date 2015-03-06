@@ -1,116 +1,127 @@
 
 #include <ShaderProgram.h>
 
-void ShaderProgram::init(Shader vs, Shader fs) {
-  GLuint programId = 0;
-  bool shadersAttached = false;
-
-    if (!vs.valid() || !fs.valid()) {
-    	std::cout << "shader kaputt" << std::endl;
+void
+ShaderProgram::init (Shader vs, Shader fs) {
+	if (! vs.is_valid () || !fs.is_valid ()) {
+		std::cout << "shader kaputt" << std::endl;
 		exit (1);
-    }
+	}
 
-    programId = glCreateProgram();
-    glAttachShader(programId, vs.shaderId());
-    glAttachShader(programId, fs.shaderId());
-    shadersAttached = true;
+	this->handle = glCreateProgram ();
+	glAttachShader (this->handle, vs.get_handle ());
+	glAttachShader (this->handle, fs.get_handle ());
 
-    glLinkProgram(programId);
+	glLinkProgram (this->handle);
 
-    GLint linkedOK = false;
-    glGetProgramiv(programId, GL_LINK_STATUS, &linkedOK);
-    if (!linkedOK) {
-      GLint logSize;
-      glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logSize);
-      char* logMessage = new char[logSize];
-      glGetProgramInfoLog(programId, logSize, NULL, logMessage);
-      string logString(logMessage);
-      delete[] logMessage;
-      std::cout << logString << std::endl;
-      exit (1);
-    }
+	GLint no_error = 0;
+	glGetProgramiv (this->handle, GL_LINK_STATUS, & no_error);
+	if (! no_error) {
+		GLint logSize;
+		glGetProgramiv (this->handle, GL_INFO_LOG_LENGTH, &logSize);
 
-    glDetachShader(programId, vs.shaderId());
-    glDetachShader(programId, fs.shaderId());
+		char* logMessage = new char[logSize];
+		glGetProgramInfoLog(this->handle, logSize, NULL, logMessage);
 
-    _program = programId;
+		std::string logString(logMessage);
+		delete[] logMessage;
+
+		std::cout << logString << std::endl;
+		exit (1);
+	}
+
+	glDetachShader (this->handle, vs.get_handle ());
+	glDetachShader (this->handle, fs.get_handle ());
+
 }
 
-ShaderProgram::ShaderProgram(Shader vs, Shader fs){
+ShaderProgram::ShaderProgram (Shader vs, Shader fs){
 	init(vs, fs);
 }
 
-ShaderProgram::ShaderProgram(const char* vsFileName, const char* fsFileName) {
-  Shader vs(vsFileName, GL_VERTEX_SHADER);
-  Shader fs(fsFileName, GL_FRAGMENT_SHADER);
+ShaderProgram::ShaderProgram (const char* vsFileName, const char* fsFileName) {
+	Shader vs (vsFileName, GL_VERTEX_SHADER);
+	Shader fs (fsFileName, GL_FRAGMENT_SHADER);
 
-  init(vs, fs);
+	init (vs, fs);
 
-  vs.destroy();
-  fs.destroy();
+	vs.dispose ();
+	fs.dispose ();
 }
 
-bool ShaderProgram::valid() const {
-  return glIsProgram(_program) == GL_TRUE;
+bool
+ShaderProgram::is_valid () const {
+	return GL_TRUE == glIsProgram (this->handle);
 }
 
-bool ShaderProgram::use() const {
-  if (valid()) {
-    glUseProgram(_program);
-    return true;
-  }
+bool
+ShaderProgram::use () const {
+	if (this->is_valid ()) {
+		glUseProgram (this->handle);
+		return true;
+	}
 
-  return false;
+	return false;
 }
 
-void ShaderProgram::destroy() {
-  if (valid()) {
-    glDeleteProgram(_program);
-    _attributeNames.clear();
-    _uniformNames.clear();
-  }
+void
+ShaderProgram::dispose () {
+	glDeleteProgram (this->handle);
 }
 
-GLuint ShaderProgram::id () {
-	return _program;
+GLuint
+ShaderProgram::get_handle () {
+	return this->handle;
 }
 
-GLint ShaderProgram::getAttribute(string attributeName) {
-  try {
-    return _attributeNames.at(attributeName);
-  }
-  catch (out_of_range e) {
-    int a = glGetAttribLocation(_program, attributeName.c_str());
-    if (a == -1) {
-      return -1;
-    }
-    else {
-      _attributeNames[attributeName] = a;
-      return a;
-    }
-  }
+GLfloat
+ShaderProgram::get_uniform_f (std::string name) {
+	int uid = glGetUniformLocation (this->handle, name.c_str ());
+	GLfloat value;
+	glGetUniformfv (
+		this->handle,
+		uid,
+		& value
+	);
+
+	return value;
 }
 
-GLint ShaderProgram::getUniform(string uniformName) {
-  try {
-    return _uniformNames.at(uniformName);
-  }
-  catch (out_of_range e) {
-    int u = glGetUniformLocation(_program, uniformName.c_str());
-    if (u == -1) {
-      return -1;
-    }
-    else {
-      _uniformNames[uniformName] = u;
-      return u;
-    }
-  }
+GLint
+ShaderProgram::get_uniform_i (std::string name) {
+	int uid = glGetUniformLocation (this->handle, name.c_str ());
+	GLint value;
+	glGetUniformiv (
+		this->handle,
+		uid,
+		& value
+	);
+
+	return value;
 }
 
-bool ShaderProgram::hasAttribute(string attributeName){
-  return getAttribute(attributeName) != -1;
+GLuint
+ShaderProgram::get_uniform_ui (std::string name) {
+	int uid = glGetUniformLocation (this->handle, name.c_str ());
+	GLuint value;
+	glGetUniformuiv (
+		this->handle,
+		uid,
+		& value
+	);
+
+	return value;
 }
 
-bool ShaderProgram::hasUniform(string uniformName) {
-  return getUniform(uniformName) != -1;
+GLdouble
+ShaderProgram::get_uniform_d (std::string name) {
+	int uid = glGetUniformLocation (this->handle, name.c_str ());
+	GLdouble value;
+	glGetUniformdv (
+		this->handle,
+		uid,
+		& value
+	);
+
+	return value;
 }

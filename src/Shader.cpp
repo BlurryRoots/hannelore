@@ -1,7 +1,5 @@
 #include <Shader.h>
 
-using namespace std;
-
 /**
 * Constructs a new shader by loading it from disk.
 * The constructor will automatically compile the GLSL shader.
@@ -12,21 +10,23 @@ using namespace std;
 Shader::Shader (const char* fileName, GLenum type)
 : _type (type) {
 	GLuint shaderId = 0;
-	ifstream shaderFile(fileName, std::ios::in);
+	std::ifstream shaderFile(fileName, std::ios::in);
 	if (! shaderFile.is_open()) {
 		std::cout << "cannot open " << fileName << std::endl;
 		exit (1);
 	}
 
-	string shaderText, line;
+	std::string shaderText, line;
     while (getline (shaderFile, line)) {
     	shaderText += "\n" + line;
     }
     shaderFile.close();
 
-	const char* shaderCString = shaderText.c_str();
+    const char * src[] = {
+    	(const char *)shaderText.c_str ()
+    };
 	shaderId = glCreateShader (_type);
-	glShaderSource(shaderId, 1, &shaderCString, NULL);
+	glShaderSource(shaderId, 1, src, NULL);
 	glCompileShader(shaderId);
 	GLint compiledOK = false;
 	glGetShaderiv(shaderId, GL_COMPILE_STATUS, &compiledOK);
@@ -35,7 +35,7 @@ Shader::Shader (const char* fileName, GLenum type)
 		glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
 		char* logMessage = new char[logSize];
 		glGetShaderInfoLog(shaderId, logSize, NULL, logMessage);
-		string logString(logMessage);
+		std::string logString(logMessage);
 		delete[] logMessage;
 		//throw GLSLError(logString);
 		std::cout << logString << std::endl;
@@ -52,7 +52,7 @@ Shader::Shader (const char* fileName, GLenum type)
 * @return whether the shader is available for use.
 */
 bool
-Shader::valid () const {
+Shader::is_valid () const {
 	return glIsShader (_shader);
 }
 
@@ -60,8 +60,8 @@ Shader::valid () const {
 * Tells OpenGL to mark the shader for deletion.
 */
 void
-Shader::destroy () {
-	if (valid ()) {
+Shader::dispose () {
+	if (is_valid ()) {
 		glDeleteShader (_shader);
 	}
 }
@@ -71,6 +71,6 @@ Shader::destroy () {
 * @return the OpenGL shader identifier
 */
 GLuint
-Shader::shaderId () const {
+Shader::get_handle () const {
 	return _shader;
 }
