@@ -1,6 +1,7 @@
 #ifndef __MESH__
 #define __MESH__
 
+#include <Guid.h>
 #include <Transform.h>
 
 struct Vertex {
@@ -15,6 +16,8 @@ struct Color {
 class Mesh {
 
 private:
+	Guid guid;
+
 	GLuint vertexbuffer;
 	std::vector<Vertex> vertices;
 
@@ -41,11 +44,13 @@ public:
 	Transform transform;
 
 	Mesh (
+		Guid guid,
 		std::vector<Vertex> vertices,
 		std::vector<Color> colors,
 		std::vector<GLuint> indices
 	)
-	: 	vertexbuffer (0), vertices (vertices),
+	: 	guid (guid),
+		vertexbuffer (0), vertices (vertices),
 		colorbuffer (0), colors (colors),
 		indexbuffer (0), indices (indices) {
 			glGenBuffers (1, & vertexbuffer);

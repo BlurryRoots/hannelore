@@ -32,12 +32,29 @@ include_directories (lib/glm)
 # app specific includes
 include_directories (inc)
 
+# guid library
+set (GUID_LIB "")
+# check platform
+if (${APPLE})
+	## if on mac
+	add_definitions (-DGUID_CFUUID)
+	list (APPEND CMAKE_CXX_FLAGS "-framework CoreFoundation")
+elseif (${WIN32})
+	## if on windows
+	add_definitions (-DGUID_WINDOWS)
+elseif (${UNIX})
+	## needs uuid-dev package if on ubuntu linux
+	add_definitions (-DGUID_LIBUUID)
+	set (GUID_LIB "uuid")
+else ()
+	message (FATAL_ERROR "Platform not supported!")
+endif ()
 
 # executables
 set (shader_path res/shaders)
 #file (COPY ${shader_path} DESTINATION '${EXECUTABLE_OUTPUT_PATH}')
 add_executable (main ${source_files} ${shader_files})
-target_link_libraries (main glfw ${GLFW_LIBRARIES} libglew_static)
+target_link_libraries (main glfw ${GLFW_LIBRARIES} libglew_static ${GUID_LIB})
 
 # command to copy resources when using default target
 add_custom_command (TARGET main PRE_BUILD

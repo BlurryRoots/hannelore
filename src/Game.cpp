@@ -1,8 +1,10 @@
 
 #include <Game.h>
 
+#include <Guid.h>
+
 static Mesh
-create_square_mesh () {
+create_square_mesh (Guid guid) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
@@ -35,11 +37,11 @@ create_square_mesh () {
 	i.push_back (1); i.push_back (2); i.push_back (0);
 	i.push_back (2); i.push_back (0); i.push_back (3);
 
-	return Mesh (v, c, i);
+	return Mesh (guid, v, c, i);
 }
 
 static Mesh
-create_cube_mesh () {
+create_cube_mesh (Guid guid) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
@@ -112,11 +114,11 @@ create_cube_mesh () {
 	i.push_back (1); i.push_back (5); i.push_back (6);
 	i.push_back (6); i.push_back (2); i.push_back (1);
 
-	return Mesh (v, c, i);
+	return Mesh (guid, v, c, i);
 }
 
 static Mesh
-create_triangle_mesh () {
+create_triangle_mesh (Guid guid) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
@@ -142,13 +144,19 @@ create_triangle_mesh () {
 	std::vector<GLuint> i;
 	i.push_back (1); i.push_back (2); i.push_back (0);
 
-	return Mesh (v, c, i);
+	std::cout << "Trinagle with guid " << guid << std::endl;
+	return Mesh (guid, v, c, i);
 }
 
 Game::Game ()
 	: program ("shaders/basic.vert", "shaders/basic.frag") {
-	this->models.push_back (create_cube_mesh ());
-	//this->models.push_back (create_triangle_mesh ());
+	GuidGenerator generator;
+
+	this->models.push_back (create_cube_mesh (generator.newGuid ()));
+	this->models.back ().transform.translate (glm::vec3 (0, 1, 0));
+
+	this->models.push_back (create_triangle_mesh (generator.newGuid ()));
+	this->models.back ().transform.translate (glm::vec3 (0, -1, 0));
 
 	for (auto & model : this->models) {
 		model.upload ();
@@ -192,8 +200,10 @@ Game::update (double dt) {
 	}
 
 	// rotate model
+	float yi = 0;
 	for (auto & model : this->models) {
 		model.transform.rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
+		++yi;
 	}
 
 	GLuint angle_uniform = glGetUniformLocation (
