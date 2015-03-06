@@ -34,7 +34,7 @@ public:
 	}
 
 	std::string
-	read () {
+	to_string () {
 		this->input_stream.read (& this->contents[0], contents.size());
 
 		return this->contents;

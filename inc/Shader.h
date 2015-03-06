@@ -16,18 +16,19 @@
 */
 class Shader {
 private:
-	GLuint _shader;
-	GLenum _type;
+	GLuint handle;
+	GLenum type;
+
+	bool
+	has_errors (std::string & error_message);
 
 public:
 	/**
 	* Constructs a new shader by loading it from disk.
 	* The constructor will automatically compile the GLSL shader.
-	* @param fileName the path to the GLSL shader text file
-	* @throws ifstream::failure if the shader text file could not be read
-	* @throws GLSLError if there was a GLSL compilation error
+	* @param file_name the path to the GLSL shader text file
 	*/
-	Shader (const char* fileName, GLenum type);
+	Shader (std::string file_name, GLenum type);
 
 	/**
 	* Indicates whether the shader is available for use.

@@ -1,47 +1,55 @@
 #include <Shader.h>
 
+#include <FileReader.h>
+
+bool
+Shader::has_errors (std::string & error_message) {
+	GLint compiled = 0;
+	glGetShaderiv (this->handle, GL_COMPILE_STATUS, & compiled);
+
+	bool status = false;
+	if (GL_FALSE == compiled) {
+		GLint logSize;
+		glGetShaderiv (this->handle, GL_INFO_LOG_LENGTH, &logSize);
+
+		{ char logMessage[logSize];
+			glGetShaderInfoLog (this->handle, logSize, NULL, logMessage);
+			error_message = (logMessage);
+		}
+
+		status = true;
+	}
+
+	return status;
+}
+
 /**
 * Constructs a new shader by loading it from disk.
 * The constructor will automatically compile the GLSL shader.
-* @param fileName the path to the GLSL shader text file
-* @throws ifstream::failure if the shader text file could not be read
-* @throws GLSLError if there was a GLSL compilation error
+* @param file_name the path to the GLSL shader text file
 */
-Shader::Shader (const char* fileName, GLenum type)
-: _type (type) {
-	GLuint shaderId = 0;
-	std::ifstream shaderFile(fileName, std::ios::in);
-	if (! shaderFile.is_open()) {
-		std::cout << "cannot open " << fileName << std::endl;
-		exit (1);
-	}
+Shader::Shader (std::string file_name, GLenum type)
+:	handle (0),
+	type (type) {
 
-	std::string shaderText, line;
-    while (getline (shaderFile, line)) {
-    	shaderText += "\n" + line;
-    }
-    shaderFile.close();
+	this->handle = glCreateShader (type);
 
-    const char * src[] = {
-    	(const char *)shaderText.c_str ()
-    };
-	shaderId = glCreateShader (_type);
-	glShaderSource(shaderId, 1, src, NULL);
-	glCompileShader(shaderId);
-	GLint compiledOK = false;
-	glGetShaderiv(shaderId, GL_COMPILE_STATUS, &compiledOK);
-	if (!compiledOK) {
-		GLint logSize;
-		glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
-		char* logMessage = new char[logSize];
-		glGetShaderInfoLog(shaderId, logSize, NULL, logMessage);
-		std::string logString(logMessage);
-		delete[] logMessage;
-		//throw GLSLError(logString);
-		std::cout << logString << std::endl;
-		exit (1);
+	const char * src_lines[] = {
+		(const char *)FileReader (file_name).to_string ().c_str ()
+	};
+	glShaderSource (
+		this->handle,
+		sizeof (src_lines) / sizeof (src_lines[0]),
+		src_lines,
+		NULL
+	);
+
+	glCompileShader (this->handle);
+
+	std::string msg;
+	if (this->has_errors (msg)) {
+		std::cout << "Error in shader:\n" << msg << std::endl;
 	}
-	_shader = shaderId;
 }
 
 /**
@@ -53,7 +61,7 @@ Shader::Shader (const char* fileName, GLenum type)
 */
 bool
 Shader::is_valid () const {
-	return glIsShader (_shader);
+	return glIsShader (this->handle);
 }
 
 /**
@@ -62,7 +70,7 @@ Shader::is_valid () const {
 void
 Shader::dispose () {
 	if (is_valid ()) {
-		glDeleteShader (_shader);
+		glDeleteShader (this->handle);
 	}
 }
 
@@ -72,5 +80,5 @@ Shader::dispose () {
 */
 GLuint
 Shader::get_handle () const {
-	return _shader;
+	return this->handle;
 }
