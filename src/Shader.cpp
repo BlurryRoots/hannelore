@@ -2,6 +2,9 @@
 
 #include <FileReader.h>
 
+/*
+* Checks the shader source for errors.
+*/
 bool
 Shader::has_errors (std::string & error_message) {
 	GLint compiled = 0;
@@ -24,9 +27,10 @@ Shader::has_errors (std::string & error_message) {
 }
 
 /**
-* Constructs a new shader by loading it from disk.
+* Constructs a new shader by loading it from disk via FileReader.
 * The constructor will automatically compile the GLSL shader.
 * @param file_name the path to the GLSL shader text file
+* @param type The shader type (eg. vertex, fragment, ...)
 */
 Shader::Shader (std::string file_name, GLenum type)
 :	handle (0),
@@ -69,7 +73,7 @@ Shader::is_valid () const {
 */
 void
 Shader::dispose () {
-	if (is_valid ()) {
+	if (this->is_valid ()) {
 		glDeleteShader (this->handle);
 	}
 }

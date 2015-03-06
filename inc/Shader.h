@@ -15,6 +15,7 @@
 * A GLSL shader loaded from disk.
 */
 class Shader {
+
 private:
 	GLuint handle;
 	GLenum type;
@@ -52,6 +53,7 @@ public:
 	*/
 	GLuint
 	get_handle () const;
+
 };
 
 #endif
