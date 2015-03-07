@@ -20,12 +20,6 @@ public:
 			throw (errno);
 		}
 
-		// move file pointer to end of file
-		this->input_stream.seekg (0, std::ios::end);
-		// read the file size by counting the pointer positions
-		this->contents.resize (this->input_stream.tellg ());
-		// reset the file pointer
-		this->input_stream.seekg (0, std::ios::beg);
 	}
 
 	virtual
@@ -35,9 +29,23 @@ public:
 
 	std::string
 	to_string () {
-		this->input_stream.read (& this->contents[0], contents.size());
+		// move file pointer to end of file
+		this->input_stream.seekg (0, std::ios::end);
+		// read the file size by counting the pointer positions
+		size_t length = this->input_stream.tellg ();
+		// reset the file pointer
+		this->input_stream.seekg (0, std::ios::beg);
+		// create buffer to read in
+		char buffer[length + 1];
+		// read character until EOF
+		this->input_stream.read (buffer, length);
+		// terminate string
+		buffer[length] = '\0';
+		// reset the file pointer to be reusable
+		this->input_stream.seekg (0, std::ios::beg);
 
-		return this->contents;
+		// create a string object
+		return std::string (buffer);
 	}
 
 };
