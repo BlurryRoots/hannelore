@@ -1,6 +1,7 @@
 #include <Shader.h>
 
 #include <FileReader.h>
+#include <cassert>
 
 /*
 * Checks the shader source for errors.
@@ -32,14 +33,13 @@ Shader::has_errors (std::string & error_message) {
 * @param file_name the path to the GLSL shader text file
 * @param type The shader type (eg. vertex, fragment, ...)
 */
-Shader::Shader (std::string file_name, GLenum type)
+Shader::Shader (std::string source_code, GLenum type)
 :	handle (0),
 	type (type) {
-
 	this->handle = glCreateShader (type);
 
 	const char * src_lines[] = {
-		(const char *)FileReader (file_name).to_string ().c_str ()
+		(const char *)source_code.c_str ()
 	};
 	glShaderSource (
 		this->handle,

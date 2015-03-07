@@ -2,6 +2,7 @@
 #include <Game.h>
 
 #include <Guid.h>
+#include <FileReader.h>
 
 Mesh *
 Game::create_square_mesh () {
@@ -147,8 +148,13 @@ Game::create_triangle_mesh () {
 	return this->mesh_loader.load (v, c, i);
 }
 
-Game::Game ()
-	: program ("shaders/basic.vert", "shaders/basic.frag") {
+Game::Game () {
+	this->program = ShaderProgramBuilder ()
+		.add_shader (VertexShader (FileReader ("shaders/basic.vert").to_string ()))
+		.add_shader (FragmentShader (FileReader ("shaders/basic.frag").to_string ()))
+		.link ()
+		;
+
 	Mesh * m1 = this->create_cube_mesh ();
 	m1->transform.translate (glm::vec3 (0, 1, 0));
 

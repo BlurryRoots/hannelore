@@ -23,13 +23,15 @@ private:
 	bool
 	has_errors (std::string & error_message);
 
-public:
+protected:
 	/**
 	* Constructs a new shader by loading it from disk.
 	* The constructor will automatically compile the GLSL shader.
 	* @param file_name the path to the GLSL shader text file
 	*/
 	Shader (std::string file_name, GLenum type);
+
+public:
 
 	/**
 	* Indicates whether the shader is available for use.
