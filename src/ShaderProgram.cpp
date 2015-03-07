@@ -2,17 +2,17 @@
 #include <ShaderProgram.h>
 
 void
-ShaderProgram::use () const {
+ShaderProgram::use (void) const {
 	glUseProgram (this->handle);
 }
 
 void
-ShaderProgram::dispose () {
+ShaderProgram::dispose (void) {
 	glDeleteProgram (this->handle);
 }
 
 GLuint
-ShaderProgram::get_handle () {
+ShaderProgram::get_handle (void) {
 	return this->handle;
 }
 
@@ -129,14 +129,14 @@ ShaderProgramBuilder::get_info_log (ShaderProgram program) {
 	return std::string (log_buffer);
 }
 
-ShaderProgramBuilder::ShaderProgramBuilder () {
+ShaderProgramBuilder::ShaderProgramBuilder (void) {
 	this->program.handle = glCreateProgram ();
 	if (GL_FALSE == glIsProgram (this->program.handle)) {
 		throw std::string ("Could not create new program!");
 	}
 }
 
-ShaderProgramBuilder::~ShaderProgramBuilder () {
+ShaderProgramBuilder::~ShaderProgramBuilder (void) {
 }
 
 ShaderProgramBuilder &
@@ -156,7 +156,7 @@ ShaderProgramBuilder::add_shader (FragmentShader fs) {
 }
 
 ShaderProgram
-ShaderProgramBuilder::link () {
+ShaderProgramBuilder::link (void) {
 	if (! this->has_vert) {
 		throw std::string ("No vertex shader!");
 	}

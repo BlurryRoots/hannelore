@@ -5,7 +5,7 @@
 #include <FileReader.h>
 
 Mesh *
-TestGame::create_square_mesh () {
+TestGame::create_square_mesh (void) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
@@ -42,7 +42,7 @@ TestGame::create_square_mesh () {
 }
 
 Mesh *
-TestGame::create_cube_mesh () {
+TestGame::create_cube_mesh (void) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
@@ -119,7 +119,7 @@ TestGame::create_cube_mesh () {
 }
 
 Mesh *
-TestGame::create_triangle_mesh () {
+TestGame::create_triangle_mesh (void) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
@@ -148,7 +148,7 @@ TestGame::create_triangle_mesh () {
 	return this->mesh_loader.load (v, c, i);
 }
 
-TestGame::TestGame () {
+TestGame::TestGame (void) {
 	this->program = ShaderProgramBuilder ()
 		.add_shader (VertexShader (FileReader ("shaders/basic.vert").to_string ()))
 		.add_shader (FragmentShader (FileReader ("shaders/basic.frag").to_string ()))
@@ -167,11 +167,11 @@ TestGame::TestGame () {
 	this->is_initialized = false;
 }
 
-TestGame::~TestGame () {
+TestGame::~TestGame (void) {
 }
 
 void
-TestGame::dispose () {
+TestGame::dispose (void) {
 	this->program.dispose ();
 	this->mesh_loader.dispose_all ();
 }
@@ -236,7 +236,7 @@ TestGame::update (double dt) {
 }
 
 void
-TestGame::render () {
+TestGame::render (void) {
 	glEnable (GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc (GL_LESS);
@@ -321,17 +321,17 @@ TestGame::on_cursor_position (double xpos, double ypos) {
 }
 
 bool
-TestGame::running () {
+TestGame::running (void) {
 	return this->is_running;
 }
 
 void
-TestGame::on_cursor_enter () {
+TestGame::on_cursor_enter (void) {
 
 }
 
 void
-TestGame::on_cursor_leave () {
+TestGame::on_cursor_leave (void) {
 
 }
 
@@ -347,12 +347,12 @@ TestGame::on_scroll (double xoffset, double yoffset) {
 }
 
 void
-TestGame::on_quit () {
+TestGame::on_quit (void) {
 	std::cout << "F you guys! I'm oudda here!" << std::endl;
 	this->dispose ();
 }
 
 void
-TestGame::quit () {
+TestGame::quit (void) {
 	this->is_running = false;
 }

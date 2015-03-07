@@ -5,7 +5,7 @@ class IResource {
 
 public:
 	virtual
-	~IResource () {}
+	~IResource (void) {}
 
 };
 

@@ -42,7 +42,8 @@ public:
 		indexbuffer (0), indices (indices) {
 	}
 
-	virtual ~Mesh () {}
+	virtual
+	~Mesh (void) {}
 
 };
 

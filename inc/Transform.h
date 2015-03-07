@@ -19,16 +19,15 @@ private:
 	glm::vec3 size;
 
 public:
-	Transform ()
+	Transform (void)
 	: 	rotation (0.0f),
 		position (0.0f),
 		size (1.0f) {
 
 	}
 
-	virtual ~Transform () {
-
-	}
+	virtual
+	~Transform (void) {}
 
 	void
 	rotate (glm::vec3 v) {
@@ -46,7 +45,7 @@ public:
 	}
 
 	glm::mat4
-	to_matrix () {
+	to_matrix (void) {
 		return glm::mat4 (1)
 			* glm::translate (glm::mat4 (1), this->position)
 			* glm::rotate (glm::mat4 (1), this->rotation[0], glm::vec3 (1, 0, 0))

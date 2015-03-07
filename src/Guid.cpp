@@ -123,7 +123,7 @@ Guid::Guid (const std::string & fromString) {
 }
 
 // create empty guid
-Guid::Guid () {
+Guid::Guid (void) {
 	_bytes = std::vector<unsigned char> (16, 0);
 }
 

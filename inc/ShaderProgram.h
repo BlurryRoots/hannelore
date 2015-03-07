@@ -23,13 +23,13 @@ private:
 
 public:
 	void
-	use () const;
+	use (void) const;
 
 	void
-	dispose ();
+	dispose (void);
 
 	GLuint
-	get_handle ();
+	get_handle (void);
 
 	GLfloat
 	get_uniform_f (std::string name);
@@ -124,10 +124,10 @@ private:
 //    params returns a symbolic constant indicating the primitive type that will be output by the geometry shader contained in program.
 
 public:
-	ShaderProgramBuilder ();
+	ShaderProgramBuilder (void);
 
 	virtual
-	~ShaderProgramBuilder ();
+	~ShaderProgramBuilder (void);
 
 	ShaderProgramBuilder &
 	add_shader (VertexShader vs);
@@ -136,7 +136,7 @@ public:
 	add_shader (FragmentShader fs);
 
 	ShaderProgram
-	link ();
+	link (void);
 
 };
 

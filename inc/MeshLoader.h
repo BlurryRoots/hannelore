@@ -13,10 +13,10 @@ private:
 public:
 	std::vector<Mesh *> meshes;
 
-	MeshLoader () {}
+	MeshLoader (void) {}
 
 	virtual
-	~MeshLoader () {}
+	~MeshLoader (void) {}
 
 	Mesh *
 	load (
@@ -47,7 +47,7 @@ public:
 	}
 
 	void
-	dispose_all () {
+	dispose_all (void) {
 		while (! this->meshes.empty ()) {
 			Mesh * mesh = this->meshes.back ();
 			this->meshes.pop_back ();

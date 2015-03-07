@@ -23,12 +23,12 @@ public:
 	}
 
 	virtual
-	~FileReader () {
+	~FileReader (void) {
 		this->input_stream.close ();
 	}
 
 	std::string
-	to_string () {
+	to_string (void) {
 		// move file pointer to end of file
 		this->input_stream.seekg (0, std::ios::end);
 		// read the file size by counting the pointer positions

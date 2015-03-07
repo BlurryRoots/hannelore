@@ -52,27 +52,27 @@ private:
 	MeshRenderer mesh_renderer;
 
 	Mesh *
-	create_square_mesh ();
+	create_square_mesh (void);
 
 	Mesh *
-	create_cube_mesh ();
+	create_cube_mesh (void);
 
 	Mesh *
-	create_triangle_mesh ();
+	create_triangle_mesh (void);
 
 public:
-	TestGame ();
+	TestGame (void);
 
 	virtual
-	~TestGame ();
+	~TestGame (void);
 
-	void dispose ();
+	void dispose (void);
 
 	void
 	update (double dt);
 
 	void
-	render ();
+	render (void);
 
 	void
 	on_key (int key, int scancode, int action, int mods);
@@ -84,13 +84,13 @@ public:
 	on_cursor_position (double xpos, double ypos);
 
 	bool
-	running ();
+	running (void);
 
 	void
-	on_cursor_enter ();
+	on_cursor_enter (void);
 
 	void
-	on_cursor_leave ();
+	on_cursor_leave (void);
 
 	void
 	on_mouse_button (int button, int action, int mods);
@@ -99,10 +99,10 @@ public:
 	on_scroll (double xoffset, double yoffset);
 
 	void
-	on_quit ();
+	on_quit (void);
 
 	void
-	quit ();
+	quit (void);
 
 };
 

@@ -64,7 +64,7 @@ Shader::Shader (std::string source_code, GLenum type)
 * @return whether the shader is available for use.
 */
 bool
-Shader::is_valid () const {
+Shader::is_valid (void) const {
 	return glIsShader (this->handle);
 }
 
@@ -72,7 +72,7 @@ Shader::is_valid () const {
 * Tells OpenGL to mark the shader for deletion.
 */
 void
-Shader::dispose () {
+Shader::dispose (void) {
 	if (this->is_valid ()) {
 		glDeleteShader (this->handle);
 	}
@@ -83,6 +83,6 @@ Shader::dispose () {
 * @return the OpenGL shader identifier
 */
 GLuint
-Shader::get_handle () const {
+Shader::get_handle (void) const {
 	return this->handle;
 }

@@ -3,16 +3,16 @@
 
 struct IGame {
 	virtual
-	~IGame () {}
+	~IGame (void) {}
 
 	virtual void
-	dispose () = 0;
+	dispose (void) = 0;
 
 	virtual void
 	update (double dt) = 0;
 
 	virtual void
-	render () = 0;
+	render (void) = 0;
 
 	virtual void
 	on_key (int key, int scancode, int action, int mods) = 0;
@@ -24,13 +24,13 @@ struct IGame {
 	on_cursor_position (double xpos, double ypos) = 0;
 
 	virtual bool
-	running () = 0;
+	running (void) = 0;
 
 	virtual void
-	on_cursor_enter () = 0;
+	on_cursor_enter (void) = 0;
 
 	virtual void
-	on_cursor_leave () = 0;
+	on_cursor_leave (void) = 0;
 
 	virtual void
 	on_mouse_button (int button, int action, int mods) = 0;
@@ -39,10 +39,10 @@ struct IGame {
 	on_scroll (double xoffset, double yoffset) = 0;
 
 	virtual void
-	on_quit () = 0;
+	on_quit (void) = 0;
 
 	virtual void
-	quit () = 0;
+	quit (void) = 0;
 
 };
 

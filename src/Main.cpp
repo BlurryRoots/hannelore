@@ -72,8 +72,8 @@ on_scroll (GLFWwindow* window, double xoffset, double yoffset) {
 	game->on_scroll (xoffset, yoffset);
 }
 
-int main(void)
-{
+int
+main (void) {
 	GLFWwindow * window;
 	/* Initialize the library */
 	if (! glfwInit ()) {
@@ -88,9 +88,9 @@ int main(void)
 
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow (640, 480, "Hello World", NULL, NULL);
-	if (!window)
-	{
-		glfwTerminate();
+	if (nullptr == window) {
+		glfwTerminate ();
+
 		return false;
 	}
 
@@ -103,6 +103,7 @@ int main(void)
 	/* Extension wrangler initialising */
 	if (GLEW_OK != glew_status) {
 		std::cout << "glew?" << std::endl;
+
 		return false;
 	}
 
@@ -113,9 +114,6 @@ int main(void)
 	glfwSetCursorEnterCallback (window, on_cursor_enter);
 	glfwSetMouseButtonCallback (window, on_mouse_button);
 	glfwSetScrollCallback (window, on_scroll);
-
-	// set cursor to be screen centered
-	//
 
 	// init the game
 	game = nullptr;

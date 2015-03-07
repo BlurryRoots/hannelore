@@ -41,20 +41,20 @@ public:
 	* @return whether the shader is available for use.
 	*/
 	bool
-	is_valid () const;
+	is_valid (void) const;
 
 	/**
 	* Tells OpenGL to mark the shader for deletion.
 	*/
 	void
-	dispose ();
+	dispose (void);
 
 	/**
 	* Returns the internal shader identifier used by OpenGL.
 	* @return the OpenGL shader identifier
 	*/
 	GLuint
-	get_handle () const;
+	get_handle (void) const;
 
 };
 

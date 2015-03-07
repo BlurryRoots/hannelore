@@ -81,7 +81,7 @@ private:
 	}
 
 	void
-	draw () {
+	draw (void) {
 		int size;
 		glGetBufferParameteriv (
 			GL_ELEMENT_ARRAY_BUFFER,
@@ -98,7 +98,7 @@ private:
 	}
 
 	void
-	unbind () {
+	unbind (void) {
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glDisableVertexAttribArray (1);
@@ -106,10 +106,10 @@ private:
 	}
 
 public:
-	MeshRenderer () {}
+	MeshRenderer (void) {}
 
 	virtual
-	~MeshRenderer () {}
+	~MeshRenderer (void) {}
 
 	void
 	render (Mesh * mesh) {
