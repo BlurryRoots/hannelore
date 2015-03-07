@@ -47,21 +47,21 @@ public:
 		Guid (const std::string & fromString);
 
 		// create empty guid
-		Guid ();
+		Guid (void);
 
 		// copy constructor
 		Guid (const Guid & other);
 
 		// overload assignment operator
 		Guid &
-		operator= (const Guid & other);
+		operator = (const Guid & other);
 
 		// overload equality and inequality operator
 		bool
-		operator== (const Guid & other) const;
+		operator == (const Guid & other) const;
 
 		bool
-		operator!= (const Guid & other) const;
+		operator != (const Guid & other) const;
 
 private:
 		// actual data
@@ -69,7 +69,7 @@ private:
 
 		// make the << operator a friend so it can access _bytes
 		friend std::ostream &
-		operator<< (std::ostream & s, const Guid &guid);
+		operator << (std::ostream & s, const Guid & guid);
 
 };
 
@@ -83,9 +83,9 @@ private:
 class GuidGenerator {
 
 public:
-	GuidGenerator () {}
+	GuidGenerator (void) {}
 
 	Guid
-	newGuid ();
+	newGuid (void);
 
 };

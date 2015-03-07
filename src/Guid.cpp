@@ -38,7 +38,7 @@ THE SOFTWARE.
 
 // overload << so that it's easy to convert to a string
 std::ostream &
-operator<< (std::ostream & s, const Guid &guid) {
+operator << (std::ostream & s, const Guid &guid) {
 	return s << std::hex << std::setfill ('0')
 		<< std::setw (2) << (int)guid._bytes[0]
 		<< std::setw (2) << (int)guid._bytes[1]
@@ -134,7 +134,7 @@ Guid::Guid (const Guid &other) {
 
 // overload assignment operator
 Guid &
-Guid::operator= (const Guid & other) {
+Guid::operator = (const Guid & other) {
 	_bytes = other._bytes;
 
 	return *this;
@@ -142,20 +142,20 @@ Guid::operator= (const Guid & other) {
 
 // overload equality operator
 bool
-Guid::operator== (const Guid &other) const {
+Guid::operator == (const Guid &other) const {
 	return _bytes == other._bytes;
 }
 
 // overload inequality operator
 bool
-Guid::operator!= (const Guid &other) const {
+Guid::operator != (const Guid &other) const {
 	return !((*this) == other);
 }
 
 // This is the linux friendly implementation, but it could work on other
 // systems that have libuuid available
 #ifdef GUID_LIBUUID
-Guid GuidGenerator::newGuid () {
+Guid GuidGenerator::newGuid (void) {
 	uuid_t id;
 	//uuid_generate (id);
 	uuid_generate_time_safe (id);
@@ -165,7 +165,7 @@ Guid GuidGenerator::newGuid () {
 // this is the mac and ios version
 #elif GUID_CFUUID
 Guid
-GuidGenerator::newGuid () {
+GuidGenerator::newGuid (void) {
 	auto newId = CFUUIDCreate (NULL);
 	auto bytes = CFUUIDGetUUIDBytes (newId);
 	CFRelease (newId);
@@ -194,7 +194,7 @@ GuidGenerator::newGuid () {
 // obviously this is the windows version
 #elif GUID_WINDOWS
 Guid
-GuidGenerator::newGuid () {
+GuidGenerator::newGuid (void) {
 	GUID newId;
 	CoCreateGuid (& newId);
 
