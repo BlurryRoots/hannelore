@@ -20,7 +20,7 @@
 #include <cmath>
 
 // My Stuff
-#include <Game.h>
+#include <TestGame.h>
 
 //
 IGame * game;
@@ -120,7 +120,7 @@ int main(void)
 	// init the game
 	game = nullptr;
 	try {
-		game = new Game ();
+		game = new TestGame ();
 
 		/* Loop until the user closes the window */
 		double lastTime = glfwGetTime (), deltaTime = 0;

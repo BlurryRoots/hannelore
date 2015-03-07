@@ -1,11 +1,11 @@
 
-#include <Game.h>
+#include <TestGame.h>
 
 #include <Guid.h>
 #include <FileReader.h>
 
 Mesh *
-Game::create_square_mesh () {
+TestGame::create_square_mesh () {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
@@ -42,7 +42,7 @@ Game::create_square_mesh () {
 }
 
 Mesh *
-Game::create_cube_mesh () {
+TestGame::create_cube_mesh () {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
@@ -119,7 +119,7 @@ Game::create_cube_mesh () {
 }
 
 Mesh *
-Game::create_triangle_mesh () {
+TestGame::create_triangle_mesh () {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
 		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
@@ -148,7 +148,7 @@ Game::create_triangle_mesh () {
 	return this->mesh_loader.load (v, c, i);
 }
 
-Game::Game () {
+TestGame::TestGame () {
 	this->program = ShaderProgramBuilder ()
 		.add_shader (VertexShader (FileReader ("shaders/basic.vert").to_string ()))
 		.add_shader (FragmentShader (FileReader ("shaders/basic.frag").to_string ()))
@@ -167,17 +167,17 @@ Game::Game () {
 	this->is_initialized = false;
 }
 
-Game::~Game () {
+TestGame::~TestGame () {
 }
 
 void
-Game::dispose () {
+TestGame::dispose () {
 	this->program.dispose ();
 	this->mesh_loader.dispose_all ();
 }
 
 void
-Game::update (double dt) {
+TestGame::update (double dt) {
 	if (! this->is_initialized) {
 		this->mouse_center = glm::vec2 (this->width, this->height);
 		this->mouse_position = this->mouse_center;
@@ -236,7 +236,7 @@ Game::update (double dt) {
 }
 
 void
-Game::render () {
+TestGame::render () {
 	glEnable (GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc (GL_LESS);
@@ -273,7 +273,7 @@ Game::render () {
 }
 
 void
-Game::on_key (int key, int scancode, int action, int mods) {
+TestGame::on_key (int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
 		this->quit ();
 	}
@@ -308,7 +308,7 @@ Game::on_key (int key, int scancode, int action, int mods) {
 }
 
 void
-Game::on_framebuffer (int width, int height) {
+TestGame::on_framebuffer (int width, int height) {
 	this->width = width;
 	this->height = height;
 
@@ -316,43 +316,43 @@ Game::on_framebuffer (int width, int height) {
 }
 
 void
-Game::on_cursor_position (double xpos, double ypos) {
+TestGame::on_cursor_position (double xpos, double ypos) {
 	this->mouse_position = glm::vec2 (xpos, ypos);
 }
 
 bool
-Game::running () {
+TestGame::running () {
 	return this->is_running;
 }
 
 void
-Game::on_cursor_enter () {
+TestGame::on_cursor_enter () {
 
 }
 
 void
-Game::on_cursor_leave () {
+TestGame::on_cursor_leave () {
 
 }
 
 void
-Game::on_mouse_button (int button, int action, int mods) {
+TestGame::on_mouse_button (int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 	}
 }
 
 void
-Game::on_scroll (double xoffset, double yoffset) {
+TestGame::on_scroll (double xoffset, double yoffset) {
 	std::cout << "scrolling away! " << xoffset << ":" << yoffset << std::endl;
 }
 
 void
-Game::on_quit () {
+TestGame::on_quit () {
 	std::cout << "F you guys! I'm oudda here!" << std::endl;
 	this->dispose ();
 }
 
 void
-Game::quit () {
+TestGame::quit () {
 	this->is_running = false;
 }

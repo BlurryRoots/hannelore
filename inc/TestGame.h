@@ -30,7 +30,7 @@
 #include <MeshLoader.h>
 #include <MeshRenderer.h>
 
-class Game : public IGame {
+class TestGame : public IGame {
 
 private:
 	bool is_running;
@@ -61,10 +61,10 @@ private:
 	create_triangle_mesh ();
 
 public:
-	Game ();
+	TestGame ();
 
 	virtual
-	~Game ();
+	~TestGame ();
 
 	void dispose ();
 
