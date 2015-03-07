@@ -7,9 +7,9 @@
 * Checks the shader source for errors.
 */
 bool
-Shader::has_errors (std::string & error_message) {
+Shader::has_errors (std::string &error_message) {
 	GLint compiled = 0;
-	glGetShaderiv (this->handle, GL_COMPILE_STATUS, & compiled);
+	glGetShaderiv (this->handle, GL_COMPILE_STATUS, &compiled);
 
 	bool status = false;
 	if (GL_FALSE == compiled) {
@@ -38,7 +38,7 @@ Shader::Shader (std::string source_code, GLenum type)
 	type (type) {
 	this->handle = glCreateShader (type);
 
-	const char * src_lines[] = {
+	const char *src_lines[] = {
 		(const char *)source_code.c_str ()
 	};
 	glShaderSource (

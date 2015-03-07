@@ -21,7 +21,7 @@ private:
 	GLenum type;
 
 	bool
-	has_errors (std::string & error_message);
+	has_errors (std::string &error_message);
 
 protected:
 	/**

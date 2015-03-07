@@ -23,10 +23,10 @@
 #include <TestGame.h>
 
 //
-IGame * game;
+IGame *game;
 
 void
-on_key (GLFWwindow* window, int key, int scancode, int action, int mods) {
+on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 	game->on_key (key, scancode, action, mods);
 
 	if (key == GLFW_KEY_F2
@@ -41,17 +41,17 @@ on_key (GLFWwindow* window, int key, int scancode, int action, int mods) {
 }
 
 void
-on_framebuffer (GLFWwindow* window, int width, int height) {
+on_framebuffer (GLFWwindow *window, int width, int height) {
 	game->on_framebuffer (width, height);
 }
 
 void
-on_cursor_position (GLFWwindow* window, double xpos, double ypos) {
+on_cursor_position (GLFWwindow *window, double xpos, double ypos) {
 	game->on_cursor_position (xpos, ypos);
 }
 
 void
-on_cursor_enter (GLFWwindow* window, int entered) {
+on_cursor_enter (GLFWwindow *window, int entered) {
 	if (entered) {
 		// The cursor entered the client area of the window
 		game->on_cursor_enter ();
@@ -63,18 +63,18 @@ on_cursor_enter (GLFWwindow* window, int entered) {
 }
 
 void
-on_mouse_button (GLFWwindow* window, int button, int action, int mods) {
+on_mouse_button (GLFWwindow *window, int button, int action, int mods) {
 	game->on_mouse_button (button, action, mods);
 }
 
 void
-on_scroll (GLFWwindow* window, double xoffset, double yoffset) {
+on_scroll (GLFWwindow *window, double xoffset, double yoffset) {
 	game->on_scroll (xoffset, yoffset);
 }
 
 int
 main (void) {
-	GLFWwindow * window;
+	GLFWwindow *window;
 	/* Initialize the library */
 	if (! glfwInit ()) {
 		return false;
@@ -121,9 +121,9 @@ main (void) {
 		game = new TestGame ();
 
 		/* Loop until the user closes the window */
-		double lastTime = glfwGetTime (), deltaTime = 0;
+		double lastTime = glfwGetTime ();
 		while (game->running () && ! glfwWindowShouldClose (window)) {
-			deltaTime = glfwGetTime () - lastTime;
+			double deltaTime = glfwGetTime () - lastTime;
 			lastTime = glfwGetTime ();
 
 			game->update (deltaTime);
@@ -138,10 +138,10 @@ main (void) {
 
 		game->on_quit ();
 	}
-	catch (std::string & ex) {
+	catch (std::string &ex) {
 		std::cout << "Cought: " << ex << std::endl;
 	}
-	catch (std::exception & ex) {
+	catch (std::exception &ex) {
 		std::cout << "Cought: " << ex.what () << std::endl;
 	}
 	catch (...) {

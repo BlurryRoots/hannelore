@@ -23,7 +23,7 @@ ShaderProgram::get_uniform_f (std::string name) {
 	glGetUniformfv (
 		this->handle,
 		uid,
-		& value
+		&value
 	);
 
 	return value;
@@ -36,7 +36,7 @@ ShaderProgram::get_uniform_i (std::string name) {
 	glGetUniformiv (
 		this->handle,
 		uid,
-		& value
+		&value
 	);
 
 	return value;
@@ -49,7 +49,7 @@ ShaderProgram::get_uniform_ui (std::string name) {
 	glGetUniformuiv (
 		this->handle,
 		uid,
-		& value
+		&value
 	);
 
 	return value;
@@ -62,7 +62,7 @@ ShaderProgram::get_uniform_d (std::string name) {
 	glGetUniformdv (
 		this->handle,
 		uid,
-		& value
+		&value
 	);
 
 	return value;
@@ -73,7 +73,7 @@ ShaderProgram::get_uniform_d (std::string name) {
 bool
 ShaderProgramBuilder::is_deleted (ShaderProgram program) {
 	GLint value;
-	glGetProgramiv (program.handle, GL_DELETE_STATUS, & value);
+	glGetProgramiv (program.handle, GL_DELETE_STATUS, &value);
 
 	if (GL_TRUE == value) {
 		return true;
@@ -89,7 +89,7 @@ ShaderProgramBuilder::is_deleted (ShaderProgram program) {
 bool
 ShaderProgramBuilder::is_linked (ShaderProgram program) {
 	GLint value;
-	glGetProgramiv (program.handle, GL_LINK_STATUS, & value);
+	glGetProgramiv (program.handle, GL_LINK_STATUS, &value);
 
 	if (GL_TRUE == value) {
 		return true;
@@ -105,7 +105,7 @@ ShaderProgramBuilder::is_linked (ShaderProgram program) {
 bool
 ShaderProgramBuilder::is_validated (ShaderProgram program) {
 	GLint value;
-	glGetProgramiv (program.handle, GL_VALIDATE_STATUS, & value);
+	glGetProgramiv (program.handle, GL_VALIDATE_STATUS, &value);
 
 	if (GL_TRUE == value) {
 		return true;
@@ -121,7 +121,7 @@ ShaderProgramBuilder::is_validated (ShaderProgram program) {
 std::string
 ShaderProgramBuilder::get_info_log (ShaderProgram program) {
 	GLint log_length;
-	glGetProgramiv (program.handle, GL_INFO_LOG_LENGTH, & log_length);
+	glGetProgramiv (program.handle, GL_INFO_LOG_LENGTH, &log_length);
 
 	char log_buffer[log_length];
 	glGetProgramInfoLog(program.handle, log_length, NULL, log_buffer);
@@ -139,7 +139,7 @@ ShaderProgramBuilder::ShaderProgramBuilder (void) {
 ShaderProgramBuilder::~ShaderProgramBuilder (void) {
 }
 
-ShaderProgramBuilder &
+ShaderProgramBuilder&
 ShaderProgramBuilder::add_shader (VertexShader vs) {
 	this->has_vert = true;
 	glAttachShader (this->program.handle, vs.get_handle ());

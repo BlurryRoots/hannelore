@@ -13,10 +13,8 @@ struct Color {
 	GLfloat rgba[4];
 };
 
-class Mesh {
+struct Mesh {
 
-private:
-public:
 	Guid guid;
 
 	GLuint vertexbuffer;
@@ -36,11 +34,10 @@ public:
 		std::vector<Color> colors,
 		std::vector<GLuint> indices
 	)
-	: 	guid (guid),
-		vertexbuffer (0), vertices (vertices),
-		colorbuffer (0), colors (colors),
-		indexbuffer (0), indices (indices) {
-	}
+	: guid (guid)
+	, vertexbuffer (0), vertices (vertices)
+	, colorbuffer (0), colors (colors)
+	, indexbuffer (0), indices (indices) {}
 
 	virtual
 	~Mesh (void) {}

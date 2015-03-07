@@ -20,11 +20,9 @@ private:
 
 public:
 	Transform (void)
-	: 	rotation (0.0f),
-		position (0.0f),
-		size (1.0f) {
-
-	}
+	: rotation (0.0f)
+	, position (0.0f)
+	, size (1.0f) {}
 
 	virtual
 	~Transform (void) {}
@@ -54,6 +52,7 @@ public:
 			* glm::scale (glm::mat4 (1), this->size)
 			;
 	}
+
 };
 
 #endif

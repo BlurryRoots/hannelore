@@ -37,8 +37,8 @@ THE SOFTWARE.
 #endif
 
 // overload << so that it's easy to convert to a string
-std::ostream &
-operator << (std::ostream & s, const Guid &guid) {
+std::ostream&
+operator << (std::ostream &s, const Guid &guid) {
 	return s << std::hex << std::setfill ('0')
 		<< std::setw (2) << (int)guid._bytes[0]
 		<< std::setw (2) << (int)guid._bytes[1]
@@ -68,7 +68,7 @@ Guid::Guid (const std::vector<unsigned char> &bytes) {
 }
 
 // create a guid from array of bytes
-Guid::Guid (const unsigned char * bytes) {
+Guid::Guid (const unsigned char *bytes) {
 	_bytes.assign (bytes, bytes + 16);
 }
 
@@ -97,13 +97,13 @@ hexPairToChar (char a, char b) {
 }
 
 // create a guid from string
-Guid::Guid (const std::string & fromString) {
+Guid::Guid (const std::string &fromString) {
 	_bytes.clear();
 
 	char charOne, charTwo;
 	bool lookingForFirstChar = true;
 
-	for (const char & ch : fromString) {
+	for (const char &ch : fromString) {
 		if (ch == '-') {
 			continue;
 		}
@@ -133,8 +133,8 @@ Guid::Guid (const Guid &other) {
 }
 
 // overload assignment operator
-Guid &
-Guid::operator = (const Guid & other) {
+Guid&
+Guid::operator = (const Guid &other) {
 	_bytes = other._bytes;
 
 	return *this;
@@ -149,13 +149,14 @@ Guid::operator == (const Guid &other) const {
 // overload inequality operator
 bool
 Guid::operator != (const Guid &other) const {
-	return !((*this) == other);
+	return ! (*this == other);
 }
 
 // This is the linux friendly implementation, but it could work on other
 // systems that have libuuid available
 #ifdef GUID_LIBUUID
-Guid GuidGenerator::newGuid (void) {
+Guid
+GuidGenerator::newGuid (void) {
 	uuid_t id;
 	//uuid_generate (id);
 	uuid_generate_time_safe (id);
@@ -196,7 +197,7 @@ GuidGenerator::newGuid (void) {
 Guid
 GuidGenerator::newGuid (void) {
 	GUID newId;
-	CoCreateGuid (& newId);
+	CoCreateGuid (&newId);
 
 	const unsigned char bytes[16] = {
 		(newId.Data1 >> 24) & 0xFF,

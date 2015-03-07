@@ -10,7 +10,7 @@ private:
 	upload_buffer_data (
 		GLuint buffer,
 		GLenum type,
-		const GLvoid * data,
+		const GLvoid *data,
 		GLsizeiptr size
 	) {
 		glBindBuffer (type, buffer);
@@ -19,7 +19,7 @@ private:
 	}
 
 	void
-	upload (Mesh * mesh) {
+	upload (Mesh *mesh) {
 		upload_buffer_data (
 			mesh->vertexbuffer,
 			GL_ARRAY_BUFFER,
@@ -43,7 +43,7 @@ private:
 	}
 
 	void
-	bind (Mesh * mesh) {
+	bind (Mesh *mesh) {
 		// first attribute is the vertex position x,y,z
 		glEnableVertexAttribArray(0);
 		glBindBuffer (GL_ARRAY_BUFFER, mesh->vertexbuffer);
@@ -53,7 +53,7 @@ private:
 		   GL_FLOAT,           // type
 		   GL_FALSE,           // normalized?
 		   sizeof (struct Vertex),    // stride
-		   (GLvoid*)0            // array buffer offset
+		   (GLvoid *)0            // array buffer offset
 		);
 		/* // use this later for uv stuff
 		glVertexAttribPointer(
@@ -74,7 +74,7 @@ private:
 		   GL_FLOAT,           // type
 		   GL_FALSE,           // normalized?
 		   sizeof (struct Color), // stride
-		   (void*)offsetof (struct Color, rgba)  // array buffer offset
+		   (void *)offsetof (struct Color, rgba)  // array buffer offset
 		);
 
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mesh->indexbuffer);
@@ -86,7 +86,7 @@ private:
 		glGetBufferParameteriv (
 			GL_ELEMENT_ARRAY_BUFFER,
 			GL_BUFFER_SIZE,
-			& size
+			&size
 		);
 		if (0 == size) {
 			std::cout << "WTF?" << std::endl;
@@ -112,7 +112,7 @@ public:
 	~MeshRenderer (void) {}
 
 	void
-	render (Mesh * mesh) {
+	render (Mesh *mesh) {
 		this->upload (mesh);
 		this->bind (mesh);
 		this->draw ();
