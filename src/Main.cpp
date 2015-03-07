@@ -118,26 +118,41 @@ int main(void)
 	//
 
 	// init the game
-	game = new Game ();
+	game = nullptr;
+	try {
+		game = new Game ();
 
-	/* Loop until the user closes the window */
-	double lastTime = glfwGetTime (), deltaTime = 0;
-	while (game->running () && ! glfwWindowShouldClose (window)) {
-		deltaTime = glfwGetTime () - lastTime;
-		lastTime = glfwGetTime ();
+		/* Loop until the user closes the window */
+		double lastTime = glfwGetTime (), deltaTime = 0;
+		while (game->running () && ! glfwWindowShouldClose (window)) {
+			deltaTime = glfwGetTime () - lastTime;
+			lastTime = glfwGetTime ();
 
-		game->update (deltaTime);
-		game->render ();
+			game->update (deltaTime);
+			game->render ();
 
-		/* Swap front and back buffers */
-		glfwSwapBuffers (window);
+			/* Swap front and back buffers */
+			glfwSwapBuffers (window);
 
-		/* Poll for and process events */
-		glfwPollEvents ();
+			/* Poll for and process events */
+			glfwPollEvents ();
+		}
+
+		game->on_quit ();
+	}
+	catch (std::string & ex) {
+		std::cout << "Cought: " << ex << std::endl;
+	}
+	catch (std::exception & ex) {
+		std::cout << "Cought: " << ex.what () << std::endl;
+	}
+	catch (...) {
+		std::cout << "Cought unkown exception :(" << std::endl;
 	}
 
-	game->on_quit ();
-	delete game;
+	if (nullptr != game) {
+		delete game;
+	}
 
 	glfwTerminate ();
 
