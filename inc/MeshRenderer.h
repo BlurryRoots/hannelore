@@ -1,7 +1,7 @@
 #ifndef __MESHRENDERER_H__
 #define __MESHRENDERER_H__
 
-#include <Mesh.h>
+#include <MeshData.h>
 
 class MeshRenderer {
 
@@ -19,7 +19,7 @@ private:
 	}
 
 	void
-	upload (Mesh *mesh) {
+	upload (MeshData *mesh) {
 		upload_buffer_data (
 			mesh->vertexbuffer,
 			GL_ARRAY_BUFFER,
@@ -43,7 +43,7 @@ private:
 	}
 
 	void
-	bind (Mesh *mesh) {
+	bind (MeshData *mesh) {
 		// first attribute is the vertex position x,y,z
 		glEnableVertexAttribArray(0);
 		glBindBuffer (GL_ARRAY_BUFFER, mesh->vertexbuffer);
@@ -112,7 +112,7 @@ public:
 	~MeshRenderer (void) {}
 
 	void
-	render (Mesh *mesh) {
+	render (MeshData *mesh) {
 		this->upload (mesh);
 		this->bind (mesh);
 		this->draw ();

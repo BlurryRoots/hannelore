@@ -4,7 +4,7 @@
 #include <Guid.h>
 #include <FileReader.h>
 
-Mesh*
+MeshData*
 TestGame::create_square_mesh (void) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
@@ -41,7 +41,7 @@ TestGame::create_square_mesh (void) {
 	return this->mesh_loader.load (v, c, i);
 }
 
-Mesh*
+MeshData*
 TestGame::create_cube_mesh (void) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
@@ -118,7 +118,7 @@ TestGame::create_cube_mesh (void) {
 	return this->mesh_loader.load (v, c, i);
 }
 
-Mesh*
+MeshData*
 TestGame::create_triangle_mesh (void) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
@@ -155,10 +155,10 @@ TestGame::TestGame (void) {
 		.link ()
 		;
 
-	Mesh *m1 = this->create_cube_mesh ();
+	MeshData *m1 = this->create_cube_mesh ();
 	m1->transform.translate (glm::vec3 (0, 1, 0));
 
-	Mesh *m2 = this->create_triangle_mesh ();
+	MeshData *m2 = this->create_triangle_mesh ();
 	m2->transform.translate (glm::vec3 (0, -1, 0));
 
 	this->camera_speed = 2.0f;

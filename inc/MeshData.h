@@ -1,6 +1,7 @@
-#ifndef __MESH__
-#define __MESH__
+#ifndef __MESHDATA_H__
+#define __MESHDATA_H__
 
+#include <yanecos/IData.h>
 #include <Guid.h>
 #include <Transform.h>
 
@@ -13,7 +14,7 @@ struct Color {
 	GLfloat rgba[4];
 };
 
-struct Mesh {
+struct MeshData : public Yanecos::IData {
 
 	Guid guid;
 
@@ -28,7 +29,7 @@ struct Mesh {
 
 	Transform transform;
 
-	Mesh (
+	MeshData (
 		Guid guid,
 		std::vector<Vertex> vertices,
 		std::vector<Color> colors,
@@ -40,7 +41,7 @@ struct Mesh {
 	, indexbuffer (0), indices (indices) {}
 
 	virtual
-	~Mesh (void) {}
+	~MeshData (void) {}
 
 };
 

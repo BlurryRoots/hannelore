@@ -25,7 +25,7 @@
 #include <IGame.h>
 #include <Shader.h>
 #include <ShaderProgram.h>
-#include <Mesh.h>
+#include <MeshData.h>
 #include <Transform.h>
 #include <MeshLoader.h>
 #include <MeshRenderer.h>
@@ -51,13 +51,13 @@ private:
 	MeshLoader mesh_loader;
 	MeshRenderer mesh_renderer;
 
-	Mesh *
+	MeshData *
 	create_square_mesh (void);
 
-	Mesh *
+	MeshData *
 	create_cube_mesh (void);
 
-	Mesh *
+	MeshData *
 	create_triangle_mesh (void);
 
 public:
