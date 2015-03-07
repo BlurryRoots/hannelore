@@ -22,6 +22,7 @@
 #include <cmath>
 
 //
+#include <IGame.h>
 #include <Shader.h>
 #include <ShaderProgram.h>
 #include <Mesh.h>
@@ -29,7 +30,7 @@
 #include <MeshLoader.h>
 #include <MeshRenderer.h>
 
-class Game {
+class Game : public IGame {
 
 private:
 	bool is_running;
@@ -62,7 +63,8 @@ private:
 public:
 	Game ();
 
-	virtual ~Game ();
+	virtual
+	~Game ();
 
 	void dispose ();
 

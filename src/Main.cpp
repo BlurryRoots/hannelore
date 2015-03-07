@@ -23,7 +23,7 @@
 #include <Game.h>
 
 //
-Game * game;
+IGame * game;
 
 void
 on_key (GLFWwindow* window, int key, int scancode, int action, int mods) {
