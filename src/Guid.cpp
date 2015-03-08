@@ -36,10 +36,16 @@ THE SOFTWARE.
 #include <objbase.h>
 #endif
 
+#include <stdexcept>
+
 // overload << so that it's easy to convert to a string
 std::ostream&
 operator << (std::ostream &s, const Guid &guid) {
-	return s << std::hex << std::setfill ('0')
+	std::ios init (NULL);
+	init.copyfmt (s);
+
+	s
+		<< std::hex << std::setfill ('0')
 		<< std::setw (2) << (int)guid._bytes[0]
 		<< std::setw (2) << (int)guid._bytes[1]
 		<< std::setw (2) << (int)guid._bytes[2]
@@ -60,16 +66,10 @@ operator << (std::ostream &s, const Guid &guid) {
 		<< std::setw (2) << (int)guid._bytes[13]
 		<< std::setw (2) << (int)guid._bytes[14]
 		<< std::setw (2) << (int)guid._bytes[15];
-}
+	// restore default formatting
+    s.copyfmt (init);
 
-// create a guid from vector of bytes
-Guid::Guid (const std::vector<unsigned char> &bytes) {
-	_bytes = bytes;
-}
-
-// create a guid from array of bytes
-Guid::Guid (const unsigned char *bytes) {
-	_bytes.assign (bytes, bytes + 16);
+	return s;
 }
 
 // converts a single hex char to a number (0 - 15)
@@ -96,9 +96,37 @@ hexPairToChar (char a, char b) {
 	return hexDigitToChar (a) * 16 + hexDigitToChar (b);
 }
 
+// create empty guid
+Guid::Guid (void)
+: _bytes (16, 0) {
+	//this->_bytes = std::vector<unsigned char> (16, 0);
+#ifdef __GUID_DEBUG__
+	std::cout << "Guid: Creating empty guid " << *this << std::endl;
+#endif
+}
+
+// create a guid from vector of bytes
+Guid::Guid (const std::vector<unsigned char> &bytes)
+: _bytes (bytes) {
+	//this->_bytes = bytes;
+#ifdef __GUID_DEBUG__
+	std::cout << "Guid: From vector" << std::endl;
+#endif
+}
+
+// create a guid from array of bytes
+Guid::Guid (const unsigned char *bytes)
+: _bytes (16, 0) {
+	this->_bytes.assign (bytes, bytes + 16);
+#ifdef __GUID_DEBUG__
+	std::cout << "Guid: From byte array" << std::endl;
+#endif
+}
+
 // create a guid from string
-Guid::Guid (const std::string &fromString) {
-	_bytes.clear();
+Guid::Guid (const std::string &fromString)
+: _bytes (16, 0) {
+	//this->_bytes.clear();
 
 	char charOne, charTwo;
 	bool lookingForFirstChar = true;
@@ -115,27 +143,34 @@ Guid::Guid (const std::string &fromString) {
 		else {
 			charTwo = ch;
 			auto byte = hexPairToChar (charOne, charTwo);
-			_bytes.push_back (byte);
+			this->_bytes.push_back (byte);
 			lookingForFirstChar = true;
 		}
 	}
-
-}
-
-// create empty guid
-Guid::Guid (void) {
-	_bytes = std::vector<unsigned char> (16, 0);
+#ifdef __GUID_DEBUG__
+	std::cout << "Guid: From string" << std::endl;
+#endif
 }
 
 // copy constructor
-Guid::Guid (const Guid &other) {
-	_bytes = other._bytes;
+Guid::Guid (const Guid &other)
+: _bytes (other._bytes) {
+	//this->_bytes = other._bytes;
+#ifdef __GUID_DEBUG__
+	std::cout << "Guid: Created copy of " << other << " into " << *this << std::endl;
+#endif
+}
+
+Guid::~Guid (void) {
+#ifdef __GUID_DEBUG__
+	std::cout << "Guid: Destroying " << *this << std::endl;
+#endif
 }
 
 // overload assignment operator
 Guid&
 Guid::operator = (const Guid &other) {
-	_bytes = other._bytes;
+	this->_bytes = other._bytes;
 
 	return *this;
 }
@@ -143,13 +178,43 @@ Guid::operator = (const Guid &other) {
 // overload equality operator
 bool
 Guid::operator == (const Guid &other) const {
-	return _bytes == other._bytes;
+	return this->_bytes == other._bytes;
 }
 
 // overload inequality operator
 bool
 Guid::operator != (const Guid &other) const {
-	return ! (*this == other);
+	return ! (this->_bytes == other._bytes);
+}
+
+bool
+Guid::operator < (const Guid &other) const {
+	static size_t n = sizeof (this->_bytes);
+#ifdef __GUID_DEBUG__
+	std::cout << "Guid: checking less for " << *this << " and " << other << std::endl;
+#endif
+	for (size_t i = 0; i < n; ++i) {
+		if (this->_bytes[i] >= other._bytes[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool
+Guid::operator > (const Guid &other) const {
+	static size_t n = sizeof (this->_bytes);
+#ifdef __GUID_DEBUG__
+	std::cout << "Guid: checking bigger for " << *this << " and " << other << std::endl;
+#endif
+	for (size_t i = 0; i < n; ++i) {
+		if (this->_bytes[i] <= other._bytes[i]) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 // This is the linux friendly implementation, but it could work on other
@@ -158,11 +223,15 @@ Guid::operator != (const Guid &other) const {
 Guid
 GuidGenerator::newGuid (void) {
 	uuid_t id;
-	//uuid_generate (id);
-	uuid_generate_time_safe (id);
+	uuid_generate (id);
+
+	//if (-1 == uuid_generate_time_safe (id)) {
+	//	throw std::runtime_error  ("Unsynchronized uuid geneartion!");
+	//}
 
 	return id;
 }
+
 // this is the mac and ios version
 #elif GUID_CFUUID
 Guid
@@ -192,6 +261,7 @@ GuidGenerator::newGuid (void) {
 
 	return byteArray;
 }
+
 // obviously this is the windows version
 #elif GUID_WINDOWS
 Guid
@@ -223,6 +293,8 @@ GuidGenerator::newGuid (void) {
 
 	return bytes;
 }
+
 #else
 	fail! "Please specifiy a platform to build Guid Util!"
+
 #endif

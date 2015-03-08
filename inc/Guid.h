@@ -52,6 +52,10 @@ public:
 	// copy constructor
 	Guid (const Guid &other);
 
+	//
+	virtual
+	~Guid (void);
+
 	// overload assignment operator
 	Guid&
 	operator = (const Guid &other);
@@ -62,6 +66,12 @@ public:
 
 	bool
 	operator != (const Guid &other) const;
+
+	bool
+	operator < (const Guid &other) const;
+
+	bool
+	operator > (const Guid &other) const;
 
 private:
 	// actual data
@@ -87,5 +97,14 @@ public:
 
 	Guid
 	newGuid (void);
+
+};
+
+struct GuidLessComparer {
+
+	bool
+	operator () (const Guid& lhs, const Guid& rhs) const {
+		return lhs < rhs;
+	}
 
 };
