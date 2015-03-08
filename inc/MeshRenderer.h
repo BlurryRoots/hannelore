@@ -3,6 +3,9 @@
 
 #include <MeshData.h>
 
+#include <memory>
+#include <cassert>
+
 class MeshRenderer {
 
 private:
@@ -19,7 +22,7 @@ private:
 	}
 
 	void
-	upload (MeshData *mesh) {
+	upload (std::shared_ptr<MeshData> mesh) {
 		upload_buffer_data (
 			mesh->vertexbuffer,
 			GL_ARRAY_BUFFER,
@@ -43,7 +46,7 @@ private:
 	}
 
 	void
-	bind (MeshData *mesh) {
+	bind (std::shared_ptr<MeshData> mesh) {
 		// first attribute is the vertex position x,y,z
 		glEnableVertexAttribArray(0);
 		glBindBuffer (GL_ARRAY_BUFFER, mesh->vertexbuffer);
@@ -88,10 +91,7 @@ private:
 			GL_BUFFER_SIZE,
 			&size
 		);
-		if (0 == size) {
-			std::cout << "WTF?" << std::endl;
-			exit (1);
-		}
+		assert (0 < size);
 
 		int trinagle_count = size / sizeof (GLushort);
 		glDrawElements (GL_TRIANGLES, trinagle_count, GL_UNSIGNED_INT, NULL);
@@ -112,7 +112,7 @@ public:
 	~MeshRenderer (void) {}
 
 	void
-	render (MeshData *mesh) {
+	render (std::shared_ptr<MeshData> mesh) {
 		this->upload (mesh);
 		this->bind (mesh);
 		this->draw ();

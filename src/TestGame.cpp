@@ -4,7 +4,7 @@
 #include <Guid.h>
 #include <FileReader.h>
 
-MeshData*
+MeshData
 TestGame::create_square_mesh (void) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
@@ -38,10 +38,10 @@ TestGame::create_square_mesh (void) {
 	i.push_back (1); i.push_back (2); i.push_back (0);
 	i.push_back (2); i.push_back (0); i.push_back (3);
 
-	return this->mesh_loader.load (v, c, i);
+	return MeshData (v, c, i);
 }
 
-MeshData*
+MeshData
 TestGame::create_cube_mesh (void) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
@@ -115,10 +115,10 @@ TestGame::create_cube_mesh (void) {
 	i.push_back (1); i.push_back (5); i.push_back (6);
 	i.push_back (6); i.push_back (2); i.push_back (1);
 
-	return this->mesh_loader.load (v, c, i);
+	return MeshData (v, c, i);
 }
 
-MeshData*
+MeshData
 TestGame::create_triangle_mesh (void) {
 	std::vector<Vertex> v;
 	v.push_back (Vertex {
@@ -145,7 +145,7 @@ TestGame::create_triangle_mesh (void) {
 	std::vector<GLuint> i;
 	i.push_back (1); i.push_back (2); i.push_back (0);
 
-	return this->mesh_loader.load (v, c, i);
+	return MeshData (v, c, i);
 }
 
 TestGame::TestGame (void) {
@@ -155,11 +155,17 @@ TestGame::TestGame (void) {
 		.link ()
 		;
 
-	MeshData *m1 = this->create_cube_mesh ();
-	m1->transform.translate (glm::vec3 (0, 1, 0));
+	auto e1 = this->entities.create_entity ();
+	this->entities.add_data<MeshData> (e1, this->create_cube_mesh ());
+	//
+	Transform t1; t1.translate (glm::vec3 (0, 1, 0));
+	this->entities.add_data<Transform> (e1, t1);
 
-	MeshData *m2 = this->create_triangle_mesh ();
-	m2->transform.translate (glm::vec3 (0, -1, 0));
+	auto e2 = this->entities.create_entity ();
+	this->entities.add_data<MeshData> (e2, this->create_triangle_mesh ());
+	//
+	Transform t2; t2.translate (glm::vec3 (0, -1, 0));
+	this->entities.add_data<Transform> (e2, t2);
 
 	this->camera_speed = 2.0f;
 	this->mouse_speed = 0.005f;
@@ -173,7 +179,13 @@ TestGame::~TestGame (void) {
 void
 TestGame::dispose (void) {
 	this->program.dispose ();
-	this->mesh_loader.dispose_all ();
+	//this->mesh_loader.dispose_all ();
+	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
+		auto mesh = this->entities.get_data<MeshData> (eid);
+		assert (mesh);
+
+		this->mesh_loader.dispose (mesh);
+	}
 }
 
 void
@@ -182,6 +194,18 @@ TestGame::update (double dt) {
 		this->mouse_center = glm::vec2 (this->width, this->height);
 		this->mouse_position = this->mouse_center;
 		this->mouse_position_offset = glm::vec2 (0,0);
+
+		// load meshes
+		for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
+			auto mesh = this->entities.get_data<MeshData> (eid);
+			assert (mesh);
+
+			this->mesh_loader.load (mesh);
+		}
+
+		for (auto &eid : this->entities.get_entities_with_all<Transform, MeshData> ()) {
+			std::cout << "Found entity satifying your constraint " << eid << std::endl;
+		}
 
 		this->is_initialized = true;
 	}
@@ -197,8 +221,10 @@ TestGame::update (double dt) {
 	}
 
 	// rotate model
-	for (auto & model : this->mesh_loader.meshes) {
-		model->transform.rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
+	for (auto &entity_id : this->entities.get_all_entities ()) {
+		auto transform = this->entities.get_data<Transform> (entity_id);
+
+		transform->rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
 	}
 
 	GLuint angle_uniform = glGetUniformLocation (
@@ -216,23 +242,6 @@ TestGame::update (double dt) {
 		angle_uniform,
 		angle + (float)dt
 	);
-
-	// Get a handle for our "MVP" uniform.
-	// Only at initialisation time.
-
-	// Send our transformation to the currently bound shader,
-	// in the "MVP" uniform
-	// For each model you render, since the MVP will be different (at least the M part)
-	/*
-	glProgramUniformMatrix4fv(
-		this->program.get_handle (),
-		mvp_uniform,
-		1,
-		GL_FALSE,
-		&MVP[0][0]
-	);
-	*/
-	//glUniformMatrix4fv(MatrixID, 1, GL_FALSE, glm::value_ptr (MVP));
 }
 
 void
@@ -255,11 +264,17 @@ TestGame::render (void) {
 		(float)this->width / (float)this->height
 	);
 
-	for (auto &model : this->mesh_loader.meshes) {
+	for (auto &entity_id : this->entities.get_all_entities ()) {
+		auto transform = this->entities.get_data<Transform> (entity_id);
+		assert (transform);
+		auto mesh = this->entities.get_data<MeshData> (entity_id);
+		assert (mesh);
+
 		GLuint model_matrix = glGetUniformLocation (
 			this->program.get_handle (), "model_matrix"
 		);
-		glm::mat4 m = model->transform.to_matrix ();
+
+		glm::mat4 m = transform->to_matrix ();
 		glProgramUniformMatrix4fv (
 			this->program.get_handle (),
 			model_matrix,
@@ -268,7 +283,7 @@ TestGame::render (void) {
 			&m[0][0]
 		);
 
-		this->mesh_renderer.render (model);
+		this->mesh_renderer.render (mesh);
 	}
 }
 

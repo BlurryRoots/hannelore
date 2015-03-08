@@ -11,7 +11,9 @@
 #include <glm/vector.h>
 #include <cmath>
 
-class Transform {
+#include <yanecos/Data.h>
+
+class Transform : public Yanecos::Data<Transform> {
 
 private:
 	glm::vec3 rotation;
@@ -23,6 +25,11 @@ public:
 	: rotation (0.0f)
 	, position (0.0f)
 	, size (1.0f) {}
+
+	Transform (const Transform &other)
+	: rotation (other.rotation)
+	, position (other.position)
+	, size (other.size) {}
 
 	virtual
 	~Transform (void) {}

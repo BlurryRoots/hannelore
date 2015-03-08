@@ -30,9 +30,13 @@
 #include <MeshLoader.h>
 #include <MeshRenderer.h>
 
+#include <yanecos/EntityManager.h>
+
 class TestGame : public IGame {
 
 private:
+	Yanecos::EntityManager entities;
+
 	bool is_running;
 	bool is_initialized;
 	int width;
@@ -51,13 +55,13 @@ private:
 	MeshLoader mesh_loader;
 	MeshRenderer mesh_renderer;
 
-	MeshData *
+	MeshData
 	create_square_mesh (void);
 
-	MeshData *
+	MeshData
 	create_cube_mesh (void);
 
-	MeshData *
+	MeshData
 	create_triangle_mesh (void);
 
 public:

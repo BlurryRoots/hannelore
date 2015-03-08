@@ -29,6 +29,9 @@ include_directories (lib/glew/include lib/glew/src)
 # glm
 include_directories (lib/glm)
 
+# yanecos
+include_directories (lib/yanecos/inc)
+
 # app specific includes
 include_directories (inc)
 
