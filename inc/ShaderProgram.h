@@ -42,13 +42,6 @@ public:
 
 	GLdouble
 	get_uniform_d (std::string name);
-
-	bool
-	hasAttribute (std::string attributeName);
-
-	bool
-	hasUniform (std::string uniformName);
-
 };
 
 class ShaderProgramBuilder {

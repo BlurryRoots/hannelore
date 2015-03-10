@@ -32,6 +32,9 @@ public:
 		glDrawElements (GL_TRIANGLES, trinagle_count, GL_UNSIGNED_INT, NULL);
 
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		// TODO: Implement instancing, mesh -> model ??
+		//glDrawElements (mode, count, type, indices);
 	}
 
 };

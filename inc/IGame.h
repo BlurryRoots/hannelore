@@ -9,10 +9,13 @@ struct IGame {
 	dispose (void) = 0;
 
 	virtual void
-	update (double dt) = 0;
+	on_initialize (void) = 0;
 
 	virtual void
-	render (void) = 0;
+	on_update (double dt) = 0;
+
+	virtual void
+	on_render (void) = 0;
 
 	virtual void
 	on_key (int key, int scancode, int action, int mods) = 0;

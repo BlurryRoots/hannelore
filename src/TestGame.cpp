@@ -6,150 +6,6 @@
 
 #include <cmath>
 
-MeshData
-TestGame::create_square_mesh (void) {
-	std::vector<Vertex> v;
-	v.push_back (Vertex {
-		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{ 0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{ 0.5f, -0.5f,  0.0f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{-0.5f, -0.5f,  0.0f}, {0.0f, 0.0f}
-	});
-
-	std::vector<Color> c;
-	c.push_back (Color {
-		{1.0, 0.0, 0.0}
-	});
-	c.push_back (Color {
-		{0.0, 1.0, 0.0}
-	});
-	c.push_back (Color {
-		{0.0, 0.0, 1.0}
-	});
-	c.push_back (Color {
-		{0.0, 0.0, 0.0}
-	});
-
-	std::vector<GLuint> i;
-	i.push_back (1); i.push_back (2); i.push_back (0);
-	i.push_back (2); i.push_back (0); i.push_back (3);
-
-	return MeshData (v, c, i);
-}
-
-MeshData
-TestGame::create_cube_mesh (void) {
-	std::vector<Vertex> v;
-	v.push_back (Vertex {
-		{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{ 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{-0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{ 0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{ 0.5f, -0.5f,  -0.5f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{-0.5f, -0.5f,  -0.5f}, {0.0f, 0.0f}
-	});
-
-	std::vector<Color> c;
-	c.push_back (Color {
-		{1.0, 0.0, 0.0}
-	});
-	c.push_back (Color {
-		{0.0, 1.0, 0.0}
-	});
-	c.push_back (Color {
-		{0.0, 0.0, 1.0}
-	});
-	c.push_back (Color {
-		{0.0, 0.0, 0.0}
-	});
-	c.push_back (Color {
-		{1.0, 1.0, 1.0}
-	});
-	c.push_back (Color {
-		{1.0, 1.0, 1.0}
-	});
-	c.push_back (Color {
-		{1.0, 1.0, 1.0}
-	});
-	c.push_back (Color {
-		{1.0, 1.0, 1.0}
-	});
-
-	std::vector<GLuint> i;
-	// front
-	i.push_back (1); i.push_back (2); i.push_back (0);
-	i.push_back (2); i.push_back (0); i.push_back (3);
-    // top
-	i.push_back (3); i.push_back (2); i.push_back (6);
-	i.push_back (6); i.push_back (7); i.push_back (3);
-    // back
-	i.push_back (7); i.push_back (6); i.push_back (5);
-	i.push_back (5); i.push_back (4); i.push_back (7);
-    // bottom
-	i.push_back (4); i.push_back (5); i.push_back (1);
-	i.push_back (1); i.push_back (0); i.push_back (4);
-    // left
-	i.push_back (4); i.push_back (0); i.push_back (3);
-	i.push_back (3); i.push_back (7); i.push_back (4);
-    // right
-	i.push_back (1); i.push_back (5); i.push_back (6);
-	i.push_back (6); i.push_back (2); i.push_back (1);
-
-	return MeshData (v, c, i);
-}
-
-MeshData
-TestGame::create_triangle_mesh (void) {
-	std::vector<Vertex> v;
-	v.push_back (Vertex {
-		{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{ 0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
-	});
-	v.push_back (Vertex {
-		{ 0.5f, -0.5f,  0.0f}, {0.0f, 0.0f}
-	});
-
-	std::vector<Color> c;
-	c.push_back (Color {
-		{1.0, 1.0, 0.0}
-	});
-	c.push_back (Color {
-		{1.0, 1.0, 0.0}
-	});
-	c.push_back (Color {
-		{1.0, 1.0, 0.0}
-	});
-
-	std::vector<GLuint> i;
-	i.push_back (1); i.push_back (2); i.push_back (0);
-
-	return MeshData (v, c, i);
-}
-
 TestGame::TestGame (void) {
 	this->program = ShaderProgramBuilder ()
 		.add_shader (VertexShader (FileReader ("shaders/basic.vert").to_string ()))
@@ -158,18 +14,17 @@ TestGame::TestGame (void) {
 		;
 
 	const float factor = 2.0f;
+	auto mesh_data = MeshData::create_cube_mesh ();
+
 	for (size_t i = 0; i < 1000; ++i) {
 		auto eid = this->entities.create_entity ();
-		this->entities.add_data<Transform> (eid, glm::vec3 (
+		auto transform = this->entities.add_data<Transform> (eid, glm::vec3 (
 			sin ((float)i) * factor, cos ((float)i) * factor, 0
 		));
-		this->entities.add_data<MeshData> (eid, this->create_cube_mesh ());
+		transform->scale ((1 * sin ((float)i)) + 0.1f);
+		this->entities.add_data<MeshData> (eid, mesh_data);
 	}
 
-	this->camera_speed = 2.0f;
-	this->mouse_speed = 0.005f;
-
-	this->is_initialized = false;
 	this->is_running = true;
 }
 
@@ -195,47 +50,29 @@ TestGame::dispose (void) {
 }
 
 void
-TestGame::update (double dt) {
-	// initialize
-	if (! this->is_initialized) {
-		this->mouse_center = glm::vec2 (this->width, this->height);
-		this->mouse_position = this->mouse_center;
-		this->mouse_position_offset = glm::vec2 (0,0);
+TestGame::on_initialize (void) {
+	// load meshes
+	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
+		auto mesh = this->entities.get_data<MeshData> (eid);
+		assert (mesh);
 
-		// load meshes
-		for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
-			auto mesh = this->entities.get_data<MeshData> (eid);
-			assert (mesh);
-
-			this->mesh_loader.load (mesh);
-		}
-
-		this->model_matrix = glGetUniformLocation (
-			this->program.get_handle (), "model_matrix"
-		);
-		this->angle_uniform = glGetUniformLocation (
-			this->program.get_handle (), "angle"
-		);
-
-		this->is_initialized = true;
-
-		glEnable (GL_DEPTH_TEST);
-		// Accept fragment if it closer to the camera than the former one
-		glDepthFunc (GL_LESS);
-
-		return;
+		this->mesh_loader.load (mesh);
 	}
 
-	// recalculate
-	glm::vec2 offset = this->mouse_center - this->mouse_position;
-	if (std::abs (glm::length (offset)) > 0) {
-		this->mouse_position_offset = glm::normalize (offset);
-		this->mouse_center = this->mouse_position;
-	}
-	else {
-		this->mouse_position_offset = glm::vec2 (0);
-	}
+	this->model_matrix = glGetUniformLocation (
+		this->program.get_handle (), "model_matrix"
+	);
+	this->angle_uniform = glGetUniformLocation (
+		this->program.get_handle (), "angle"
+	);
 
+	glEnable (GL_DEPTH_TEST);
+	// Accept fragment if it closer to the camera than the former one
+	glDepthFunc (GL_LESS);
+}
+
+void
+TestGame::on_update (double dt) {
 	// rotate model
 	for (auto &entity_id : this->entities.get_entities_with<Transform> ()) {
 		auto transform = this->entities.get_data<Transform> (entity_id);
@@ -261,16 +98,16 @@ TestGame::update (double dt) {
 }
 
 void
-TestGame::render (void) {
+TestGame::on_render (void) {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	this->program.use ();
 
 	for (auto &entity_id : this->entities.get_entities_with_all<Transform, MeshData> ()) {
 		auto transform = this->entities.get_data<Transform> (entity_id);
-		//assert (transform);
+		assert (transform);
 		auto mesh = this->entities.get_data<MeshData> (entity_id);
-		//assert (mesh);
+		assert (mesh);
 
 		glm::mat4 m = transform->to_matrix ();
 		glProgramUniformMatrix4fv (
@@ -340,7 +177,7 @@ TestGame::on_framebuffer (int width, int height) {
 
 void
 TestGame::on_cursor_position (double xpos, double ypos) {
-	this->mouse_position = glm::vec2 (xpos, ypos);
+	//
 }
 
 bool

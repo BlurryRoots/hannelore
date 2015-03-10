@@ -38,7 +38,7 @@ private:
 	Yanecos::EntityManager entities;
 
 	bool is_running;
-	bool is_initialized;
+
 	int width;
 	int height;
 
@@ -49,25 +49,11 @@ private:
 	float camera_speed;
 	glm::vec3 camera_movement;
 
-	float mouse_speed;
-	glm::vec2 mouse_position;
-	glm::vec2 mouse_position_offset;
-	glm::vec2 mouse_center;
-
 	MeshLoader mesh_loader;
 	MeshRenderer mesh_renderer;
 
 	double framecounter;
 	double fps_sum;
-
-	MeshData
-	create_square_mesh (void);
-
-	MeshData
-	create_cube_mesh (void);
-
-	MeshData
-	create_triangle_mesh (void);
 
 public:
 	TestGame (void);
@@ -75,13 +61,17 @@ public:
 	virtual
 	~TestGame (void);
 
-	void dispose (void);
+	void
+	dispose (void);
 
 	void
-	update (double dt);
+	on_initialize (void);
 
 	void
-	render (void);
+	on_update (double dt);
+
+	void
+	on_render (void);
 
 	void
 	on_key (int key, int scancode, int action, int mods);

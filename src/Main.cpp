@@ -120,19 +120,26 @@ main (void) {
 	try {
 		game = new TestGame ();
 
-		/* Loop until the user closes the window */
+		// Do setup stuff
+		game->on_initialize ();
+
+		// Loop until the user closes the window
 		double lastTime = glfwGetTime ();
 		while (game->running () && ! glfwWindowShouldClose (window)) {
+			// Calculate time spend processing the last frame
 			double deltaTime = glfwGetTime () - lastTime;
 			lastTime = glfwGetTime ();
 
-			game->update (deltaTime);
-			game->render ();
+			// Do logical updates
+			game->on_update (deltaTime);
 
-			/* Swap front and back buffers */
+			// Draw stuff onto screen
+			game->on_render ();
+
+			// Swap front and back buffers
 			glfwSwapBuffers (window);
 
-			/* Poll for and process events */
+			// Poll for and process events
 			glfwPollEvents ();
 		}
 

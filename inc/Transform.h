@@ -58,6 +58,11 @@ public:
 		this->size += v;
 	}
 
+	void
+	scale (float factor) {
+		this->size = this->size * factor;
+	}
+
 	glm::mat4
 	to_matrix (void) {
 		return glm::mat4 (1)

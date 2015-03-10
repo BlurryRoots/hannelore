@@ -39,6 +39,150 @@ struct MeshData : public Yanecos::Data<MeshData> {
 	virtual
 	~MeshData (void) {}
 
+	static MeshData
+	create_square_mesh (void) {
+		std::vector<Vertex> v;
+		v.push_back (Vertex {
+			{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{ 0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{ 0.5f, -0.5f,  0.0f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{-0.5f, -0.5f,  0.0f}, {0.0f, 0.0f}
+		});
+
+		std::vector<Color> c;
+		c.push_back (Color {
+			{1.0, 0.0, 0.0}
+		});
+		c.push_back (Color {
+			{0.0, 1.0, 0.0}
+		});
+		c.push_back (Color {
+			{0.0, 0.0, 1.0}
+		});
+		c.push_back (Color {
+			{0.0, 0.0, 0.0}
+		});
+
+		std::vector<GLuint> i;
+		i.push_back (1); i.push_back (2); i.push_back (0);
+		i.push_back (2); i.push_back (0); i.push_back (3);
+
+		return MeshData (v, c, i);
+	}
+
+	static MeshData
+	create_cube_mesh (void) {
+		std::vector<Vertex> v;
+		v.push_back (Vertex {
+			{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{ 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{-0.5f, -0.5f,  0.5f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{-0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{ 0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{ 0.5f, -0.5f,  -0.5f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{-0.5f, -0.5f,  -0.5f}, {0.0f, 0.0f}
+		});
+
+		std::vector<Color> c;
+		c.push_back (Color {
+			{1.0, 0.0, 0.0}
+		});
+		c.push_back (Color {
+			{0.0, 1.0, 0.0}
+		});
+		c.push_back (Color {
+			{0.0, 0.0, 1.0}
+		});
+		c.push_back (Color {
+			{0.0, 0.0, 0.0}
+		});
+		c.push_back (Color {
+			{1.0, 1.0, 1.0}
+		});
+		c.push_back (Color {
+			{1.0, 1.0, 1.0}
+		});
+		c.push_back (Color {
+			{1.0, 1.0, 1.0}
+		});
+		c.push_back (Color {
+			{1.0, 1.0, 1.0}
+		});
+
+		std::vector<GLuint> i;
+		// front
+		i.push_back (1); i.push_back (2); i.push_back (0);
+		i.push_back (2); i.push_back (0); i.push_back (3);
+	    // top
+		i.push_back (3); i.push_back (2); i.push_back (6);
+		i.push_back (6); i.push_back (7); i.push_back (3);
+	    // back
+		i.push_back (7); i.push_back (6); i.push_back (5);
+		i.push_back (5); i.push_back (4); i.push_back (7);
+	    // bottom
+		i.push_back (4); i.push_back (5); i.push_back (1);
+		i.push_back (1); i.push_back (0); i.push_back (4);
+	    // left
+		i.push_back (4); i.push_back (0); i.push_back (3);
+		i.push_back (3); i.push_back (7); i.push_back (4);
+	    // right
+		i.push_back (1); i.push_back (5); i.push_back (6);
+		i.push_back (6); i.push_back (2); i.push_back (1);
+
+		return MeshData (v, c, i);
+	}
+
+	static MeshData
+	create_triangle_mesh (void) {
+		std::vector<Vertex> v;
+		v.push_back (Vertex {
+			{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{ 0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
+		});
+		v.push_back (Vertex {
+			{ 0.5f, -0.5f,  0.0f}, {0.0f, 0.0f}
+		});
+
+		std::vector<Color> c;
+		c.push_back (Color {
+			{1.0, 1.0, 0.0}
+		});
+		c.push_back (Color {
+			{1.0, 1.0, 0.0}
+		});
+		c.push_back (Color {
+			{1.0, 1.0, 0.0}
+		});
+
+		std::vector<GLuint> i;
+		i.push_back (1); i.push_back (2); i.push_back (0);
+
+		return MeshData (v, c, i);
+	}
+
 };
 
 #endif
