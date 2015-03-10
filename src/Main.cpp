@@ -75,9 +75,10 @@ on_scroll (GLFWwindow *window, double xoffset, double yoffset) {
 int
 main (void) {
 	GLFWwindow *window;
-	/* Initialize the library */
+
+	// Initialize GLFW
 	if (! glfwInit ()) {
-		return false;
+		return 1;
 	}
 
 	std::cout
@@ -86,25 +87,25 @@ main (void) {
 		<< GLFW_VERSION_MINOR << "."
 		<< GLFW_VERSION_REVISION << std::endl;
 
-	/* Create a windowed mode window and its OpenGL context */
+	// Create a window and its OpenGL context
 	window = glfwCreateWindow (640, 480, "Hello World", NULL, NULL);
 	if (nullptr == window) {
 		glfwTerminate ();
 
-		return false;
+		return 1;
 	}
 
 	// THIS HAS TO BE CALLED BEFORE GLEW GETS LOADED!
-	/* Make the window's context current */
+	// Make the window's context current
 	glfwMakeContextCurrent (window);
 
+	// Extension wrangler initialising
 	glewExperimental = GL_TRUE;
 	GLuint glew_status = glewInit ();
-	/* Extension wrangler initialising */
 	if (GLEW_OK != glew_status) {
 		std::cout << "glew?" << std::endl;
 
-		return false;
+		return 1;
 	}
 
 	// callbacks
