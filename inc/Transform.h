@@ -16,20 +16,29 @@
 class Transform : public Yanecos::Data<Transform> {
 
 private:
-	glm::vec3 rotation;
 	glm::vec3 position;
+	glm::vec3 rotation;
 	glm::vec3 size;
 
 public:
 	Transform (void)
-	: rotation (0.0f)
-	, position (0.0f)
+	: position (0.0f)
+	, rotation (0.0f)
 	, size (1.0f) {}
 
 	Transform (const Transform &other)
-	: rotation (other.rotation)
-	, position (other.position)
+	: position (other.position)
+	, rotation (other.rotation)
 	, size (other.size) {}
+
+	Transform (
+		const glm::vec3 &position,
+		const glm::vec3 &rotation = glm::vec3 (0),
+		const glm::vec3 &size = glm::vec3 (1)
+	)
+	: position (position)
+	, rotation (rotation)
+	, size (size) {}
 
 	virtual
 	~Transform (void) {}

@@ -8,83 +8,18 @@
 
 class MeshRenderer {
 
-private:
-	void
-	upload_buffer_data (
-		GLuint buffer,
-		GLenum type,
-		const GLvoid *data,
-		GLsizeiptr size
-	) {
-		glBindBuffer (type, buffer);
-		glBufferData (type, size, data, GL_STATIC_DRAW);
-		glBindBuffer (type, 0);
-	}
+public:
+	MeshRenderer (void) {}
+
+	virtual
+	~MeshRenderer (void) {}
 
 	void
-	upload (std::shared_ptr<MeshData> mesh) {
-		upload_buffer_data (
-			mesh->vertexbuffer,
-			GL_ARRAY_BUFFER,
-			(const GLvoid *)mesh->vertices.data (),
-			sizeof (mesh->vertices[0]) * mesh->vertices.size ()
-		);
-
-		upload_buffer_data (
-			mesh->colorbuffer,
-			GL_ARRAY_BUFFER,
-			(const GLvoid *)mesh->colors.data (),
-			sizeof (mesh->colors[0]) * mesh->colors.size ()
-		);
-
-		upload_buffer_data (
-			mesh->indexbuffer,
-			GL_ELEMENT_ARRAY_BUFFER,
-			(const GLvoid *)mesh->indices.data (),
-			sizeof (mesh->indices[0]) * mesh->indices.size ()
-		);
-	}
-
-	void
-	bind (std::shared_ptr<MeshData> mesh) {
-		// first attribute is the vertex position x,y,z
-		glEnableVertexAttribArray(0);
-		glBindBuffer (GL_ARRAY_BUFFER, mesh->vertexbuffer);
-		glVertexAttribPointer(
-		   0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		   3,                  // size
-		   GL_FLOAT,           // type
-		   GL_FALSE,           // normalized?
-		   sizeof (struct Vertex),    // stride
-		   (GLvoid *)0            // array buffer offset
-		);
-		/* // use this later for uv stuff
-		glVertexAttribPointer(
-		   0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		   2,                  // size
-		   GL_FLOAT,           // type
-		   GL_FALSE,           // normalized?
-		   sizeof (struct Vertex),    // stride
-		   (GLvoid*) offsetof (struct Vertex, uv)     // array buffer offset
-		);
-		*/
-
-		glEnableVertexAttribArray (1);
-		glBindBuffer (GL_ARRAY_BUFFER, mesh->colorbuffer);
-		glVertexAttribPointer (
-		   1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		   3,                  // size
-		   GL_FLOAT,           // type
-		   GL_FALSE,           // normalized?
-		   sizeof (struct Color), // stride
-		   (void *)offsetof (struct Color, rgba)  // array buffer offset
-		);
-
+	render (std::shared_ptr<MeshData> mesh) {
+		// indices
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mesh->indexbuffer);
-	}
 
-	void
-	draw (void) {
+		// draw
 		int size;
 		glGetBufferParameteriv (
 			GL_ELEMENT_ARRAY_BUFFER,
@@ -95,28 +30,8 @@ private:
 
 		int trinagle_count = size / sizeof (GLushort);
 		glDrawElements (GL_TRIANGLES, trinagle_count, GL_UNSIGNED_INT, NULL);
-	}
 
-	void
-	unbind (void) {
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glDisableVertexAttribArray (1);
-		glDisableVertexAttribArray (0);
-	}
-
-public:
-	MeshRenderer (void) {}
-
-	virtual
-	~MeshRenderer (void) {}
-
-	void
-	render (std::shared_ptr<MeshData> mesh) {
-		this->upload (mesh);
-		this->bind (mesh);
-		this->draw ();
-		this->unbind ();
 	}
 
 };

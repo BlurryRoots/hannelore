@@ -43,6 +43,8 @@ private:
 	int height;
 
 	ShaderProgram program;
+	GLuint model_matrix;
+	GLuint angle_uniform;
 
 	float camera_speed;
 	glm::vec3 camera_movement;
@@ -54,6 +56,9 @@ private:
 
 	MeshLoader mesh_loader;
 	MeshRenderer mesh_renderer;
+
+	double framecounter;
+	double fps_sum;
 
 	MeshData
 	create_square_mesh (void);

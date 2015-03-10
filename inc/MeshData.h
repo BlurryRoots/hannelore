@@ -13,7 +13,6 @@ struct Color {
 };
 
 struct MeshData : public Yanecos::Data<MeshData> {
-
 	GLuint vertexbuffer;
 	std::vector<Vertex> vertices;
 

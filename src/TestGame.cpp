@@ -4,6 +4,8 @@
 #include <Guid.h>
 #include <FileReader.h>
 
+#include <cmath>
+
 MeshData
 TestGame::create_square_mesh (void) {
 	std::vector<Vertex> v;
@@ -155,22 +157,20 @@ TestGame::TestGame (void) {
 		.link ()
 		;
 
-	auto e1 = this->entities.create_entity ();
-	this->entities.add_data<MeshData> (e1, this->create_cube_mesh ());
-	//
-	Transform t1; t1.translate (glm::vec3 (0, 1, 0));
-	this->entities.add_data<Transform> (e1, t1);
-
-	auto e2 = this->entities.create_entity ();
-	this->entities.add_data<MeshData> (e2, this->create_triangle_mesh ());
-	//
-	Transform t2; t2.translate (glm::vec3 (0, -1, 0));
-	this->entities.add_data<Transform> (e2, t2);
+	const float factor = 2.0f;
+	for (size_t i = 0; i < 1000; ++i) {
+		auto eid = this->entities.create_entity ();
+		this->entities.add_data<Transform> (eid, glm::vec3 (
+			sin ((float)i) * factor, cos ((float)i) * factor, 0
+		));
+		this->entities.add_data<MeshData> (eid, this->create_cube_mesh ());
+	}
 
 	this->camera_speed = 2.0f;
 	this->mouse_speed = 0.005f;
 
 	this->is_initialized = false;
+	this->is_running = true;
 }
 
 TestGame::~TestGame (void) {
@@ -179,17 +179,24 @@ TestGame::~TestGame (void) {
 void
 TestGame::dispose (void) {
 	this->program.dispose ();
-	//this->mesh_loader.dispose_all ();
+
+	long vertecies_counter = 0;
 	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
 		auto mesh = this->entities.get_data<MeshData> (eid);
 		assert (mesh);
-
+		vertecies_counter += mesh->vertices.size ();
 		this->mesh_loader.dispose (mesh);
 	}
+
+	std::cout
+		<< "Ran with ~" << (1 / (this->fps_sum / this->framecounter)) << " FPS"
+		<< "\nwhile showing " << vertecies_counter << " vertices."
+		<< std::endl;
 }
 
 void
 TestGame::update (double dt) {
+	// initialize
 	if (! this->is_initialized) {
 		this->mouse_center = glm::vec2 (this->width, this->height);
 		this->mouse_position = this->mouse_center;
@@ -203,11 +210,20 @@ TestGame::update (double dt) {
 			this->mesh_loader.load (mesh);
 		}
 
-		for (auto &eid : this->entities.get_entities_with_all<Transform, MeshData> ()) {
-			std::cout << "Found entity satifying your constraint " << eid << std::endl;
-		}
+		this->model_matrix = glGetUniformLocation (
+			this->program.get_handle (), "model_matrix"
+		);
+		this->angle_uniform = glGetUniformLocation (
+			this->program.get_handle (), "angle"
+		);
 
 		this->is_initialized = true;
+
+		glEnable (GL_DEPTH_TEST);
+		// Accept fragment if it closer to the camera than the former one
+		glDepthFunc (GL_LESS);
+
+		return;
 	}
 
 	// recalculate
@@ -221,16 +237,12 @@ TestGame::update (double dt) {
 	}
 
 	// rotate model
-	for (auto &entity_id : this->entities.get_all_entities ()) {
+	for (auto &entity_id : this->entities.get_entities_with<Transform> ()) {
 		auto transform = this->entities.get_data<Transform> (entity_id);
-
 		transform->rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
 	}
 
-	GLuint angle_uniform = glGetUniformLocation (
-		this->program.get_handle (), "angle"
-
-	);
+	// increase angle
 	float angle;
 	glGetUniformfv (
 		this->program.get_handle (),
@@ -242,37 +254,23 @@ TestGame::update (double dt) {
 		angle_uniform,
 		angle + (float)dt
 	);
+
+	// count frames
+	this->framecounter += 1;
+	this->fps_sum += dt;
 }
 
 void
 TestGame::render (void) {
-	glEnable (GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc (GL_LESS);
-
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	this->program.use ();
 
-	GLuint aspect_uniform = glGetUniformLocation (
-		this->program.get_handle (), "aspect"
-
-	);
-	glProgramUniform1f (
-		this->program.get_handle (),
-		aspect_uniform,
-		(float)this->width / (float)this->height
-	);
-
-	for (auto &entity_id : this->entities.get_all_entities ()) {
+	for (auto &entity_id : this->entities.get_entities_with_all<Transform, MeshData> ()) {
 		auto transform = this->entities.get_data<Transform> (entity_id);
-		assert (transform);
+		//assert (transform);
 		auto mesh = this->entities.get_data<MeshData> (entity_id);
-		assert (mesh);
-
-		GLuint model_matrix = glGetUniformLocation (
-			this->program.get_handle (), "model_matrix"
-		);
+		//assert (mesh);
 
 		glm::mat4 m = transform->to_matrix ();
 		glProgramUniformMatrix4fv (
@@ -328,6 +326,16 @@ TestGame::on_framebuffer (int width, int height) {
 	this->height = height;
 
 	glViewport (0, 0, this->width, this->height);
+
+	GLuint aspect_uniform = glGetUniformLocation (
+		this->program.get_handle (), "aspect"
+
+	);
+	glProgramUniform1f (
+		this->program.get_handle (),
+		aspect_uniform,
+		(float)this->width / (float)this->height
+	);
 }
 
 void
