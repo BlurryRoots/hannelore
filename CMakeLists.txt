@@ -57,7 +57,7 @@ endif ()
 set (shader_path res/shaders)
 #file (COPY ${shader_path} DESTINATION '${EXECUTABLE_OUTPUT_PATH}')
 add_executable (main ${source_files} ${shader_files})
-target_link_libraries (main glfw ${GLFW_LIBRARIES} libglew_static ${GUID_LIB})
+target_link_libraries (main glfw ${GLFW_LIBRARIES} libglew_static ${GUID_LIB} pthread)
 
 # command to copy resources when using default target
 add_custom_command (TARGET main PRE_BUILD
