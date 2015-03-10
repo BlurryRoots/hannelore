@@ -5,6 +5,7 @@
 #include <FileReader.h>
 
 #include <cmath>
+#include <thread>
 
 TestGame::TestGame (void) {
 	this->program = ShaderProgramBuilder ()
@@ -37,7 +38,7 @@ TestGame::dispose (void) {
 
 	long vertecies_counter = 0;
 	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
-		auto mesh = this->entities.get_data<MeshData> (eid);
+		auto mesh = this->entities.get_entity_data<MeshData> (eid);
 		assert (mesh);
 		vertecies_counter += mesh->vertices.size ();
 		this->mesh_loader.dispose (mesh);
@@ -53,7 +54,7 @@ void
 TestGame::on_initialize (void) {
 	// load meshes
 	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
-		auto mesh = this->entities.get_data<MeshData> (eid);
+		auto mesh = this->entities.get_entity_data<MeshData> (eid);
 		assert (mesh);
 
 		this->mesh_loader.load (mesh);
@@ -73,9 +74,10 @@ TestGame::on_initialize (void) {
 
 void
 TestGame::on_update (double dt) {
+	auto transfom_vector = this->entities.get_entities_with<Transform> ();
 	// rotate model
-	for (auto &entity_id : this->entities.get_entities_with<Transform> ()) {
-		auto transform = this->entities.get_data<Transform> (entity_id);
+	for (auto &entity_id : transfom_vector) {
+		auto transform = this->entities.get_entity_data<Transform> (entity_id);
 		transform->rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
 	}
 
@@ -104,9 +106,9 @@ TestGame::on_render (void) {
 	this->program.use ();
 
 	for (auto &entity_id : this->entities.get_entities_with_all<Transform, MeshData> ()) {
-		auto transform = this->entities.get_data<Transform> (entity_id);
+		auto transform = this->entities.get_entity_data<Transform> (entity_id);
 		assert (transform);
-		auto mesh = this->entities.get_data<MeshData> (entity_id);
+		auto mesh = this->entities.get_entity_data<MeshData> (entity_id);
 		assert (mesh);
 
 		glm::mat4 m = transform->to_matrix ();

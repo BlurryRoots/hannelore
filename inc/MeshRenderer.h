@@ -15,7 +15,7 @@ public:
 	~MeshRenderer (void) {}
 
 	void
-	render (std::shared_ptr<MeshData> mesh) {
+	render (MeshData *mesh) {
 		// indices
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mesh->indexbuffer);
 

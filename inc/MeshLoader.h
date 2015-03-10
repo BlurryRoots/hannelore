@@ -21,7 +21,7 @@ private:
 	}
 
 	void
-	upload (std::shared_ptr<MeshData> mesh) {
+	upload (MeshData *mesh) {
 		// Vertex position
 		glBindBuffer (GL_ARRAY_BUFFER, mesh->vertexbuffer);
 		glEnableVertexAttribArray (0);
@@ -85,7 +85,7 @@ public:
 	~MeshLoader (void) {}
 
 	void
-	load (std::shared_ptr<MeshData> mesh) {
+	load (MeshData *mesh) {
 		glGenBuffers (1, &(mesh->vertexbuffer));
 		glGenBuffers (1, &(mesh->colorbuffer));
 		glGenBuffers (1, &(mesh->indexbuffer));
@@ -94,7 +94,7 @@ public:
 	}
 
 	void
-	dispose (std::shared_ptr<MeshData> mesh) {
+	dispose (MeshData *mesh) {
 		glDeleteBuffers (1, &(mesh->vertexbuffer));
 		glDeleteBuffers (1, &(mesh->colorbuffer));
 		glDeleteBuffers (1, &(mesh->indexbuffer));

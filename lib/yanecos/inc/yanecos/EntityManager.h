@@ -25,7 +25,8 @@ typedef
 	;
 
 typedef
-	std::unordered_map<DataID, std::shared_ptr<IData>>
+	//std::unordered_map<DataID, std::shared_ptr<IData>>
+	std::unordered_map<DataID, IData*>
 	DataMap
 	;
 typedef
@@ -45,7 +46,7 @@ typedef
 	DataOwnerMap
 	;
 typedef
-	std::unordered_map<DataID, std::string>
+	std::unordered_map<std::string, EntityDataCollection>
 	DataTypeLookupMap
 	;
 
@@ -83,7 +84,11 @@ public:
 	};
 
 	virtual
-	~EntityManager () {}
+	~EntityManager () {
+		for (auto entry : this->data) {
+			delete entry.second;
+		}
+	}
 
 	EntityID
 	create_entity (void) {
@@ -100,8 +105,8 @@ public:
 		return id;
 	}
 
-	template<class TDataType> std::shared_ptr<TDataType>
-	get_data (EntityID entity_id) const {
+	template<class TDataType> TDataType*
+	get_entity_data (EntityID entity_id) const {
 		std::string type_name = typeid (TDataType).name ();
 		EntityDataCollection collection = this->entity_data.at (entity_id);
 		if (0 == collection.size ()) {
@@ -114,7 +119,8 @@ public:
 		for (auto &data_id : collection) {
 			std::string cur = this->data.at (data_id)->get_type ();
 			if (cur == type_name) {
-				return std::static_pointer_cast<TDataType> (this->data.at (data_id));
+				//return std::static_pointer_cast<TDataType> (this->data.at (data_id)).get ();
+				return (TDataType*)this->data.at (data_id);
 			}
 		}
 
@@ -123,7 +129,7 @@ public:
 		throw std::runtime_error (ss.str ());
 	}
 
-	template<class TDataType, class... TArgs> std::shared_ptr<TDataType>
+	template<class TDataType, class... TArgs> TDataType*
 	add_data (EntityID entity_id, TArgs&&... args) {
 		std::string type_name = typeid (TDataType).name ();
 
@@ -142,18 +148,26 @@ public:
 		owners.emplace (entity_id);
 
 		DataID data_id = this->generate_data_id ();
-
-		auto data_ptr = std::make_shared<TDataType> (args...);
+		//auto data_ptr = std::make_shared<TDataType> (args...);
+		auto data_ptr = new TDataType (std::forward<TArgs> (args)...);
 		assert (data_ptr);
 		assert (0 == this->data.count (data_id));
-		this->data.emplace (data_id, data_ptr);
+		//auto report = this->data.emplace (data_id, data_ptr);
+		auto report = this->data.emplace (data_id, data_ptr);
+		assert (report.second); // already in map ??? wuut?
+		//auto data_ptr = report.first->second;
+		//assert (data_ptr);
 
 		EntityDataCollection& collection = this->entity_data.at (entity_id);
 		collection.emplace (data_id);
 
-		//this->type_lookup[data_id] = type_name;
+		if (0 == this->type_lookup.count (type_name)) {
+			this->type_lookup.emplace (type_name, EntityDataCollection ());
+		}
+		this->type_lookup.at (type_name).emplace (data_id);
 
-		return data_ptr;
+		//return data_ptr.get ();
+		return (TDataType*)data_ptr;
 	}
 
 	EntityCollection
