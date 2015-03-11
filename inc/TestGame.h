@@ -29,6 +29,7 @@
 #include <Transform.h>
 #include <MeshLoader.h>
 #include <MeshRenderer.h>
+#include <TextureLoader.h>
 
 #include <yanecos/EntityManager.h>
 
@@ -51,6 +52,7 @@ private:
 
 	MeshLoader mesh_loader;
 	MeshRenderer mesh_renderer;
+	TextureLoader texture_loader;
 
 	double framecounter;
 	double fps_sum;

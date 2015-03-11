@@ -33,23 +33,21 @@ private:
 		   sizeof (struct Vertex),    // stride
 		   (GLvoid *)0            // array buffer offset
 		);
-		upload_buffer_data (mesh->vertexbuffer,
-			GL_ARRAY_BUFFER,
-			(const GLvoid *)mesh->vertices.data (),
-			sizeof (mesh->vertices[0]) * mesh->vertices.size ()
-		);
-		// Vertex positions
-
-		/* // use this later for uv stuff
+		glEnableVertexAttribArray (2);
 		glVertexAttribPointer(
-		   0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		   2,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
 		   2,                  // size
 		   GL_FLOAT,           // type
 		   GL_FALSE,           // normalized?
 		   sizeof (struct Vertex),    // stride
 		   (GLvoid*) offsetof (struct Vertex, uv)     // array buffer offset
 		);
-		*/
+		upload_buffer_data (mesh->vertexbuffer,
+			GL_ARRAY_BUFFER,
+			(const GLvoid *)mesh->vertices.data (),
+			sizeof (mesh->vertices[0]) * mesh->vertices.size ()
+		);
+		// Vertex positions
 
 		// Colors
 		glBindBuffer (GL_ARRAY_BUFFER, mesh->colorbuffer);

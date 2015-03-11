@@ -7,7 +7,9 @@
 #include <cmath>
 #include <thread>
 
-TestGame::TestGame (void) {
+TestGame::TestGame (void)
+: framecounter (0)
+, fps_sum (0) {
 	this->program = ShaderProgramBuilder ()
 		.add_shader (VertexShader (FileReader ("shaders/basic.vert").to_string ()))
 		.add_shader (FragmentShader (FileReader ("shaders/basic.frag").to_string ()))
@@ -45,7 +47,8 @@ TestGame::dispose (void) {
 	}
 
 	std::cout
-		<< "Ran with ~" << (1 / (this->fps_sum / this->framecounter)) << " FPS"
+		<< "Over a total of " << this->framecounter << " frames for " << this->fps_sum << "s "
+		<< "it ran with ~" << (1 / (this->fps_sum / this->framecounter)) << " FPS"
 		<< "\nwhile showing " << vertecies_counter << " vertices."
 		<< std::endl;
 }
@@ -59,6 +62,8 @@ TestGame::on_initialize (void) {
 
 		this->mesh_loader.load (mesh);
 	}
+
+	this->texture_loader.load ("textures/ship.png", "ship");
 
 	this->model_matrix = glGetUniformLocation (
 		this->program.get_handle (), "model_matrix"
@@ -104,6 +109,8 @@ TestGame::on_render (void) {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	this->program.use ();
+
+	this->texture_loader.bind ("ship", 0);
 
 	for (auto &entity_id : this->entities.get_entities_with_all<Transform, MeshData> ()) {
 		auto transform = this->entities.get_entity_data<Transform> (entity_id);

@@ -6,8 +6,11 @@ uniform mat4 model_matrix;
 
 layout(location = 0) in vec3 vertex_position;
 layout(location = 1) in vec3 vertex_color;
+layout(location = 2) in vec2 vertex_uv_position;
 
 out vec4 fragment_color;
+// Output data ; will be interpolated for each fragment.
+out vec2 fragment_uv_position;
 
 //
 mat4 view_frustum(
@@ -71,4 +74,6 @@ void main () {
         ;
 
     fragment_color = vec4 (vertex_color, 1.0f);
+
+    fragment_uv_position = vertex_uv_position;
 }
