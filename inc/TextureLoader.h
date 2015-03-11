@@ -48,13 +48,8 @@ public:
 		glTextureParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		unsigned char *data = stbi_load (
-			path.c_str (),
-			&(info->width),
-			&(info->height),
-			&(info->components),
-			4
-		);
+		// TODO: find library
+		unsigned char *data = nullptr;
 		assert (data);
 		glTexImage2D (
 			GL_TEXTURE_2D, 0, GL_RGBA,
@@ -62,9 +57,10 @@ public:
 			0, GL_RGBA,
 			GL_UNSIGNED_BYTE, data
 		);
-		stbi_image_free (data);
 
 		this->textures.emplace (key, info);
+
+		glBindTexture (GL_TEXTURE_2D, 0);
 
 		return info->handle;
 	}

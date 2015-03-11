@@ -10,6 +10,6 @@ uniform sampler2D texture_sampler;
 out vec4 color;
 
 void main () {
-    //color = fragment_color;
-    color = texture (texture_sampler, fragment_uv_position);
+    color = fragment_color;
+    //color = texture (texture_sampler, fragment_uv_position);
 }

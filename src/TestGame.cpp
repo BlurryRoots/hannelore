@@ -63,7 +63,7 @@ TestGame::on_initialize (void) {
 		this->mesh_loader.load (mesh);
 	}
 
-	this->texture_loader.load ("textures/ship.png", "ship");
+	//this->texture_loader.load ("textures/ship.png", "ship");
 
 	this->model_matrix = glGetUniformLocation (
 		this->program.get_handle (), "model_matrix"
@@ -110,7 +110,7 @@ TestGame::on_render (void) {
 
 	this->program.use ();
 
-	this->texture_loader.bind ("ship", 0);
+	//this->texture_loader.bind ("ship", 0);
 
 	for (auto &entity_id : this->entities.get_entities_with_all<Transform, MeshData> ()) {
 		auto transform = this->entities.get_entity_data<Transform> (entity_id);
