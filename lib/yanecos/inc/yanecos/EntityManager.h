@@ -84,8 +84,6 @@ private:
 		return ++this->entity_id_counter;
 	}
 
-	//std::unordered_map<std::shared_ptr<std::vector<std::type_index>>, std::vector<EntityID>> query_buffer;
-
 public:
 	EntityManager ()
 	: data ()
@@ -93,9 +91,8 @@ public:
 	, type_lookup ()
 	, data_id_counter (0)
 	, entity_data ()
-	, entity_id_counter (0)
-	//, query_buffer () {
-	{
+	, entity_id_counter (0) {
+		//
 	};
 
 	virtual
@@ -109,7 +106,8 @@ public:
 	create_entity (void) {
 		EntityID id = this->generate_entity_id ();
 
-		auto report = this->entity_data.emplace (id, EntityDataCollection ());
+		// Check if emplacing collided
+		const auto &report = this->entity_data.emplace (id, EntityDataCollection ());
 		if (! report.second) {
 			std::stringstream ss;
 			ss << "Entity " << id << " already exists!";
@@ -127,8 +125,11 @@ public:
 			"Given type has to be derived from Data<>!"
 		);
 
-		std::string type_name = typeid (TDataType).name ();
-		EntityDataCollection collection = this->entity_data.at (entity_id);
+		// Fetch type name
+		const auto &type_name = typeid (TDataType).name ();
+
+		// Get all data contained in entity
+		const auto &collection = this->entity_data.at (entity_id);
 		if (0 == collection.size ()) {
 			std::stringstream ss;
 			ss << "Entity " << entity_id << " has no data!";
@@ -139,7 +140,6 @@ public:
 		for (auto &data_id : collection) {
 			std::string cur = this->data.at (data_id)->get_type ();
 			if (cur == type_name) {
-				//return std::static_pointer_cast<TDataType> (this->data.at (data_id)).get ();
 				return dynamic_cast<TDataType*> (this->data.at (data_id));
 			}
 		}
@@ -156,7 +156,7 @@ public:
 			"Given type has to be derived from Data<>!"
 		);
 
-		std::string type_name = typeid (TDataType).name ();
+		const auto &type_name = typeid (TDataType).name ();
 
 		if (0 == this->data_owner.count (type_name)) {
 			this->data_owner.emplace (type_name, EntityCollection ());
@@ -169,19 +169,16 @@ public:
 
 			throw std::runtime_error (ss.str ());
 		}
-
 		owners.emplace (entity_id);
 
-		DataID data_id = this->generate_data_id ();
-		//auto data_ptr = std::make_shared<TDataType> (args...);
 		auto data_ptr = new TDataType (std::forward<TArgs> (args)...);
 		assert (data_ptr);
+
+		DataID data_id = this->generate_data_id ();
 		assert (0 == this->data.count (data_id));
-		//auto report = this->data.emplace (data_id, data_ptr);
+
 		auto report = this->data.emplace (data_id, data_ptr);
 		assert (report.second); // already in map ??? wuut?
-		//auto data_ptr = report.first->second;
-		//assert (data_ptr);
 
 		EntityDataCollection& collection = this->entity_data.at (entity_id);
 		collection.emplace (data_id);
@@ -191,7 +188,6 @@ public:
 		}
 		this->type_lookup.at (type_name).emplace (data_id);
 
-		//return data_ptr.get ();
 		return dynamic_cast<TDataType*> (data_ptr);
 	}
 
@@ -213,7 +209,7 @@ public:
 			"Given type has to be derived from Data<>!"
 		);
 
-		std::string type_name = typeid (TDataType).name ();
+		const auto &type_name = typeid (TDataType).name ();
 		assert (1 == this->data_owner.count (type_name));
 
 		return this->data_owner.at (type_name);
@@ -243,7 +239,6 @@ public:
 		}
 
 		return EntityCollection (ids.begin (), ids.end ());
-		//return EntityCollection ();
 	}
 
 };
