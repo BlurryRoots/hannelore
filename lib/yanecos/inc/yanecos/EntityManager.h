@@ -10,6 +10,7 @@
 #include <typeinfo>
 #include <typeindex>
 #include <set>
+#include <type_traits>
 
 #include <yanecos/IData.h>
 
@@ -107,6 +108,11 @@ public:
 
 	template<class TDataType> TDataType*
 	get_entity_data (EntityID entity_id) const {
+		static_assert (
+			std::is_base_of<Data<TDataType>, TDataType>::value,
+			"Given type has to be derived from Data<>!"
+		);
+
 		std::string type_name = typeid (TDataType).name ();
 		EntityDataCollection collection = this->entity_data.at (entity_id);
 		if (0 == collection.size ()) {
@@ -120,7 +126,7 @@ public:
 			std::string cur = this->data.at (data_id)->get_type ();
 			if (cur == type_name) {
 				//return std::static_pointer_cast<TDataType> (this->data.at (data_id)).get ();
-				return (TDataType*)this->data.at (data_id);
+				return dynamic_cast<TDataType*> (this->data.at (data_id));
 			}
 		}
 
@@ -131,6 +137,11 @@ public:
 
 	template<class TDataType, class... TArgs> TDataType*
 	add_data (EntityID entity_id, TArgs&&... args) {
+		static_assert (
+			std::is_base_of<Data<TDataType>, TDataType>::value,
+			"Given type has to be derived from Data<>!"
+		);
+
 		std::string type_name = typeid (TDataType).name ();
 
 		if (0 == this->data_owner.count (type_name)) {
@@ -167,7 +178,7 @@ public:
 		this->type_lookup.at (type_name).emplace (data_id);
 
 		//return data_ptr.get ();
-		return (TDataType*)data_ptr;
+		return dynamic_cast<TDataType*> (data_ptr);
 	}
 
 	EntityCollection
@@ -183,6 +194,11 @@ public:
 
 	template<class TDataType> EntityCollection
 	get_entities_with () {
+		static_assert (
+			std::is_base_of<Data<TDataType>, TDataType>::value,
+			"Given type has to be derived from Data<>!"
+		);
+
 		std::string type_name = typeid (TDataType).name ();
 		assert (1 == this->data_owner.count (type_name));
 
@@ -194,8 +210,25 @@ public:
 		return typeid (TArg).name ();
 	}
 
+	// Template array of bool
+	template<bool... TBool>
+	struct BoolArray {};
+
+	// Template checklist
+	template<bool... TBool>
+	struct all_types_derived : std::is_same<BoolArray<TBool...>, BoolArray<(TBool, true)...>> {};
+
+	// Template check for data type inheritance
+	template<class... TDataType>
+	struct all_derived_from_data : all_types_derived<std::is_base_of<Data<TDataType>, TDataType>::value...> {};
+
 	template<class... TArg> EntityCollection
 	get_entities_with_all () {
+		static_assert (
+			all_derived_from_data<TArg...>::value,
+			"All types must be derived from Data<>"
+		);
+
 		std::unordered_set<std::type_index> types {
 			std::type_index (typeid (TArg))...
 		};
