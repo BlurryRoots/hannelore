@@ -51,6 +51,20 @@ typedef
 	DataTypeLookupMap
 	;
 
+// Template array of bool
+template<bool... TBool>
+struct BoolArray {};
+
+// Template checklist
+template<bool... TBool>
+struct all_types_derived
+: std::is_same<BoolArray<TBool...>, BoolArray<(TBool, true)...>> {};
+
+// Template check for data type inheritance
+template<class... TDataType>
+struct all_derived_from_data
+: all_types_derived<std::is_base_of<Data<TDataType>, TDataType>::value...> {};
+
 class EntityManager {
 
 private:
@@ -109,7 +123,7 @@ public:
 	template<class TDataType> TDataType*
 	get_entity_data (EntityID entity_id) const {
 		static_assert (
-			std::is_base_of<Data<TDataType>, TDataType>::value,
+			all_derived_from_data<TDataType>::value,
 			"Given type has to be derived from Data<>!"
 		);
 
@@ -138,7 +152,7 @@ public:
 	template<class TDataType, class... TArgs> TDataType*
 	add_data (EntityID entity_id, TArgs&&... args) {
 		static_assert (
-			std::is_base_of<Data<TDataType>, TDataType>::value,
+			all_derived_from_data<TDataType>::value,
 			"Given type has to be derived from Data<>!"
 		);
 
@@ -195,7 +209,7 @@ public:
 	template<class TDataType> EntityCollection
 	get_entities_with () {
 		static_assert (
-			std::is_base_of<Data<TDataType>, TDataType>::value,
+			all_derived_from_data<TDataType>::value,
 			"Given type has to be derived from Data<>!"
 		);
 
@@ -210,27 +224,15 @@ public:
 		return typeid (TArg).name ();
 	}
 
-	// Template array of bool
-	template<bool... TBool>
-	struct BoolArray {};
-
-	// Template checklist
-	template<bool... TBool>
-	struct all_types_derived : std::is_same<BoolArray<TBool...>, BoolArray<(TBool, true)...>> {};
-
-	// Template check for data type inheritance
-	template<class... TDataType>
-	struct all_derived_from_data : all_types_derived<std::is_base_of<Data<TDataType>, TDataType>::value...> {};
-
-	template<class... TArg> EntityCollection
+	template<class... TDataType> EntityCollection
 	get_entities_with_all () {
 		static_assert (
-			all_derived_from_data<TArg...>::value,
+			all_derived_from_data<TDataType...>::value,
 			"All types must be derived from Data<>"
 		);
 
 		std::unordered_set<std::type_index> types {
-			std::type_index (typeid (TArg))...
+			std::type_index (typeid (TDataType))...
 		};
 
 		std::unordered_set<EntityID> ids;
