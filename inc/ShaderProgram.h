@@ -42,13 +42,19 @@ public:
 	get_handle (void) const;
 
 	void
-	set_uniform_matrix4_f (const std::string &name, glm::mat4 matrix);
+	set_uniform_matrix4 (const std::string &name, glm::mat4 matrix);
+
+	void
+	set_uniform_vector3 (const std::string &name, glm::vec3 v);
 
 	GLfloat
 	get_uniform_f (std::string name) const;
 
 	GLint
 	get_uniform_i (std::string name) const;
+
+	void
+	set_uniform_ui (const std::string &name, GLuint value);
 
 	GLuint
 	get_uniform_ui (std::string name) const;

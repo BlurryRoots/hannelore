@@ -48,6 +48,7 @@ private:
 	GLuint angle_uniform;
 
 	float camera_speed;
+	glm::vec3 camera_position;
 	glm::vec3 camera_movement;
 
 	MeshLoader mesh_loader;

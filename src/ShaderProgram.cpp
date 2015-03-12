@@ -26,7 +26,7 @@ ShaderProgram::get_handle (void) const {
 }
 
 void
-ShaderProgram::set_uniform_matrix4_f (const std::string &name, glm::mat4 matrix) {
+ShaderProgram::set_uniform_matrix4 (const std::string &name, glm::mat4 matrix) {
 	assert (0 < this->uniforms.count (name));
 
 	glProgramUniformMatrix4fv (
@@ -35,6 +35,18 @@ ShaderProgram::set_uniform_matrix4_f (const std::string &name, glm::mat4 matrix)
 		1,
 		GL_FALSE,
 		&matrix[0][0]
+	);
+}
+
+void
+ShaderProgram::set_uniform_vector3 (const std::string &name, glm::vec3 v) {
+	assert (0 < this->uniforms.count (name));
+
+	glProgramUniform3fv (
+		this->handle,
+		this->uniforms.at (name),
+		3,
+		v.c_array ()
 	);
 }
 
@@ -62,6 +74,17 @@ ShaderProgram::get_uniform_i (std::string name) const {
 	);
 
 	return value;
+}
+
+void
+ShaderProgram::set_uniform_ui (const std::string &name, GLuint value) {
+	assert (0 < this->uniforms.count (name));
+
+	glProgramUniform1ui (
+		this->handle,
+		this->uniforms.at (name),
+		value
+	);
 }
 
 GLuint

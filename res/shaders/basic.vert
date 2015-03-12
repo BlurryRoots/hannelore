@@ -3,10 +3,13 @@
 uniform float angle;
 uniform float aspect;
 uniform mat4 model_matrix;
+uniform bool render_instanced;
+uniform vec3 camera_position;
 
-layout(location = 0) in vec3 vertex_position;
-layout(location = 1) in vec3 vertex_color;
-layout(location = 2) in vec2 vertex_uv_position;
+layout (location = 0) in vec3 vertex_position;
+layout (location = 1) in vec3 vertex_color;
+layout (location = 2) in vec2 vertex_uv_position;
+layout (location = 3) in mat4 instance_transform;
 
 out vec4 fragment_color;
 // Output data ; will be interpolated for each fragment.
@@ -64,12 +67,15 @@ rotate_x (float theta) {
 
 //
 void main () {
-    gl_Position = mat4 (1.0)
-    	* view_frustum (radians (45.0), aspect, 0.5, 5.0)
-        * translate (cos (angle), 0.0, 3.0 + sin (angle))
-        //* translate(0.0, 0.0, 3.0)
-        * model_matrix
-        //* scale(4.0/3.0, 1.0, 1.0)
+    mat4 model_transform = render_instanced
+        ? instance_transform
+        : model_matrix
+        ;
+
+    gl_Position = mat4 (1)
+        * view_frustum (radians (45.0), aspect, 0.5, 100.0)
+        * model_transform
+        //* translate (cos (angle), 0.0, 3.0 + sin (angle))
         * vec4 (vertex_position, 1.0f)
         ;
 

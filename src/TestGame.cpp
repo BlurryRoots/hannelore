@@ -8,7 +8,8 @@
 #include <thread>
 
 TestGame::TestGame (void)
-: framecounter (0)
+: camera_position (0, 0, -6)
+, framecounter (0)
 , fps_sum (0) {
 	this->program = ShaderProgramBuilder ()
 		.add_shader (VertexShader (FileReader ("shaders/basic.vert").to_string ()))
@@ -26,24 +27,7 @@ void
 TestGame::dispose (void) {
 	this->program.dispose ();
 
-#if 0
-	// TODO: this should live in a data processor, as well as the loading
-	long vertecies_counter = 0;
-	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
-		auto mesh = this->entities.get_entity_data<MeshData> (eid);
-		assert (mesh);
-		vertecies_counter += mesh->vertices.size ();
-		this->mesh_loader.dispose (mesh);
-	}
-
-	std::cout
-		<< "Over a total of " << this->framecounter << " frames for " << this->fps_sum << "s "
-		<< "it ran with ~" << (1 / (this->fps_sum / this->framecounter)) << " FPS"
-		<< "\nwhile showing " << vertecies_counter << " vertices."
-		<< std::endl;
-#else
 	this->mesh_loader.dispose ();
-#endif
 
 	this->texture_loader.dispose ();
 
@@ -71,12 +55,15 @@ TestGame::on_initialize (void) {
 
 	this->entities.add_data<MeshData> (eid, cube_key);
 #else
-	const float factor = 2.0f;
-	for (size_t i = 0; i < 1000; ++i) {
+	const float factor = 0.5f;
+	for (size_t i = 0; i < 400; ++i) {
 		auto eid = this->entities.create_entity ();
 
 		auto transform = this->entities.add_data<Transform> (eid, glm::vec3 (
-			sin ((float)i) * factor, cos ((float)i) * factor, 0
+			//sin ((float)i) * factor, cos ((float)i) * factor, 0
+			sin (static_cast<float> (i)) * factor,
+			cos (static_cast<float> (i)) * factor,
+			0
 		));
 		transform->scale ((1 * sin ((float)i)) + 0.1f);
 
@@ -84,17 +71,7 @@ TestGame::on_initialize (void) {
 	}
 #endif
 
-	this->texture_loader.load ("textures/ship.png", "ship", 0);
-
-#if 0
-	// load meshes
-	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
-		auto mesh = this->entities.get_entity_data<MeshData> (eid);
-		assert (mesh);
-
-		this->mesh_loader.load (mesh);
-	}
-#endif
+	this->texture_loader.load ("textures/cat.png", "ship", 0);
 
 	this->model_matrix = glGetUniformLocation (
 		this->program.get_handle (), "model_matrix"
@@ -106,16 +83,47 @@ TestGame::on_initialize (void) {
 	glEnable (GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc (GL_LESS);
+
+	glEnable (GL_CULL_FACE);
+	glCullFace (GL_BACK);
+
+	#if 0
+	// Setup data layout for instancing
+	GLuint location = 3;
+	GLint vector4_components = 4;
+	auto matrix4_size = sizeof (glm::mat4);
+	auto vector4_size = sizeof (glm::vec4);
+	GLuint divisor = 1; // every instance has its own matrix
+
+	for (GLint c = 0; c < vector4_components; ++c) {
+		auto column_layout_location = location + static_cast<GLuint> (c);
+
+		glEnableVertexAttribArray (column_layout_location);
+		glVertexAttribPointer (column_layout_location,
+			vector4_components, // vec4 has four components
+			GL_FLOAT, // vec4 component is of type float
+			GL_FALSE, // matrix values are not normalized
+			matrix4_size, // an object has total size of a matrix
+			reinterpret_cast<GLvoid*> (c * vector4_size) // data is being found at offset
+		);
+		glVertexAttribDivisor (column_layout_location,
+			divisor
+		);
+		glDisableVertexAttribArray (column_layout_location);
+	}
+	#endif
 }
 
 void
 TestGame::on_update (double dt) {
+#if 0
 	auto transfom_vector = this->entities.get_entities_with<Transform> ();
 	// rotate model
 	for (auto &entity_id : transfom_vector) {
 		auto transform = this->entities.get_entity_data<Transform> (entity_id);
 		transform->rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
 	}
+#endif
 
 	// increase angle
 	float angle;
@@ -140,13 +148,16 @@ TestGame::on_render (void) {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	this->program.use ();
+#if 0
+	this->program.set_uniform_vector3 ("camera_position",
+		this->camera_position
+	);
+#endif
 
 	this->texture_loader.bind ("ship");
 
-	glEnableVertexAttribArray (0);
-	glEnableVertexAttribArray (1);
-	glEnableVertexAttribArray (2);
-
+	this->mesh_renderer.bind (this->mesh_loader.get ("cube"));
+#if 1
 	for (auto &entity_id : this->entities.get_entities_with_all<Transform, MeshData> ()) {
 		auto mesh_data = this->entities.get_entity_data<MeshData> (entity_id);
 		assert (mesh_data);
@@ -154,20 +165,25 @@ TestGame::on_render (void) {
 		auto mesh = this->mesh_loader.get (mesh_data->key);
 		assert (mesh);
 
-		this->mesh_renderer.bind (mesh);
-
 		auto transform = this->entities.get_entity_data<Transform> (entity_id);
-		assert (transform);
+		//auto transform = Transform ();
+		//assert (transform);
 
 		this->mesh_renderer.render (this->program, transform);
 	}
+#else
+	std::vector<glm::mat4> instance_matrices;
+	for (auto &entity_id : this->entities.get_entities_with_all<Transform, MeshData> ()) {
+		auto transform = this->entities.get_entity_data<Transform> (entity_id);
+		assert (transform);
+
+		instance_matrices.push_back (transform->to_matrix ());
+	}
+	this->mesh_renderer.render_instanced (this->program, instance_matrices);
+#endif
 	this->mesh_renderer.unbind ();
 
 	this->texture_loader.unbind ();
-
-	glDisableVertexAttribArray (2);
-	glDisableVertexAttribArray (1);
-	glDisableVertexAttribArray (0);
 }
 
 void

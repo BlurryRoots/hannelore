@@ -80,28 +80,28 @@ struct Mesh {
 	create_cube_mesh (void) {
 		std::vector<Vertex> v;
 		v.push_back (Vertex {
-			{-0.5f,  0.5f,  0.5f}, {1.000023f, 1.0f-0.000013f}
+			{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f,  0.5f,  0.5f}, {0.668104f, 1.0f-0.000013f}
+			{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f, -0.5f,  0.5f}, {0.667979f, 1.0f-0.335851f,}
+			{ 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{-0.5f, -0.5f,  0.5f}, {0.000059f, 1.0f-0.000004f}
+			{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{-0.5f,  0.5f,  -0.5f}, {0.335973f, 1.0f-0.335903f}
+			{-0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f,  0.5f,  -0.5f}, {0.336098f, 1.0f-0.000071f}
+			{ 0.5f,  0.5f,  -0.5f}, {1.0f, 0.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f, -0.5f,  -0.5f}, {0.667979f, 1.0f-0.335851f}
+			{ 0.5f, -0.5f,  -0.5f}, {1.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{-0.5f, -0.5f,  -0.5f}, {0.335973f, 1.0f-0.335903f}
+			{-0.5f, -0.5f,  -0.5f}, {0.0f, 1.0f}
 		});
 
 		std::vector<Color> c;
