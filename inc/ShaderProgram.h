@@ -7,10 +7,13 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
-#include <map>
+#include <unordered_map>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include <glm/glm.h>
+#include <glm/matrix.h>
 
 #include <VertexShader.h>
 #include <FragmentShader.h>
@@ -21,7 +24,14 @@ friend class ShaderProgramBuilder;
 private:
 	GLuint handle;
 
+	std::unordered_map<std::string, GLuint> uniforms;
+
 public:
+	ShaderProgram ();
+
+	virtual
+	~ShaderProgram ();
+
 	void
 	use (void) const;
 
@@ -29,19 +39,22 @@ public:
 	dispose (void);
 
 	GLuint
-	get_handle (void);
+	get_handle (void) const;
+
+	void
+	set_uniform_matrix4_f (const std::string &name, glm::mat4 matrix);
 
 	GLfloat
-	get_uniform_f (std::string name);
+	get_uniform_f (std::string name) const;
 
 	GLint
-	get_uniform_i (std::string name);
+	get_uniform_i (std::string name) const;
 
 	GLuint
-	get_uniform_ui (std::string name);
+	get_uniform_ui (std::string name) const;
 
 	GLdouble
-	get_uniform_d (std::string name);
+	get_uniform_d (std::string name) const;
 };
 
 class ShaderProgramBuilder {

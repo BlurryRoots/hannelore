@@ -1,6 +1,15 @@
 
 #include <ShaderProgram.h>
 
+#define DEBUG_MESSAGE
+
+ShaderProgram::ShaderProgram () {
+}
+
+ShaderProgram::~ShaderProgram () {
+
+}
+
 void
 ShaderProgram::use (void) const {
 	glUseProgram (this->handle);
@@ -12,12 +21,25 @@ ShaderProgram::dispose (void) {
 }
 
 GLuint
-ShaderProgram::get_handle (void) {
+ShaderProgram::get_handle (void) const {
 	return this->handle;
 }
 
+void
+ShaderProgram::set_uniform_matrix4_f (const std::string &name, glm::mat4 matrix) {
+	assert (0 < this->uniforms.count (name));
+
+	glProgramUniformMatrix4fv (
+		this->handle,
+		this->uniforms.at (name),
+		1,
+		GL_FALSE,
+		&matrix[0][0]
+	);
+}
+
 GLfloat
-ShaderProgram::get_uniform_f (std::string name) {
+ShaderProgram::get_uniform_f (std::string name) const {
 	int uid = glGetUniformLocation (this->handle, name.c_str ());
 	GLfloat value;
 	glGetUniformfv (
@@ -30,7 +52,7 @@ ShaderProgram::get_uniform_f (std::string name) {
 }
 
 GLint
-ShaderProgram::get_uniform_i (std::string name) {
+ShaderProgram::get_uniform_i (std::string name) const {
 	int uid = glGetUniformLocation (this->handle, name.c_str ());
 	GLint value;
 	glGetUniformiv (
@@ -43,7 +65,7 @@ ShaderProgram::get_uniform_i (std::string name) {
 }
 
 GLuint
-ShaderProgram::get_uniform_ui (std::string name) {
+ShaderProgram::get_uniform_ui (std::string name) const {
 	int uid = glGetUniformLocation (this->handle, name.c_str ());
 	GLuint value;
 	glGetUniformuiv (
@@ -56,7 +78,7 @@ ShaderProgram::get_uniform_ui (std::string name) {
 }
 
 GLdouble
-ShaderProgram::get_uniform_d (std::string name) {
+ShaderProgram::get_uniform_d (std::string name) const {
 	int uid = glGetUniformLocation (this->handle, name.c_str ());
 	GLdouble value;
 	glGetUniformdv (
@@ -175,5 +197,46 @@ ShaderProgramBuilder::link (void) {
 		throw this->get_info_log (this->program);
 	}
 
+	// search all active uniforms and cache their locations
+	GLint number_uniforms;
+	glGetProgramiv (this->program.handle,
+		GL_ACTIVE_UNIFORMS,
+		&number_uniforms
+	);
+	assert (0 < number_uniforms);
+
+	// TODO: Needs further research! Why the eff does the sampler gets found twice ?
+	for (GLuint index = 1; index < static_cast<GLuint> (number_uniforms); ++index) {
+		char name_buffer[100];
+		GLsizei name_buffer_size = sizeof (name_buffer) - 1;
+		GLint uniform_type_size;
+		GLenum uniform_type;
+
+		glGetActiveUniform (this->program.handle,
+			index,
+			name_buffer_size,
+			nullptr,
+			&uniform_type_size,
+			&uniform_type,
+			name_buffer
+		);
+
+		assert (0 < name_buffer_size);
+		assert (0 < uniform_type_size);
+
+		#ifdef DEBUG_MESSAGE
+		const auto &report = this->program.uniforms.emplace (name_buffer, index);
+		assert (report.second);
+
+		std::cout << "Found uniform "
+			<< report.first->first << "@" << report.first->second
+			<< std::endl;
+		#else
+		this->program.uniforms.emplace (name_buffer, index);
+		#endif
+
+	}
+
+	// voi la
 	return this->program;
 }

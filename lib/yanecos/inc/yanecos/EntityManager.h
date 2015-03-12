@@ -97,9 +97,20 @@ public:
 
 	virtual
 	~EntityManager () {
+	}
+
+	void
+	dispose () {
 		for (auto entry : this->data) {
 			delete entry.second;
 		}
+		this->data.clear ();
+
+		this->data_owner.clear ();
+
+		this->type_lookup.clear ();
+
+		this->entity_data.clear ();
 	}
 
 	EntityID

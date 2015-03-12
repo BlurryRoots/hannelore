@@ -16,18 +16,6 @@ TestGame::TestGame (void)
 		.link ()
 		;
 
-	const float factor = 2.0f;
-	auto mesh_data = MeshData::create_cube_mesh ();
-
-	for (size_t i = 0; i < 1000; ++i) {
-		auto eid = this->entities.create_entity ();
-		auto transform = this->entities.add_data<Transform> (eid, glm::vec3 (
-			sin ((float)i) * factor, cos ((float)i) * factor, 0
-		));
-		transform->scale ((1 * sin ((float)i)) + 0.1f);
-		this->entities.add_data<MeshData> (eid, mesh_data);
-	}
-
 	this->is_running = true;
 }
 
@@ -38,6 +26,8 @@ void
 TestGame::dispose (void) {
 	this->program.dispose ();
 
+#if 0
+	// TODO: this should live in a data processor, as well as the loading
 	long vertecies_counter = 0;
 	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
 		auto mesh = this->entities.get_entity_data<MeshData> (eid);
@@ -51,10 +41,52 @@ TestGame::dispose (void) {
 		<< "it ran with ~" << (1 / (this->fps_sum / this->framecounter)) << " FPS"
 		<< "\nwhile showing " << vertecies_counter << " vertices."
 		<< std::endl;
+#else
+	this->mesh_loader.dispose ();
+#endif
+
+	this->texture_loader.dispose ();
+
+	this->entities.dispose ();
+
+	std::cout
+		<< "Over a total of " << this->framecounter << " frames for " << this->fps_sum << "s "
+		<< "it ran with ~" << (1 / (this->fps_sum / this->framecounter)) << " FPS"
+		<< std::endl;
 }
 
 void
 TestGame::on_initialize (void) {
+	const auto &cube_key = "cube";
+	const auto cube_mesh = Mesh::create_cube_mesh ();
+	this->mesh_loader.load (cube_key, cube_mesh);
+
+#if 0
+	auto eid = this->entities.create_entity ();
+
+	auto transform = this->entities.add_data<Transform> (eid, glm::vec3 (
+		0, 0, 0
+	));
+	transform->scale (1.0f);
+
+	this->entities.add_data<MeshData> (eid, cube_key);
+#else
+	const float factor = 2.0f;
+	for (size_t i = 0; i < 1000; ++i) {
+		auto eid = this->entities.create_entity ();
+
+		auto transform = this->entities.add_data<Transform> (eid, glm::vec3 (
+			sin ((float)i) * factor, cos ((float)i) * factor, 0
+		));
+		transform->scale ((1 * sin ((float)i)) + 0.1f);
+
+		this->entities.add_data<MeshData> (eid, cube_key);
+	}
+#endif
+
+	this->texture_loader.load ("textures/ship.png", "ship", 0);
+
+#if 0
 	// load meshes
 	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
 		auto mesh = this->entities.get_entity_data<MeshData> (eid);
@@ -62,8 +94,7 @@ TestGame::on_initialize (void) {
 
 		this->mesh_loader.load (mesh);
 	}
-
-	//this->texture_loader.load ("textures/ship.png", "ship");
+#endif
 
 	this->model_matrix = glGetUniformLocation (
 		this->program.get_handle (), "model_matrix"
@@ -110,25 +141,33 @@ TestGame::on_render (void) {
 
 	this->program.use ();
 
-	//this->texture_loader.bind ("ship", 0);
+	this->texture_loader.bind ("ship");
+
+	glEnableVertexAttribArray (0);
+	glEnableVertexAttribArray (1);
+	glEnableVertexAttribArray (2);
 
 	for (auto &entity_id : this->entities.get_entities_with_all<Transform, MeshData> ()) {
-		auto transform = this->entities.get_entity_data<Transform> (entity_id);
-		assert (transform);
-		auto mesh = this->entities.get_entity_data<MeshData> (entity_id);
+		auto mesh_data = this->entities.get_entity_data<MeshData> (entity_id);
+		assert (mesh_data);
+
+		auto mesh = this->mesh_loader.get (mesh_data->key);
 		assert (mesh);
 
-		glm::mat4 m = transform->to_matrix ();
-		glProgramUniformMatrix4fv (
-			this->program.get_handle (),
-			model_matrix,
-			1,
-			GL_FALSE,
-			&m[0][0]
-		);
+		this->mesh_renderer.bind (mesh);
 
-		this->mesh_renderer.render (mesh);
+		auto transform = this->entities.get_entity_data<Transform> (entity_id);
+		assert (transform);
+
+		this->mesh_renderer.render (this->program, transform);
 	}
+	this->mesh_renderer.unbind ();
+
+	this->texture_loader.unbind ();
+
+	glDisableVertexAttribArray (2);
+	glDisableVertexAttribArray (1);
+	glDisableVertexAttribArray (0);
 }
 
 void
