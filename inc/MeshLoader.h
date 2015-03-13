@@ -80,28 +80,28 @@ struct Mesh {
 	create_cube_mesh (void) {
 		std::vector<Vertex> v;
 		v.push_back (Vertex {
-			{-0.5f,  0.5f,  0.5f}, {1.000023f, 1.0f-0.000013f}
+			{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f,  0.5f,  0.5f}, {0.668104f, 1.0f-0.000013f}
+			{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f, -0.5f,  0.5f}, {0.667979f, 1.0f-0.335851f,}
+			{ 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{-0.5f, -0.5f,  0.5f}, {0.000059f, 1.0f-0.000004f}
+			{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{-0.5f,  0.5f,  -0.5f}, {0.335973f, 1.0f-0.335903f}
+			{-0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f,  0.5f,  -0.5f}, {0.336098f, 1.0f-0.000071f}
+			{ 0.5f,  0.5f,  -0.5f}, {1.0f, 0.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f, -0.5f,  -0.5f}, {0.667979f, 1.0f-0.335851f}
+			{ 0.5f, -0.5f,  -0.5f}, {1.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{-0.5f, -0.5f,  -0.5f}, {0.335973f, 1.0f-0.335903f}
+			{-0.5f, -0.5f,  -0.5f}, {0.0f, 1.0f}
 		});
 
 		std::vector<Color> c;
@@ -234,7 +234,7 @@ private:
 		);
 		glDisableVertexAttribArray (2);
 		// load vertices data into grapics memory
-		MeshLoader::upload_buffer_data (mesh->vertexbuffer,
+		upload_buffer_data (mesh->vertexbuffer,
 			GL_ARRAY_BUFFER,
 			(const GLvoid *)mesh->vertices.data (),
 			sizeof (mesh->vertices[0]) * mesh->vertices.size ()
@@ -253,7 +253,7 @@ private:
 		   (void *)offsetof (struct Color, rgba)  // array buffer offset
 		);
 		// load colors into graphics memory
-		MeshLoader::upload_buffer_data (mesh->colorbuffer,
+		upload_buffer_data (mesh->colorbuffer,
 			GL_ARRAY_BUFFER,
 			(const GLvoid *)mesh->colors.data (),
 			sizeof (mesh->colors[0]) * mesh->colors.size ()
@@ -263,7 +263,7 @@ private:
 
 		// Indicies
 		// load indices into graphics memory
-		MeshLoader::upload_buffer_data (mesh->indexbuffer,
+		upload_buffer_data (mesh->indexbuffer,
 			GL_ELEMENT_ARRAY_BUFFER,
 			(const GLvoid *)mesh->indices.data (),
 			sizeof (mesh->indices[0]) * mesh->indices.size ()

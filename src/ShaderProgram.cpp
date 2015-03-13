@@ -1,6 +1,10 @@
 
 #include <ShaderProgram.h>
 
+#include <iostream>
+#include <fstream>
+#include <stdexcept>
+
 #define DEBUG_MESSAGE
 
 ShaderProgram::ShaderProgram () {
@@ -26,7 +30,7 @@ ShaderProgram::get_handle (void) const {
 }
 
 void
-ShaderProgram::set_uniform_matrix4_f (const std::string &name, glm::mat4 matrix) {
+ShaderProgram::set_uniform_mat4 (const std::string &name, glm::mat4 matrix) {
 	assert (0 < this->uniforms.count (name));
 
 	glProgramUniformMatrix4fv (
@@ -38,8 +42,31 @@ ShaderProgram::set_uniform_matrix4_f (const std::string &name, glm::mat4 matrix)
 	);
 }
 
+void
+ShaderProgram::set_uniform_vec3 (const std::string &name, glm::vec3 vec) {
+	assert (0 < this->uniforms.count (name));
+
+	glProgramUniform3fv (
+		this->handle,
+		this->uniforms.at (name),
+		1,
+		vec.c_array ()
+	);
+}
+
+void
+ShaderProgram::set_uniform_f (const std::string &name, float value) {
+	assert (0 < this->uniforms.count (name));
+
+	glProgramUniform1f (
+		this->handle,
+		this->uniforms.at (name),
+		value
+	);
+}
+
 GLfloat
-ShaderProgram::get_uniform_f (std::string name) const {
+ShaderProgram::get_uniform_f (const std::string &name) const {
 	int uid = glGetUniformLocation (this->handle, name.c_str ());
 	GLfloat value;
 	glGetUniformfv (
@@ -52,7 +79,7 @@ ShaderProgram::get_uniform_f (std::string name) const {
 }
 
 GLint
-ShaderProgram::get_uniform_i (std::string name) const {
+ShaderProgram::get_uniform_i (const std::string &name) const {
 	int uid = glGetUniformLocation (this->handle, name.c_str ());
 	GLint value;
 	glGetUniformiv (
@@ -65,7 +92,7 @@ ShaderProgram::get_uniform_i (std::string name) const {
 }
 
 GLuint
-ShaderProgram::get_uniform_ui (std::string name) const {
+ShaderProgram::get_uniform_ui (const std::string &name) const {
 	int uid = glGetUniformLocation (this->handle, name.c_str ());
 	GLuint value;
 	glGetUniformuiv (
@@ -78,7 +105,7 @@ ShaderProgram::get_uniform_ui (std::string name) const {
 }
 
 GLdouble
-ShaderProgram::get_uniform_d (std::string name) const {
+ShaderProgram::get_uniform_d (const std::string &name) const {
 	int uid = glGetUniformLocation (this->handle, name.c_str ());
 	GLdouble value;
 	glGetUniformdv (
@@ -146,7 +173,7 @@ ShaderProgramBuilder::get_info_log (ShaderProgram program) {
 	glGetProgramiv (program.handle, GL_INFO_LOG_LENGTH, &log_length);
 
 	char log_buffer[log_length];
-	glGetProgramInfoLog(program.handle, log_length, NULL, log_buffer);
+	glGetProgramInfoLog (program.handle, log_length, NULL, log_buffer);
 
 	return std::string (log_buffer);
 }
@@ -180,21 +207,21 @@ ShaderProgramBuilder::add_shader (FragmentShader fs) {
 ShaderProgram
 ShaderProgramBuilder::link (void) {
 	if (! this->has_vert) {
-		throw std::string ("No vertex shader!");
+		throw std::runtime_error ("ShaderProgram has no vertex shader attached!");
 	}
 
 	if (! this->has_frag) {
-		throw std::string ("No fragment shader!");
+		throw std::runtime_error ("ShaderProgram has no fragment shader attached!");
 	}
 
 	glLinkProgram (this->program.handle);
 	if (! this->is_linked (this->program)) {
-		throw this->get_info_log (this->program);
+		throw std::runtime_error (this->get_info_log (this->program));
 	}
 
 	glValidateProgram (this->program.handle);
 	if (! this->is_validated (this->program)) {
-		throw this->get_info_log (this->program);
+		throw std::runtime_error (this->get_info_log (this->program));
 	}
 
 	// search all active uniforms and cache their locations

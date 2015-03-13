@@ -26,24 +26,7 @@ void
 TestGame::dispose (void) {
 	this->program.dispose ();
 
-#if 0
-	// TODO: this should live in a data processor, as well as the loading
-	long vertecies_counter = 0;
-	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
-		auto mesh = this->entities.get_entity_data<MeshData> (eid);
-		assert (mesh);
-		vertecies_counter += mesh->vertices.size ();
-		this->mesh_loader.dispose (mesh);
-	}
-
-	std::cout
-		<< "Over a total of " << this->framecounter << " frames for " << this->fps_sum << "s "
-		<< "it ran with ~" << (1 / (this->fps_sum / this->framecounter)) << " FPS"
-		<< "\nwhile showing " << vertecies_counter << " vertices."
-		<< std::endl;
-#else
 	this->mesh_loader.dispose ();
-#endif
 
 	this->texture_loader.dispose ();
 
@@ -72,7 +55,7 @@ TestGame::on_initialize (void) {
 	this->entities.add_data<MeshData> (eid, cube_key);
 #else
 	const float factor = 2.0f;
-	for (size_t i = 0; i < 1000; ++i) {
+	for (size_t i = 0; i < 10; ++i) {
 		auto eid = this->entities.create_entity ();
 
 		auto transform = this->entities.add_data<Transform> (eid, glm::vec3 (
@@ -84,17 +67,7 @@ TestGame::on_initialize (void) {
 	}
 #endif
 
-	this->texture_loader.load ("textures/ship.png", "ship", 0);
-
-#if 0
-	// load meshes
-	for (auto &eid : this->entities.get_entities_with<MeshData> ()) {
-		auto mesh = this->entities.get_entity_data<MeshData> (eid);
-		assert (mesh);
-
-		this->mesh_loader.load (mesh);
-	}
-#endif
+	this->texture_loader.load ("textures/cat.png", "ship", 0);
 
 	this->model_matrix = glGetUniformLocation (
 		this->program.get_handle (), "model_matrix"
@@ -106,6 +79,12 @@ TestGame::on_initialize (void) {
 	glEnable (GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc (GL_LESS);
+
+	glEnable (GL_LINE_SMOOTH);
+
+	// TODO: Disable this if drawing translucent stuff
+	//glEnable (GL_CULL_FACE);
+	//glCullFace (GL_BACK);
 }
 
 void
@@ -140,6 +119,16 @@ TestGame::on_render (void) {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	this->program.use ();
+
+	Transform camera;
+	camera.translate (glm::vec3 (0, 0, 6));
+
+	this->program.set_uniform_f ("fov",
+		40.0f
+	);
+	this->program.set_uniform_mat4 ("camera_matrix",
+		camera.to_matrix ()
+	);
 
 	this->texture_loader.bind ("ship");
 

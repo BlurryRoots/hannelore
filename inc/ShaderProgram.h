@@ -2,10 +2,6 @@
 #ifndef __SHADERPROGRAM__
 #define __SHADERPROGRAM__
 
-// std shit
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
@@ -42,19 +38,25 @@ public:
 	get_handle (void) const;
 
 	void
-	set_uniform_matrix4_f (const std::string &name, glm::mat4 matrix);
+	set_uniform_mat4 (const std::string &name, glm::mat4 matrix);
+
+	void
+	set_uniform_vec3 (const std::string &name, glm::vec3 vec);
+
+	void
+	set_uniform_f (const std::string &name, float value);
 
 	GLfloat
-	get_uniform_f (std::string name) const;
+	get_uniform_f (const std::string &name) const;
 
 	GLint
-	get_uniform_i (std::string name) const;
+	get_uniform_i (const std::string &name) const;
 
 	GLuint
-	get_uniform_ui (std::string name) const;
+	get_uniform_ui (const std::string &name) const;
 
 	GLdouble
-	get_uniform_d (std::string name) const;
+	get_uniform_d (const std::string &name) const;
 };
 
 class ShaderProgramBuilder {

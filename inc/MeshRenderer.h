@@ -41,7 +41,7 @@ public:
 		assert (this->current_mesh);
 
 		// calculate and forward mesh transform
-		active_program.set_uniform_matrix4_f ("model_matrix",
+		active_program.set_uniform_mat4 ("model_matrix",
 			transform->to_matrix ()
 		);
 
