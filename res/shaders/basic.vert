@@ -3,17 +3,19 @@
 uniform float angle;
 uniform float aspect;
 uniform mat4 model_matrix;
+uniform mat4 camera_matrix;
+uniform float fov;
 
-layout(location = 0) in vec3 vertex_position;
-layout(location = 1) in vec3 vertex_color;
-layout(location = 2) in vec2 vertex_uv_position;
+layout (location = 0) in vec3 vertex_position;
+layout (location = 1) in vec3 vertex_color;
+layout (location = 2) in vec2 vertex_uv_position;
 
 out vec4 fragment_color;
 // Output data ; will be interpolated for each fragment.
 out vec2 fragment_uv_position;
 
 //
-mat4 view_frustum(
+mat4 view_frustum (
     float angle_of_view,
     float aspect_ratio,
     float z_near,
@@ -43,7 +45,7 @@ scale (float x, float y, float z) {
 }
 
 mat4
-translate(float x, float y, float z) {
+translate (float x, float y, float z) {
     return mat4 (
         vec4 (1.0, 0.0, 0.0, 0.0),
         vec4 (0.0, 1.0, 0.0, 0.0),
@@ -64,12 +66,18 @@ rotate_x (float theta) {
 
 //
 void main () {
-    gl_Position = mat4 (1.0)
-    	* view_frustum (radians (45.0), aspect, 0.5, 5.0)
-        * translate (cos (angle), 0.0, 3.0 + sin (angle))
-        //* translate(0.0, 0.0, 3.0)
+    mat4 view_projection = mat4 (1)
+        * view_frustum (radians (fov), aspect, 0.05, 100.0)
+        * camera_matrix
+        ;
+
+    mat4 model_view_projection = mat4 (1)
+        * view_projection
         * model_matrix
-        //* scale(4.0/3.0, 1.0, 1.0)
+        ;
+
+    gl_Position = mat4 (1)
+        * model_view_projection
         * vec4 (vertex_position, 1.0f)
         ;
 
