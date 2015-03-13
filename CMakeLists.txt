@@ -32,6 +32,9 @@ include_directories (lib/glm)
 # yanecos
 include_directories (lib/yanecos/inc)
 
+# json
+include_directories (lib/json/src)
+
 # app specific includes
 include_directories (inc)
 

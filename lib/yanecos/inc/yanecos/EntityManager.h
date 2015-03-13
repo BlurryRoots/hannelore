@@ -14,6 +14,8 @@
 
 #include <yanecos/IData.h>
 
+#include <json.hpp>
+
 namespace Yanecos {
 
 typedef
@@ -101,6 +103,8 @@ public:
 
 	void
 	dispose () {
+		std::cout << this->serialize () << std::endl << std::endl;
+
 		for (auto entry : this->data) {
 			delete entry.second;
 		}
@@ -111,6 +115,26 @@ public:
 		this->type_lookup.clear ();
 
 		this->entity_data.clear ();
+	}
+
+	std::string
+	serialize () {
+		using json = nlohmann::json;
+
+		json j;
+
+		j["data_owner"] = json (this->data_owner);
+		j["type_lookup"] = json (this->type_lookup);
+
+		json entity_data_json = json::array();
+		for (auto &entry : this->entity_data) {
+			json jentry = json::object ();
+			jentry[std::to_string (entry.first)] = json (entry.second);
+			entity_data_json.push_back (jentry);
+		}
+		j["entity_data"] = entity_data_json;
+
+		return j.dump ();
 	}
 
 	EntityID
