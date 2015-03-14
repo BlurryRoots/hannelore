@@ -86,8 +86,8 @@ TestGame::on_initialize (void) {
 	glEnable (GL_LINE_SMOOTH);
 
 	// TODO: Disable this if drawing translucent stuff
-	//glEnable (GL_CULL_FACE);
-	//glCullFace (GL_BACK);
+	glEnable (GL_CULL_FACE);
+	glCullFace (GL_BACK);
 }
 
 void
@@ -139,6 +139,7 @@ TestGame::on_render (void) {
 	glEnableVertexAttribArray (0);
 	glEnableVertexAttribArray (1);
 	glEnableVertexAttribArray (2);
+	glEnableVertexAttribArray (3);
 
 	for (auto &entity_id : this->entities.get_entities_with_all<Transform, MeshData> ()) {
 		auto mesh_data = this->entities.get_entity_data<MeshData> (entity_id);
@@ -158,6 +159,7 @@ TestGame::on_render (void) {
 
 	this->texture_loader.unbind ();
 
+	glDisableVertexAttribArray (3);
 	glDisableVertexAttribArray (2);
 	glDisableVertexAttribArray (1);
 	glDisableVertexAttribArray (0);

@@ -18,7 +18,7 @@ layout (location = 3) in vec3 vertex_normal;
 // Output data ; will be interpolated for each fragment.
 out vec4 fragment_color;
 out vec2 fragment_uv_position;
-out vec4 fragment_normal;
+out vec3 fragment_normal;
 
 //
 mat4 view_frustum (
@@ -97,10 +97,10 @@ void main () {
     fragment_uv_position = vertex_uv_position;
 
     // Calculate the vertex normal and export it
-    fragment_normal = mat4 (1)
+    fragment_normal = (mat4 (1)
         // transform the normal according to mvp
         * model_view_projection
         // set the vector to be a direction
-        * vec4 (vertex_normal, 0.0f)
+        * vec4 (vertex_normal, 0.0f)).xyz
         ;
 }
