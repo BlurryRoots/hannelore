@@ -1,18 +1,24 @@
 #version 330 core
 
+// Uniform data: Arbitrary data send from c++ side
 uniform float angle;
-uniform float aspect;
+
 uniform mat4 model_matrix;
+
 uniform mat4 camera_matrix;
+uniform float aspect;
 uniform float fov;
 
+// Layout data: Buffer data specified via vertex attribute function
 layout (location = 0) in vec3 vertex_position;
 layout (location = 1) in vec3 vertex_color;
 layout (location = 2) in vec2 vertex_uv_position;
+layout (location = 3) in vec3 vertex_normal;
 
-out vec4 fragment_color;
 // Output data ; will be interpolated for each fragment.
+out vec4 fragment_color;
 out vec2 fragment_uv_position;
+out vec4 fragment_normal;
 
 //
 mat4 view_frustum (
@@ -64,24 +70,37 @@ rotate_x (float theta) {
     );
 }
 
-//
+// Shader entry point
 void main () {
+    // Calculate the view projection
     mat4 view_projection = mat4 (1)
         * view_frustum (radians (fov), aspect, 0.05, 100.0)
         * camera_matrix
         ;
 
+    // Combine model space and view projection
     mat4 model_view_projection = mat4 (1)
         * view_projection
         * model_matrix
         ;
 
+    // Apply transformation to vectex position
     gl_Position = mat4 (1)
         * model_view_projection
         * vec4 (vertex_position, 1.0f)
         ;
 
+    // Export the vertex color
     fragment_color = vec4 (vertex_color, 1.0f);
 
+    // Export the vertex uv position
     fragment_uv_position = vertex_uv_position;
+
+    // Calculate the vertex normal and export it
+    fragment_normal = mat4 (1)
+        // transform the normal according to mvp
+        * model_view_projection
+        // set the vector to be a direction
+        * vec4 (vertex_normal, 0.0f)
+        ;
 }

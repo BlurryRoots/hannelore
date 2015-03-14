@@ -49,6 +49,8 @@ private:
 
 	float camera_speed;
 	glm::vec3 camera_movement;
+	glm::vec3 camera_panning;
+	Transform camera;
 
 	MeshLoader mesh_loader;
 	MeshRenderer mesh_renderer;

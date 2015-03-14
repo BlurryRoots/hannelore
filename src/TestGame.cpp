@@ -76,6 +76,9 @@ TestGame::on_initialize (void) {
 		this->program.get_handle (), "angle"
 	);
 
+	camera.translate (glm::vec3 (0, -2, 6));
+	camera.rotate (glm::vec3 (2, 0, 0));
+
 	glEnable (GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc (GL_LESS);
@@ -95,6 +98,10 @@ TestGame::on_update (double dt) {
 		auto transform = this->entities.get_entity_data<Transform> (entity_id);
 		transform->rotate (glm::vec3 (0, dt * 5, dt * 20.0f));
 	}
+
+	// transform camera
+	this->camera.translate (this->camera_movement * static_cast<float> (dt));
+	this->camera.rotate (this->camera_panning * static_cast<float> (dt) * 100.0f);
 
 	// increase angle
 	float angle;
@@ -119,9 +126,6 @@ TestGame::on_render (void) {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	this->program.use ();
-
-	Transform camera;
-	camera.translate (glm::vec3 (0, 0, 6));
 
 	this->program.set_uniform_f ("fov",
 		40.0f
@@ -165,6 +169,7 @@ TestGame::on_key (int key, int scancode, int action, int mods) {
 		this->quit ();
 	}
 
+	// Moving
 	if (key == GLFW_KEY_W) {
 		if (action == GLFW_PRESS)
 			this->camera_movement -= glm::vec3 (0, 0, 1);
@@ -191,6 +196,35 @@ TestGame::on_key (int key, int scancode, int action, int mods) {
 			this->camera_movement -= glm::vec3 (1, 0, 0);
 		if (action == GLFW_RELEASE)
 			this->camera_movement += glm::vec3 (1, 0, 0);
+	}
+
+	// Panning
+	if (key == GLFW_KEY_UP) {
+		if (action == GLFW_PRESS)
+			this->camera_panning -= glm::vec3 (1, 0, 0);
+		if (action == GLFW_RELEASE)
+			this->camera_panning += glm::vec3 (1, 0, 0);
+	}
+
+	if (key == GLFW_KEY_DOWN) {
+		if (action == GLFW_PRESS)
+			this->camera_panning += glm::vec3 (1, 0, 0);
+		if (action == GLFW_RELEASE)
+			this->camera_panning -= glm::vec3 (1, 0, 0);
+	}
+
+	if (key == GLFW_KEY_LEFT) {
+		if (action == GLFW_PRESS)
+			this->camera_panning += glm::vec3 (0, 1, 0);
+		if (action == GLFW_RELEASE)
+			this->camera_panning -= glm::vec3 (0, 1, 0);
+	}
+
+	if (key == GLFW_KEY_RIGHT) {
+		if (action == GLFW_PRESS)
+			this->camera_panning -= glm::vec3 (0, 1, 0);
+		if (action == GLFW_RELEASE)
+			this->camera_panning += glm::vec3 (0, 1, 0);
 	}
 }
 

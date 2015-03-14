@@ -6,6 +6,7 @@
 struct Vertex {
 	GLfloat position[3];
 	GLfloat uv[2];
+	GLfloat normal[3];
 };
 
 struct Color {
@@ -79,29 +80,31 @@ struct Mesh {
 	static Mesh*
 	create_cube_mesh (void) {
 		std::vector<Vertex> v;
+		// Front
 		v.push_back (Vertex {
-			{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}
+			{-0.5f,  0.5f,  0.5f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}
+			{ 0.5f,  0.5f,  0.5f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f}
+			{ 0.5f, -0.5f,  0.5f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}
+			{-0.5f, -0.5f,  0.5f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
+		});
+		// Back
+		v.push_back (Vertex {
+			{-0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}
 		});
 		v.push_back (Vertex {
-			{-0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f}
+			{ 0.5f,  0.5f,  -0.5f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f,  0.5f,  -0.5f}, {1.0f, 0.0f}
+			{ 0.5f, -0.5f,  -0.5f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f, -0.5f,  -0.5f}, {1.0f, 1.0f}
-		});
-		v.push_back (Vertex {
-			{-0.5f, -0.5f,  -0.5f}, {0.0f, 1.0f}
+			{-0.5f, -0.5f,  -0.5f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
 		});
 
 		std::vector<Color> c;
@@ -211,63 +214,106 @@ private:
 	void
 	upload (Mesh *mesh) {
 		// Vertex position
-		glBindBuffer (GL_ARRAY_BUFFER, mesh->vertexbuffer);
-		glEnableVertexAttribArray (0);
-		glVertexAttribPointer(
-		   0,                  // must match number in layout.
-		   3,                  // size
-		   GL_FLOAT,           // type
-		   GL_FALSE,           // normalized?
-		   sizeof (struct Vertex),    // stride
-		   (GLvoid *)0            // array buffer offset
-		);
-		glDisableVertexAttribArray (0);
-		// Setup layout for uv mapping contained in vertex array
-		glEnableVertexAttribArray (2);
-		glVertexAttribPointer(
-		   2,                  // must match number in layout.
-		   2,                  // size
-		   GL_FLOAT,           // type
-		   GL_FALSE,           // normalized?
-		   sizeof (struct Vertex),    // stride
-		   (GLvoid*) offsetof (struct Vertex, uv)     // array buffer offset
-		);
-		glDisableVertexAttribArray (2);
-		// load vertices data into grapics memory
-		upload_buffer_data (mesh->vertexbuffer,
-			GL_ARRAY_BUFFER,
-			(const GLvoid *)mesh->vertices.data (),
-			sizeof (mesh->vertices[0]) * mesh->vertices.size ()
-		);
+		glBindBuffer (GL_ARRAY_BUFFER, mesh->vertexbuffer); {
+			glEnableVertexAttribArray (0);
+			glVertexAttribPointer(
+				// must match number in layout.
+				0,
+				// size
+				3,
+				// type
+				GL_FLOAT,
+				// normalized?
+				GL_FALSE,
+				// stride
+				sizeof (struct Vertex),
+				// array buffer offset
+				reinterpret_cast<GLvoid*> (0)
+			);
+			glDisableVertexAttribArray (0);
+
+			// Setup layout for uv mapping contained in vertex array
+			glEnableVertexAttribArray (2);
+			glVertexAttribPointer(
+				// must match number in layout.
+				2,
+				// size
+				2,
+				// type
+				GL_FLOAT,
+				// normalized?
+				GL_FALSE,
+				// stride
+				sizeof (struct Vertex),
+				// array buffer offset
+				reinterpret_cast<GLvoid*> (offsetof (struct Vertex, uv))
+			);
+			glDisableVertexAttribArray (2);
+
+			// Setup layout for normal mapping
+			glEnableVertexAttribArray (3);
+			glVertexAttribPointer(
+				// must match number in layout.
+				3,
+				// size
+				3,
+				// type
+				GL_FLOAT,
+				// normalized?
+				GL_TRUE,
+				// stride
+				sizeof (struct Vertex),
+				// array buffer offset
+				reinterpret_cast<GLvoid*> (offsetof (struct Vertex, normal))
+			);
+			glDisableVertexAttribArray (3);
+
+			// load vertices data into grapics memory
+			upload_buffer_data (mesh->vertexbuffer,
+				GL_ARRAY_BUFFER,
+				reinterpret_cast<const GLvoid*> (mesh->vertices.data ()),
+				sizeof (mesh->vertices[0]) * mesh->vertices.size ()
+			);
+		}
 		// Vertex positions
 
 		// Colors
-		glBindBuffer (GL_ARRAY_BUFFER, mesh->colorbuffer);
-		glEnableVertexAttribArray (1);
-		glVertexAttribPointer (
-		   1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		   3,                  // size
-		   GL_FLOAT,           // type
-		   GL_FALSE,           // normalized?
-		   sizeof (struct Color), // stride
-		   (void *)offsetof (struct Color, rgba)  // array buffer offset
-		);
-		// load colors into graphics memory
-		upload_buffer_data (mesh->colorbuffer,
-			GL_ARRAY_BUFFER,
-			(const GLvoid *)mesh->colors.data (),
-			sizeof (mesh->colors[0]) * mesh->colors.size ()
-		);
-		glDisableVertexAttribArray (1);
+		glBindBuffer (GL_ARRAY_BUFFER, mesh->colorbuffer); {
+			glEnableVertexAttribArray (1);
+			glVertexAttribPointer (
+				// must match number in layout.
+				1,
+				// size
+				3,
+				// type
+				GL_FLOAT,
+				// normalized?
+				GL_FALSE,
+				// stride
+				sizeof (struct Color),
+				// array buffer offset
+				(void *)offsetof (struct Color, rgba)
+			);
+
+			// load colors into graphics memory
+			upload_buffer_data (mesh->colorbuffer,
+				GL_ARRAY_BUFFER,
+				reinterpret_cast<const GLvoid*> (mesh->colors.data ()),
+				sizeof (mesh->colors[0]) * mesh->colors.size ()
+			);
+			glDisableVertexAttribArray (1);
+		}
 		// Colors
 
 		// Indicies
-		// load indices into graphics memory
-		upload_buffer_data (mesh->indexbuffer,
-			GL_ELEMENT_ARRAY_BUFFER,
-			(const GLvoid *)mesh->indices.data (),
-			sizeof (mesh->indices[0]) * mesh->indices.size ()
-		);
+		glBindBuffer (GL_ARRAY_BUFFER, mesh->indexbuffer); {
+			// load indices into graphics memory
+			upload_buffer_data (mesh->indexbuffer,
+				GL_ELEMENT_ARRAY_BUFFER,
+				reinterpret_cast<const GLvoid*> (mesh->indices.data ()),
+				sizeof (mesh->indices[0]) * mesh->indices.size ()
+			);
+		}
 		// Indicies
 	};
 
