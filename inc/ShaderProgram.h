@@ -14,6 +14,8 @@
 #include <VertexShader.h>
 #include <FragmentShader.h>
 
+#include <Util.h>
+
 class ShaderProgram {
 friend class ShaderProgramBuilder;
 
@@ -23,40 +25,117 @@ private:
 	std::unordered_map<std::string, GLuint> uniforms;
 
 public:
-	ShaderProgram ();
+	ShaderProgram () {
+	}
 
 	virtual
-	~ShaderProgram ();
+	~ShaderProgram () {
+	}
 
 	void
-	use (void) const;
+	use (void) const {
+		glUseProgram (this->handle);
+	}
 
 	void
-	dispose (void);
+	dispose (void) {
+		glDeleteProgram (this->handle);
+	}
 
 	GLuint
-	get_handle (void) const;
+	get_handle (void) const {
+		return this->handle;
+	}
 
 	void
-	set_uniform_mat4 (const std::string &name, glm::mat4 matrix);
+	set_uniform_mat4 (const std::string &name, glm::mat4 matrix) {
+		throw_if (0 == this->uniforms.count (name), "Could not find ", name);
+
+		glProgramUniformMatrix4fv (
+			this->handle,
+			this->uniforms.at (name),
+			1,
+			GL_FALSE,
+			&matrix[0][0]
+		);
+	}
 
 	void
-	set_uniform_vec3 (const std::string &name, glm::vec3 vec);
+	set_uniform_vec3 (const std::string &name, glm::vec3 vec) {
+		std::size_t c = this->uniforms.count (name);
+		throw_if (0 == c, "Could not find ", name, " ", std::to_string (c));
+
+		glProgramUniform3fv (
+			this->handle,
+			this->uniforms.at (name),
+			1,
+			vec.c_array ()
+		);
+	}
 
 	void
-	set_uniform_f (const std::string &name, float value);
+	set_uniform_f (const std::string &name, float value) {
+		throw_if (0 == this->uniforms.count (name), "Could not find ", name);
+
+		glProgramUniform1f (
+			this->handle,
+			this->uniforms.at (name),
+			value
+		);
+	}
 
 	GLfloat
-	get_uniform_f (const std::string &name) const;
+	get_uniform_f (const std::string &name) const {
+		int uid = glGetUniformLocation (this->handle, name.c_str ());
+
+		GLfloat value;
+		glGetUniformfv (
+			this->handle,
+			uid,
+			&value
+		);
+
+		return value;
+	}
 
 	GLint
-	get_uniform_i (const std::string &name) const;
+	get_uniform_i (const std::string &name) const {
+		int uid = glGetUniformLocation (this->handle, name.c_str ());
+		GLint value;
+		glGetUniformiv (
+			this->handle,
+			uid,
+			&value
+		);
+
+		return value;
+	}
 
 	GLuint
-	get_uniform_ui (const std::string &name) const;
+	get_uniform_ui (const std::string &name) const {
+		int uid = glGetUniformLocation (this->handle, name.c_str ());
+		GLuint value;
+		glGetUniformuiv (
+			this->handle,
+			uid,
+			&value
+		);
+
+		return value;
+	}
 
 	GLdouble
-	get_uniform_d (const std::string &name) const;
+	get_uniform_d (const std::string &name) const {
+		int uid = glGetUniformLocation (this->handle, name.c_str ());
+		GLdouble value;
+		glGetUniformdv (
+			this->handle,
+			uid,
+			&value
+		);
+
+		return value;
+	}
 };
 
 class ShaderProgramBuilder {

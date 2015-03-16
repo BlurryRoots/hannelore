@@ -19,66 +19,87 @@
 #include <glm/vector.h>
 #include <cmath>
 
-// My Stuff
-#include <TestGame.h>
+struct GameData {
+	GLFWwindow *window;
+	bool is_running;
+} game_data;
 
 //
-IGame *game;
+void
+initialize (void);
 
 void
-on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
-	game->on_key (key, scancode, action, mods);
-
-	if (key == GLFW_KEY_F2
-		&& action == GLFW_RELEASE) {
-		int v = glfwGetInputMode (window, GLFW_CURSOR);
-		glfwSetInputMode (
-			window,
-			GLFW_CURSOR,
-			v == GLFW_CURSOR_HIDDEN ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_HIDDEN
-		);
-	}
-}
+on_update (double dt);
 
 void
-on_framebuffer (GLFWwindow *window, int width, int height) {
-	game->on_framebuffer (width, height);
-}
+on_render ();
 
 void
-on_cursor_position (GLFWwindow *window, double xpos, double ypos) {
-	game->on_cursor_position (xpos, ypos);
-}
+dispose ();
+
+// Callbacks
+void
+on_key (GLFWwindow *window, int key, int scancode, int action, int mods);
 
 void
-on_cursor_enter (GLFWwindow *window, int entered) {
-	if (entered) {
-		// The cursor entered the client area of the window
-		game->on_cursor_enter ();
-	}
-	else {
-		// The cursor left the client area of the window
-		game->on_cursor_leave ();
-	}
-}
+on_framebuffer (GLFWwindow *window, int width, int height);
 
 void
-on_mouse_button (GLFWwindow *window, int button, int action, int mods) {
-	game->on_mouse_button (button, action, mods);
-}
+on_cursor_position (GLFWwindow *window, double xpos, double ypos);
 
 void
-on_scroll (GLFWwindow *window, double xoffset, double yoffset) {
-	game->on_scroll (xoffset, yoffset);
-}
+on_cursor_enter (GLFWwindow *window, int entered);
+
+void
+on_mouse_button (GLFWwindow *window, int button, int action, int mods);
+
+void
+on_scroll (GLFWwindow *window, double xoffset, double yoffset);
 
 int
 main (void) {
-	GLFWwindow *window;
+	try {
+		// stuff to setup
+		initialize ();
 
+		// Loop until the user closes the window
+		double lastTime = glfwGetTime ();
+		while (game_data.is_running) {
+			// Calculate time spend processing the last frame
+			double deltaTime = glfwGetTime () - lastTime;
+			lastTime = glfwGetTime ();
+
+			// Do logical updates
+			on_update (deltaTime);
+
+			// Draw stuff onto screen
+			on_render ();
+
+			// Swap front and back buffers
+			glfwSwapBuffers (game_data.window);
+
+			// Poll for and process events
+			glfwPollEvents ();
+		}
+	}
+	catch (std::exception &ex) {
+		std::cout << "Cought: " << ex.what () << std::endl;
+	}
+	catch (...) {
+		std::cout << "Cought unkown exception :(" << std::endl;
+	}
+
+	dispose ();
+
+	return 0;
+}
+
+//
+void
+initialize (void) {
 	// Initialize GLFW
 	if (! glfwInit ()) {
-		return 1;
+		throw std::runtime_error ("Could not initialize glfw!");
 	}
 
 	std::cout
@@ -88,79 +109,84 @@ main (void) {
 		<< GLFW_VERSION_REVISION << std::endl;
 
 	// Create a window and its OpenGL context
-	window = glfwCreateWindow (640, 480, "Hello World", NULL, NULL);
-	if (nullptr == window) {
-		glfwTerminate ();
-
-		return 1;
+	game_data.window = glfwCreateWindow (640, 480, "Hello World", NULL, NULL);
+	if (nullptr == game_data.window) {
+		throw std::runtime_error ("Could not create window!");
 	}
 
 	// THIS HAS TO BE CALLED BEFORE GLEW GETS LOADED!
 	// Make the window's context current
-	glfwMakeContextCurrent (window);
+	glfwMakeContextCurrent (game_data.window);
 
 	// Extension wrangler initialising
 	glewExperimental = GL_TRUE;
 	GLuint glew_status = glewInit ();
 	if (GLEW_OK != glew_status) {
-		std::cout << "glew?" << std::endl;
-
-		return 1;
+		throw std::runtime_error ("Could not initialize glew!");
 	}
 
 	// callbacks
-	glfwSetKeyCallback (window, on_key);
-	glfwSetFramebufferSizeCallback (window, on_framebuffer);
-	glfwSetCursorPosCallback (window, on_cursor_position);
-	glfwSetCursorEnterCallback (window, on_cursor_enter);
-	glfwSetMouseButtonCallback (window, on_mouse_button);
-	glfwSetScrollCallback (window, on_scroll);
+	glfwSetKeyCallback (game_data.window, on_key);
+	glfwSetFramebufferSizeCallback (game_data.window, on_framebuffer);
+	glfwSetCursorPosCallback (game_data.window, on_cursor_position);
+	glfwSetCursorEnterCallback (game_data.window, on_cursor_enter);
+	glfwSetMouseButtonCallback (game_data.window, on_mouse_button);
+	glfwSetScrollCallback (game_data.window, on_scroll);
 
-	// init the game
-	game = nullptr;
-	try {
-		game = new TestGame ();
+	game_data.is_running = true;
+}
 
-		// Do setup stuff
-		game->on_initialize ();
+void
+on_update (double dt) {
+	game_data.is_running = game_data.is_running
+		&& ! glfwWindowShouldClose (game_data.window)
+		;
+}
 
-		// Loop until the user closes the window
-		double lastTime = glfwGetTime ();
-		while (game->running () && ! glfwWindowShouldClose (window)) {
-			// Calculate time spend processing the last frame
-			double deltaTime = glfwGetTime () - lastTime;
-			lastTime = glfwGetTime ();
+void
+on_render () {
 
-			// Do logical updates
-			game->on_update (deltaTime);
+}
 
-			// Draw stuff onto screen
-			game->on_render ();
-
-			// Swap front and back buffers
-			glfwSwapBuffers (window);
-
-			// Poll for and process events
-			glfwPollEvents ();
-		}
-
-		game->on_quit ();
-	}
-	catch (std::string &ex) {
-		std::cout << "Cought: " << ex << std::endl;
-	}
-	catch (std::exception &ex) {
-		std::cout << "Cought: " << ex.what () << std::endl;
-	}
-	catch (...) {
-		std::cout << "Cought unkown exception :(" << std::endl;
-	}
-
-	if (nullptr != game) {
-		delete game;
-	}
-
+void
+dispose () {
 	glfwTerminate ();
+}
 
-	return 0;
+// Callbacks
+void
+on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
+	if (GLFW_KEY_ESCAPE == key && GLFW_RELEASE == action) {
+		game_data.is_running = false;
+	}
+}
+
+void
+on_framebuffer (GLFWwindow *window, int width, int height) {
+	//
+}
+
+void
+on_cursor_position (GLFWwindow *window, double xpos, double ypos) {
+	//
+}
+
+void
+on_cursor_enter (GLFWwindow *window, int entered) {
+	if (entered) {
+		// The cursor entered the client area of the window
+	}
+	else {
+		// The cursor left the client area of the window
+	}
+}
+
+void
+on_mouse_button (GLFWwindow *window, int button, int action, int mods) {
+	//
+}
+
+void
+on_scroll (GLFWwindow *window, double xoffset, double yoffset) {
+	//
 }
