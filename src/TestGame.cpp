@@ -55,7 +55,7 @@ TestGame::on_initialize (void) {
 	this->entities.add_data<MeshData> (eid, cube_key);
 #else
 	const float factor = 2.0f;
-	for (size_t i = 0; i < 10; ++i) {
+	for (size_t i = 0; i < 1337; ++i) {
 		auto eid = this->entities.create_entity ();
 
 		auto transform = this->entities.add_data<Transform> (eid, glm::vec3 (
@@ -67,7 +67,7 @@ TestGame::on_initialize (void) {
 	}
 #endif
 
-	this->texture_loader.load ("textures/cat.png", "ship", 0);
+	this->texture_loader.load ("textures/ship.png", "ship", 0);
 
 	this->model_matrix = glGetUniformLocation (
 		this->program.get_handle (), "model_matrix"
@@ -79,15 +79,18 @@ TestGame::on_initialize (void) {
 	camera.translate (glm::vec3 (0, -2, 6));
 	camera.rotate (glm::vec3 (2, 0, 0));
 
+	glEnable (GL_ALPHA_TEST);
+	glAlphaFunc (GL_GREATER, 0.0f);
+
 	glEnable (GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc (GL_LESS);
 
+	glPointSize (200.0f);
 	glEnable (GL_LINE_SMOOTH);
 
 	// TODO: Disable this if drawing translucent stuff
-	glEnable (GL_CULL_FACE);
-	glCullFace (GL_BACK);
+	//glEnable (GL_CULL_FACE);
+	//glCullFace (GL_BACK);
 }
 
 void
@@ -102,19 +105,6 @@ TestGame::on_update (double dt) {
 	// transform camera
 	this->camera.translate (this->camera_movement * static_cast<float> (dt));
 	this->camera.rotate (this->camera_panning * static_cast<float> (dt) * 100.0f);
-
-	// increase angle
-	float angle;
-	glGetUniformfv (
-		this->program.get_handle (),
-		angle_uniform,
-		&angle
-	);
-	glProgramUniform1f (
-		this->program.get_handle (),
-		angle_uniform,
-		angle + (float)dt
-	);
 
 	// count frames
 	this->framecounter += 1;
@@ -133,6 +123,9 @@ TestGame::on_render (void) {
 	this->program.set_uniform_mat4 ("camera_matrix",
 		camera.to_matrix ()
 	);
+	//this->program.set_uniform_vec3 ("ambient_light_color",
+	//	glm::vec3 (1, 0, 0)
+	//);
 
 	this->texture_loader.bind ("ship");
 
@@ -169,6 +162,17 @@ void
 TestGame::on_key (int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
 		this->quit ();
+	}
+
+	if (GLFW_KEY_1 == key) {
+		if (GLFW_RELEASE == action) {
+			this->mesh_renderer.set_primitive (GL_POINTS);
+		}
+	}
+	if (GLFW_KEY_2 == key) {
+		if (GLFW_RELEASE == action) {
+			this->mesh_renderer.set_primitive (GL_TRIANGLES);
+		}
 	}
 
 	// Moving

@@ -1,7 +1,7 @@
 #version 330 core
 
-// Constants
-vec3 LIGHT = vec3 (0, 0, -1);
+// Ambient lights
+//in vec3 fragment_ambient_light;
 
 // Values coming in from vertex shader
 in vec2 fragment_uv_position;
@@ -10,6 +10,8 @@ in vec3 fragment_normal;
 
 // Values that stay constant for the whole mesh.
 uniform sampler2D texture_sampler;
+
+vec3 LIGHT = vec3 (0, 0, -1);
 
 //
 out vec4 pixel_color;
@@ -24,10 +26,9 @@ void main () {
     // Sample the texture with the given uv position and extract the color
     vec4 sample_color = texture (texture_sampler, fragment_uv_position).rgba;
 
-
    	// Calculate the actual color value from the fragments color, sampled
    	// via the texture of the surface and its light value
-    pixel_color = sample_color
+    pixel_color = sample_color * fragment_color
     	* calculate_lighting_value (LIGHT, fragment_normal)
     	;
 }

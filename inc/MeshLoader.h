@@ -3,6 +3,8 @@
 
 #include <unordered_map>
 
+// TODO: implement face normals insead of vertex normals !
+
 struct Vertex {
 	GLfloat position[3];
 	GLfloat uv[2];
@@ -44,16 +46,16 @@ struct Mesh {
 	create_square_mesh (void) {
 		std::vector<Vertex> v;
 		v.push_back (Vertex {
-			{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
+			{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
+			{ 0.5f,  0.5f,  0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}
 		});
 		v.push_back (Vertex {
-			{ 0.5f, -0.5f,  0.0f}, {0.0f, 0.0f}
+			{ 0.5f, -0.5f,  0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f}
 		});
 		v.push_back (Vertex {
-			{-0.5f, -0.5f,  0.0f}, {0.0f, 0.0f}
+			{-0.5f, -0.5f,  0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}
 		});
 
 		std::vector<Color> c;
@@ -152,36 +154,6 @@ struct Mesh {
 	    // right
 		i.push_back (1); i.push_back (5); i.push_back (6);
 		i.push_back (6); i.push_back (2); i.push_back (1);
-
-		return new Mesh (v, c, i);
-	}
-
-	static Mesh*
-	create_triangle_mesh (void) {
-		std::vector<Vertex> v;
-		v.push_back (Vertex {
-			{-0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
-		});
-		v.push_back (Vertex {
-			{ 0.5f,  0.5f,  0.0f}, {0.0f, 0.0f}
-		});
-		v.push_back (Vertex {
-			{ 0.5f, -0.5f,  0.0f}, {0.0f, 0.0f}
-		});
-
-		std::vector<Color> c;
-		c.push_back (Color {
-			{1.0, 1.0, 0.0}
-		});
-		c.push_back (Color {
-			{1.0, 1.0, 0.0}
-		});
-		c.push_back (Color {
-			{1.0, 1.0, 0.0}
-		});
-
-		std::vector<GLuint> i;
-		i.push_back (1); i.push_back (2); i.push_back (0);
 
 		return new Mesh (v, c, i);
 	}

@@ -103,7 +103,9 @@ public:
 
 	void
 	dispose () {
+#ifdef DEBUG_SERIALIZE
 		std::cout << this->serialize () << std::endl << std::endl;
+#endif
 
 		for (auto entry : this->data) {
 			delete entry.second;

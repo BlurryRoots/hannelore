@@ -5,7 +5,30 @@
 #include <fstream>
 #include <stdexcept>
 
+
 #define DEBUG_MESSAGE
+
+#include <vector>
+#include <sstream>
+template<class... TArgs> void
+throw_if (bool premise, TArgs... args) {
+	if (! premise) {
+		return;
+	}
+
+	std::vector<std::string> arguments {
+		args...
+	};
+
+	std::stringstream ss;
+
+	for (auto &a : arguments) {
+		ss << a;
+	}
+	ss << std::endl;
+
+	throw std::runtime_error (ss.str ());
+}
 
 ShaderProgram::ShaderProgram () {
 }
@@ -44,7 +67,8 @@ ShaderProgram::set_uniform_mat4 (const std::string &name, glm::mat4 matrix) {
 
 void
 ShaderProgram::set_uniform_vec3 (const std::string &name, glm::vec3 vec) {
-	assert (0 < this->uniforms.count (name));
+	std::size_t c = this->uniforms.count (name);
+	throw_if (0 == c, "Could not find ", name, " ", std::to_string (c));
 
 	glProgramUniform3fv (
 		this->handle,

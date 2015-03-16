@@ -1,19 +1,50 @@
-#ifndef __MESHRENDERER_H__
-#define __MESHRENDERER_H__
+#ifndef MESHRENDERER_H
+#define MESHRENDERER_H
 
 #include <MeshData.h>
 
 #include <memory>
 #include <cassert>
+#include <stdexcept>
+
+#define PRIMITIVE_COUNT (std::size_t)12
 
 class MeshRenderer {
+	static bool
+	is_valid_primitive_type (GLenum type) {
+		static constexpr GLenum primitive_types[PRIMITIVE_COUNT] = {
+			GL_POINTS,
+			GL_LINE_STRIP,
+			GL_LINE_LOOP,
+			GL_LINES,
+			GL_LINE_STRIP_ADJACENCY,
+			GL_LINES_ADJACENCY,
+			GL_TRIANGLE_STRIP,
+			GL_TRIANGLE_FAN,
+			GL_TRIANGLES,
+			GL_TRIANGLE_STRIP_ADJACENCY,
+			GL_TRIANGLES_ADJACENCY,
+			GL_PATCHES
+		};
+
+		for (std::size_t i = 0; i < PRIMITIVE_COUNT; ++i) {
+			if (primitive_types[i] == type) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 private:
 	Mesh *current_mesh;
 
+	GLenum primitive;
+
 public:
 	MeshRenderer (void)
-	: current_mesh (nullptr) {}
+	: current_mesh (nullptr)
+	, primitive (GL_TRIANGLES) {}
 
 	virtual
 	~MeshRenderer (void) {}
@@ -56,7 +87,7 @@ public:
 
 		// draw all the triangles!
 		int trinagle_count = size / sizeof (GLushort);
-		glDrawElements (GL_TRIANGLES, trinagle_count, GL_UNSIGNED_INT, NULL);
+		glDrawElements (this->primitive, trinagle_count, GL_UNSIGNED_INT, NULL);
 
 		// TODO: Implement instancing, mesh -> model ??
 		//glDrawElements (mode, count, type, indices);
@@ -68,6 +99,19 @@ public:
 		this->current_mesh = nullptr;
 	}
 
+	void
+	set_primitive (GLenum type) {
+		if (! is_valid_primitive_type (type)) {
+			throw std::runtime_error ("Given type is not a valid primitive!");
+		}
+
+		this->primitive = type;
+	}
+
+	GLenum
+	get_primitive () {
+		return this->primitive;
+	}
 };
 
 #endif

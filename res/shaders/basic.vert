@@ -9,6 +9,8 @@ uniform mat4 camera_matrix;
 uniform float aspect;
 uniform float fov;
 
+uniform vec3 ambient_light_color;
+
 // Layout data: Buffer data specified via vertex attribute function
 layout (location = 0) in vec3 vertex_position;
 layout (location = 1) in vec3 vertex_color;
