@@ -298,6 +298,9 @@ on_render () {
 
 		4, 5, 6,
 		6, 7, 4,
+
+		0, 5, 4,
+		0, 4, 1,
 	};
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.element_buffer);
 	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
