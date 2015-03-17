@@ -19,6 +19,8 @@
 
 #include <Util.h>
 
+#define DEBUG_MESSAGE
+
 class ShaderProgram {
 friend class ShaderProgramBuilder;
 
@@ -307,10 +309,10 @@ public:
 			GL_ACTIVE_UNIFORMS,
 			&number_uniforms
 		);
-		assert (0 < number_uniforms);
+		throw_if (0 == number_uniforms, "No uniforms found!");
 
 		// TODO: Needs further research! Why the eff does the sampler gets found twice ?
-		for (GLuint index = 1; index < static_cast<GLuint> (number_uniforms); ++index) {
+		for (GLuint index = 1; index < static_cast<GLuint> (number_uniforms + 1); ++index) {
 			char name_buffer[100];
 			GLsizei name_buffer_size = sizeof (name_buffer) - 1;
 			GLint uniform_type_size;
@@ -325,8 +327,8 @@ public:
 				name_buffer
 			);
 
-			assert (0 < name_buffer_size);
-			assert (0 < uniform_type_size);
+			throw_if (0 == name_buffer_size, "Uniform @", std::to_string (index), " has no name ?!");
+			throw_if (0 == uniform_type_size, "Uniform @", std::to_string (index), " has no size?!");
 
 			#ifdef DEBUG_MESSAGE
 			const auto &report = this->program.uniforms.emplace (name_buffer, index);

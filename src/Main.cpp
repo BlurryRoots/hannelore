@@ -30,6 +30,14 @@ struct GameData {
 	GLFWwindow *window;
 	bool is_running;
 	ShaderProgram program;
+
+	struct {
+		GLint position;
+	} attributes;
+
+	struct {
+		GLint color;
+	} uniforms;
 } game_data;
 
 //
@@ -141,12 +149,21 @@ initialize (void) {
 	glfwSetMouseButtonCallback (game_data.window, on_mouse_button);
 	glfwSetScrollCallback (game_data.window, on_scroll);
 
+	// setup game stuff
 	game_data.is_running = true;
 	game_data.program = ShaderProgramBuilder ()
 		.add_shader (VertexShader (FileReader ("shaders/es/basic.vert").to_string ()))
 		.add_shader (FragmentShader (FileReader ("shaders/es/basic.frag").to_string ()))
 		.link ()
 		;
+
+	game_data.attributes.position = glGetAttribLocation (
+		game_data.program.get_handle (),
+		"vertex_position"
+	);
+	if (0 > game_data.attributes.position) {
+		throw std::runtime_error ("Could not find attribute vertex_position! " + std::to_string (game_data.attributes.position));
+	}
 }
 
 void
