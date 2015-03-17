@@ -28,6 +28,7 @@ private:
 	GLuint handle;
 
 	std::unordered_map<std::string, GLuint> uniforms;
+	std::unordered_map<std::string, GLint> attributes;
 
 public:
 	ShaderProgram () {
@@ -50,6 +51,22 @@ public:
 	GLuint
 	get_handle (void) const {
 		return this->handle;
+	}
+
+	GLint
+	get_attribute_location (const std::string name) {
+		if (0 == this->attributes.count (name)) {
+			GLint location = glGetAttribLocation (this->handle,
+				name.c_str ()
+			);
+
+			throw_if (0 > location, "Could not find attribute ", name);
+
+			const auto &r = this->attributes.emplace (name, location);
+			throw_if (! r.second, "Trying to override ", name);
+		}
+
+		return this->attributes.at (name);
 	}
 
 	void
