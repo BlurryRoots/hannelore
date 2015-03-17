@@ -48,9 +48,10 @@ struct GameData {
 	ShaderProgram program;
 
 	struct {
-		GLint position;
-		GLint uv;
-		GLint color;
+		GLint vertex_position;
+		GLint vertex_uv;
+		GLint vertex_normal;
+		GLint vertex_color;
 	} attributes;
 
 	int width, height;
@@ -167,20 +168,20 @@ load_shader_program () {
 		.link ()
 		;
 
-	game_data.attributes.position = glGetAttribLocation (
+	game_data.attributes.vertex_position = glGetAttribLocation (
 		game_data.program.get_handle (),
 		"vertex_position"
 	);
-	if (0 > game_data.attributes.position) {
-		throw std::runtime_error ("Could not find attribute vertex_position! " + std::to_string (game_data.attributes.position));
+	if (0 > game_data.attributes.vertex_position) {
+		throw std::runtime_error ("Could not find attribute vertex_position! " + std::to_string (game_data.attributes.vertex_position));
 	}
 
-	game_data.attributes.uv = glGetAttribLocation (
+	game_data.attributes.vertex_uv = glGetAttribLocation (
 		game_data.program.get_handle (),
 		"vertex_uv"
 	);
-	if (0 > game_data.attributes.uv) {
-		throw std::runtime_error ("Could not find attribute vertex_uv! " + std::to_string (game_data.attributes.uv));
+	if (0 > game_data.attributes.vertex_uv) {
+		throw std::runtime_error ("Could not find attribute vertex_uv! " + std::to_string (game_data.attributes.vertex_uv));
 	}
 }
 
@@ -267,9 +268,9 @@ initialize (void) {
 	// Model vertices
 	glGenBuffers (1, &(game_data.model.vertex_buffer));
 	glBindBuffer (GL_ARRAY_BUFFER, game_data.model.vertex_buffer);
-	glEnableVertexAttribArray (game_data.attributes.position);
+	glEnableVertexAttribArray (game_data.attributes.vertex_position);
 	glVertexAttribPointer (
-		game_data.attributes.position,
+		game_data.attributes.vertex_position,
 		3,
 		GL_FLOAT,
 		GL_FALSE,
@@ -293,15 +294,15 @@ initialize (void) {
 		reinterpret_cast<void*> (vertices),
 		GL_STATIC_DRAW
 	);
-	glDisableVertexAttribArray (game_data.attributes.position);
+	glDisableVertexAttribArray (game_data.attributes.vertex_position);
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
 
 	// UV Coordinates
 	glGenBuffers (1, &(game_data.model.uv_buffer));
 	glBindBuffer (GL_ARRAY_BUFFER, game_data.model.uv_buffer);
-	glEnableVertexAttribArray (game_data.attributes.uv);
+	glEnableVertexAttribArray (game_data.attributes.vertex_uv);
 	glVertexAttribPointer (
-		game_data.attributes.uv,
+		game_data.attributes.vertex_uv,
 		2,
 		GL_FLOAT,
 		GL_FALSE,
@@ -320,7 +321,7 @@ initialize (void) {
 		reinterpret_cast<void*> (uvs),
 		GL_STATIC_DRAW
 	);
-	glDisableVertexAttribArray (game_data.attributes.uv);
+	glDisableVertexAttribArray (game_data.attributes.vertex_uv);
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
 
 	// Organize vertices into triangles
@@ -390,8 +391,8 @@ on_render () {
 
 	game_data.texture_loader.bind ("ship");
 
-	glEnableVertexAttribArray (game_data.attributes.position);
-	glEnableVertexAttribArray (game_data.attributes.uv);
+	glEnableVertexAttribArray (game_data.attributes.vertex_position);
+	glEnableVertexAttribArray (game_data.attributes.vertex_uv);
 
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
 	int size; glGetBufferParameteriv (
@@ -407,9 +408,9 @@ on_render () {
 	);
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	//glDisableVertexAttribArray (game_data.attributes.color);
-	glDisableVertexAttribArray (game_data.attributes.uv);
-	glDisableVertexAttribArray (game_data.attributes.position);
+	//glDisableVertexAttribArray (game_data.attributes.vertex_color);
+	glDisableVertexAttribArray (game_data.attributes.vertex_uv);
+	glDisableVertexAttribArray (game_data.attributes.vertex_position);
 
 	game_data.texture_loader.unbind ();
 }
