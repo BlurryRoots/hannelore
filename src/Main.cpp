@@ -167,22 +167,6 @@ load_shader_program () {
 		.add_shader (FragmentShader (FileReader ("shaders/es/basic.frag").to_string ()))
 		.link ()
 		;
-
-	game_data.attributes.vertex_position = glGetAttribLocation (
-		game_data.program.get_handle (),
-		"vertex_position"
-	);
-	if (0 > game_data.attributes.vertex_position) {
-		throw std::runtime_error ("Could not find attribute vertex_position! " + std::to_string (game_data.attributes.vertex_position));
-	}
-
-	game_data.attributes.vertex_uv = glGetAttribLocation (
-		game_data.program.get_handle (),
-		"vertex_uv"
-	);
-	if (0 > game_data.attributes.vertex_uv) {
-		throw std::runtime_error ("Could not find attribute vertex_uv! " + std::to_string (game_data.attributes.vertex_uv));
-	}
 }
 
 //
@@ -229,7 +213,7 @@ initialize (void) {
 
 	load_shader_program ();
 
-	game_data.texture_loader.load ("textures/wood.png", "ship", 0);
+	game_data.texture_loader.load ("textures/cat.png", "ship", 0);
 
 	glEnable (GL_ALPHA_TEST);
 	glAlphaFunc (GL_GREATER, 0.0f);
@@ -267,75 +251,195 @@ initialize (void) {
 
 	// Model vertices
 	glGenBuffers (1, &(game_data.model.vertex_buffer));
-	glBindBuffer (GL_ARRAY_BUFFER, game_data.model.vertex_buffer);
-	glEnableVertexAttribArray (game_data.attributes.vertex_position);
-	glVertexAttribPointer (
-		game_data.attributes.vertex_position,
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		// array buffer offset
-		reinterpret_cast<GLvoid*> (0)
-	);
-	GLfloat vertices[] {
-		-1, -1, -1,
-		 1, -1, -1,
-		 1,  1, -1,
-		-1,  1, -1,
+	{GLint vaa = game_data.program.get_attribute_location ("vertex_position");
+		glBindBuffer (GL_ARRAY_BUFFER, game_data.model.vertex_buffer);
+		glEnableVertexAttribArray (vaa);
+		glVertexAttribPointer (
+			vaa,
+			3,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			// array buffer offset
+			reinterpret_cast<GLvoid*> (0)
+		);
+#if 0
+-1, -1, -1, // 0
+ 1, -1, -1, // 1
+ 1,  1, -1, // 2
+-1,  1, -1, // 3
 
-		 1, -1,  1,
-		-1, -1,  1,
-		-1,  1,  1,
-		 1,  1,  1,
-	};
-	glBufferData (GL_ARRAY_BUFFER,
-		sizeof (vertices),
-		reinterpret_cast<void*> (vertices),
-		GL_STATIC_DRAW
-	);
-	glDisableVertexAttribArray (game_data.attributes.vertex_position);
-	glBindBuffer (GL_ARRAY_BUFFER, 0);
+ 1, -1,  1, // 4
+-1, -1,  1, // 5
+-1,  1,  1, // 6
+ 1,  1,  1, // 7
+#endif
+
+#if 1
+		GLfloat vertices[] {
+			-1,  1,  1, // 6
+			-1,  1, -1, // 3
+			-1, -1, -1, // 0
+			-1, -1,  1, // 5
+
+			-1,  1, -1, // 3
+			 1,  1, -1, // 2
+			 1, -1, -1, // 1
+			-1, -1, -1, // 0
+
+			 1,  1, -1, // 2
+			 1,  1,  1, // 7
+			 1, -1,  1, // 4
+			 1, -1, -1, // 1
+
+			-1, -1, -1, // 0
+			 1, -1, -1, // 1
+			 1, -1,  1, // 4
+			-1, -1,  1, // 5
+
+			-1, -1,  1, // 5
+			 1, -1,  1, // 4
+			 1,  1,  1, // 7
+			-1,  1,  1, // 6
+
+			-1,  1,  1, // 6
+			 1,  1,  1, // 7
+			 1,  1, -1, // 2
+			-1,  1, -1, // 3
+		};
+#else
+		GLfloat vertices[] {
+			// front
+			-1.0, -1.0,  1.0,
+			 1.0, -1.0,  1.0,
+			 1.0,  1.0,  1.0,
+			-1.0,  1.0,  1.0,
+			// top
+			-1.0,  1.0,  1.0,
+			 1.0,  1.0,  1.0,
+			 1.0,  1.0, -1.0,
+			-1.0,  1.0, -1.0,
+			// back
+			 1.0, -1.0, -1.0,
+			-1.0, -1.0, -1.0,
+			-1.0,  1.0, -1.0,
+			 1.0,  1.0, -1.0,
+			// bottom
+			-1.0, -1.0, -1.0,
+			 1.0, -1.0, -1.0,
+			 1.0, -1.0,  1.0,
+			-1.0, -1.0,  1.0,
+			// left
+			-1.0, -1.0, -1.0,
+			-1.0, -1.0,  1.0,
+			-1.0,  1.0,  1.0,
+			-1.0,  1.0, -1.0,
+			// right
+			 1.0, -1.0,  1.0,
+			 1.0, -1.0, -1.0,
+			 1.0,  1.0, -1.0,
+			 1.0,  1.0,  1.0,
+		};
+#endif
+		glBufferData (GL_ARRAY_BUFFER,
+			sizeof (vertices),
+			reinterpret_cast<void*> (vertices),
+			GL_STATIC_DRAW
+		);
+		glDisableVertexAttribArray (vaa);
+		glBindBuffer (GL_ARRAY_BUFFER, 0);
+	}
 
 	// UV Coordinates
 	glGenBuffers (1, &(game_data.model.uv_buffer));
-	glBindBuffer (GL_ARRAY_BUFFER, game_data.model.uv_buffer);
-	glEnableVertexAttribArray (game_data.attributes.vertex_uv);
-	glVertexAttribPointer (
-		game_data.attributes.vertex_uv,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		// array buffer offset
-		reinterpret_cast<GLvoid*> (0)
-	);
-	GLfloat uvs[] {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-	};
-	glBufferData (GL_ARRAY_BUFFER,
-		sizeof (uvs),
-		reinterpret_cast<void*> (uvs),
-		GL_STATIC_DRAW
-	);
-	glDisableVertexAttribArray (game_data.attributes.vertex_uv);
-	glBindBuffer (GL_ARRAY_BUFFER, 0);
+	{GLint vaa = game_data.program.get_attribute_location ("vertex_uv");
+		glBindBuffer (GL_ARRAY_BUFFER, game_data.model.uv_buffer);
+		glEnableVertexAttribArray (vaa);
+		glVertexAttribPointer (
+			vaa,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			// array buffer offset
+			reinterpret_cast<GLvoid*> (0)
+		);
+#if 1
+		GLfloat uvs[] {
+			// F
+			0/3.0f, 0/4.0f,
+			1/3.0f, 0/4.0f,
+			1/3.0f, 1/4.0f,
+			0/3.0f, 1/4.0f,
+			// A
+			1/3.0f, 0/4.0f,
+			2/3.0f, 0/4.0f,
+			2/3.0f, 1/4.0f,
+			1/3.0f, 1/4.0f,
+			// E
+			2/3.0f, 0/4.0f,
+			3/3.0f, 0/4.0f,
+			3/3.0f, 1/4.0f,
+			2/3.0f, 1/4.0f,
+			// B
+			1/3.0f, 1/4.0f,
+			2/3.0f, 1/4.0f,
+			2/3.0f, 2/4.0f,
+			1/3.0f, 2/4.0f,
+			// C
+			1/3.0f, 2/4.0f,
+			2/3.0f, 2/4.0f,
+			2/3.0f, 3/4.0f,
+			1/3.0f, 3/4.0f,
+			// D
+			1/3.0f, 3/4.0f,
+			2/3.0f, 3/4.0f,
+			2/3.0f, 4/4.0f,
+			1/3.0f, 4/4.0f,
+		};
+#else
+		GLfloat uvs[2*4*6] = {
+			// front
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+		};
+		for (int i = 1; i < 6; i++) {
+			memcpy(&uvs[i*4*2], &uvs[0], 2*4*sizeof(GLfloat));
+		}
+#endif
+		glBufferData (GL_ARRAY_BUFFER,
+			sizeof (uvs),
+			reinterpret_cast<void*> (uvs),
+			GL_STATIC_DRAW
+		);
+		glDisableVertexAttribArray (vaa);
+		glBindBuffer (GL_ARRAY_BUFFER, 0);
+	}
 
 	// Organize vertices into triangles
 	glGenBuffers (1, &(game_data.model.index_buffer));
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
 	GLushort indices[] {
-		0, 1, 2,
-		2, 3, 0,
-
-		4, 5, 6,
-		6, 7, 4,
-
-		0, 5, 4,
-		0, 4, 1,
+		// front
+		 0,  1,  2,
+		 2,  3,  0,
+		// top
+		 4,  5,  6,
+		 6,  7,  4,
+		// back
+		 8,  9, 10,
+		10, 11,  8,
+		// bottom
+		12, 13, 14,
+		14, 15, 12,
+		// left
+		16, 17, 18,
+		18, 19, 16,
+		// right
+		20, 21, 22,
+		22, 23, 20,
 	};
 	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
 		sizeof (indices),
@@ -354,8 +458,11 @@ on_update (double dt) {
 		;
 
 	game_data.matrices.model = glm::rotate (game_data.matrices.model,
-		45.0f * fdt, glm::vec3 (0, 1, 0)
+		42.0f * fdt, glm::vec3 (0, 1, 0)
 	);
+	//game_data.matrices.model = glm::rotate (game_data.matrices.model,
+	//	-42.0f * fdt, glm::vec3 (1, 0, 0)
+	//);
 
 	game_data.matrices.view = glm::translate (game_data.matrices.view,
 		game_data.cam_mov_buffer * 2.0f * fdt
@@ -391,8 +498,13 @@ on_render () {
 
 	game_data.texture_loader.bind ("ship");
 
-	glEnableVertexAttribArray (game_data.attributes.vertex_position);
-	glEnableVertexAttribArray (game_data.attributes.vertex_uv);
+	GLint vertex_position =
+		game_data.program.get_attribute_location ("vertex_position");
+	GLint vertex_uv =
+		game_data.program.get_attribute_location ("vertex_uv");
+
+	glEnableVertexAttribArray (vertex_position);
+	glEnableVertexAttribArray (vertex_uv);
 
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
 	int size; glGetBufferParameteriv (
@@ -409,8 +521,8 @@ on_render () {
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	//glDisableVertexAttribArray (game_data.attributes.vertex_color);
-	glDisableVertexAttribArray (game_data.attributes.vertex_uv);
-	glDisableVertexAttribArray (game_data.attributes.vertex_position);
+	glDisableVertexAttribArray (vertex_uv);
+	glDisableVertexAttribArray (vertex_position);
 
 	game_data.texture_loader.unbind ();
 }
@@ -452,7 +564,6 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 			game_data.cam_view_buffer += glm::vec3 (1, 0, 0);
 		}
 	}
-
 	if (key == GLFW_KEY_DOWN) {
 		if (action == GLFW_PRESS) {
 			game_data.cam_view_buffer += glm::vec3 (1, 0, 0);
@@ -470,7 +581,6 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 			game_data.cam_view_buffer += glm::vec3 (0, 1, 0);
 		}
 	}
-
 	if (key == GLFW_KEY_RIGHT) {
 		if (action == GLFW_PRESS) {
 			game_data.cam_view_buffer += glm::vec3 (0, 1, 0);
@@ -489,7 +599,6 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 			game_data.cam_mov_buffer -= glm::vec3 (0, 0, 1);
 		}
 	}
-
 	if (key == GLFW_KEY_S) {
 		if (action == GLFW_PRESS) {
 			game_data.cam_mov_buffer -= glm::vec3 (0, 0, 1);
@@ -507,13 +616,29 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 			game_data.cam_mov_buffer -= glm::vec3 (1, 0, 0);
 		}
 	}
-
 	if (key == GLFW_KEY_D) {
 		if (action == GLFW_PRESS) {
 			game_data.cam_mov_buffer -= glm::vec3 (1, 0, 0);
 		}
 		if (action == GLFW_RELEASE) {
 			game_data.cam_mov_buffer += glm::vec3 (1, 0, 0);
+		}
+	}
+
+	if (key == GLFW_KEY_Q) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_mov_buffer += glm::vec3 (0, 1, 0);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_mov_buffer -= glm::vec3 (0, 1, 0);
+		}
+	}
+	if (key == GLFW_KEY_E) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_mov_buffer -= glm::vec3 (0, 1, 0);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_mov_buffer += glm::vec3 (0, 1, 0);
 		}
 	}
 }
