@@ -35,11 +35,8 @@ struct GameData {
 	struct {
 		GLint position;
 		GLint uv;
-	} attributes;
-
-	struct {
 		GLint color;
-	} uniforms;
+	} attributes;
 
 	int width, height;
 
@@ -179,6 +176,14 @@ initialize (void) {
 		throw std::runtime_error ("Could not find attribute vertex_uv! " + std::to_string (game_data.attributes.uv));
 	}
 
+	game_data.attributes.color = glGetAttribLocation (
+		game_data.program.get_handle (),
+		"vertex_color"
+	);
+	if (0 > game_data.attributes.color) {
+		throw std::runtime_error ("Could not find attribute vertex_color! " + std::to_string (game_data.attributes.color));
+	}
+
 	game_data.texture_loader.load ("textures/cat.png", "ship", 0);
 
 	glEnable (GL_ALPHA_TEST);
@@ -205,18 +210,26 @@ on_render () {
 
 	game_data.program.use ();
 
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
-	glm::mat4 view = glm::lookat(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
-	glm::mat4 projection = glm::perspective(45.0f, 1.0f*game_data.width/game_data.height, 0.1f, 10.0f);
+	glm::mat4 model = glm::translate (
+		glm::mat4(1.0f), glm::vec3(0.0, 0.0, -1.0)
+	);
+	glm::mat4 view = glm::lookat (
+		glm::vec3(0.0, 0.0, 0.0),
+		glm::vec3(0.0, 0.0, -4.0),
+		glm::vec3(0.0, 1.0, 0.0)
+	);
+	glm::mat4 projection = glm::perspective (
+		45.0f, 1.0f*game_data.width/game_data.height, 0.01f, 100.0f
+	);
 	glm::mat4 mvp = projection * view * model;
 	game_data.program.set_uniform_mat4 ("mvp", mvp);
 
 	game_data.texture_loader.bind ("ship");
 
 	GLfloat vertices[] {
-		 0.0f, 1.0f, 0.0f,
-		 1.0f, 0.0f, 0.0f,
-		-1.0f, 0.0f, 0.0f
+		-1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,
+		 0.0f, -1.0f, 0.0f
 	};
 	glEnableVertexAttribArray (game_data.attributes.position);
 	glVertexAttribPointer (
@@ -243,8 +256,24 @@ on_render () {
 		uvs
 	);
 
+	GLfloat colors[] {
+		1.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f
+	};
+	glEnableVertexAttribArray (game_data.attributes.color);
+	glVertexAttribPointer (
+		game_data.attributes.color,
+		4,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		colors
+	);
+
 	glDrawArrays (GL_TRIANGLES, 0, 3);
 
+	glDisableVertexAttribArray (game_data.attributes.color);
 	glDisableVertexAttribArray (game_data.attributes.uv);
 	glDisableVertexAttribArray (game_data.attributes.position);
 
@@ -271,6 +300,8 @@ void
 on_framebuffer (GLFWwindow *window, int width, int height) {
 	game_data.width = width;
 	game_data.height = height;
+
+	glViewport (0, 0, game_data.width, game_data.height);
 }
 
 void
