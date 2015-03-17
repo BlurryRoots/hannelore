@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 
+#include <cmath>
+
 // Rendering shit
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -17,11 +19,17 @@
 #include <glm/transform.h>
 #include <glm/utils.h>
 #include <glm/vector.h>
-#include <cmath>
+
+//
+#include <FileReader.h>
+#include <FragmentShader.h>
+#include <ShaderProgram.h>
+#include <VertexShader.h>
 
 struct GameData {
 	GLFWwindow *window;
 	bool is_running;
+	ShaderProgram program;
 } game_data;
 
 //
@@ -134,6 +142,11 @@ initialize (void) {
 	glfwSetScrollCallback (game_data.window, on_scroll);
 
 	game_data.is_running = true;
+	game_data.program = ShaderProgramBuilder ()
+		.add_shader (VertexShader (FileReader ("shaders/es/basic.vert").to_string ()))
+		.add_shader (FragmentShader (FileReader ("shaders/es/basic.frag").to_string ()))
+		.link ()
+		;
 }
 
 void
@@ -150,6 +163,8 @@ on_render () {
 
 void
 dispose () {
+	game_data.program.dispose ();
+
 	glfwTerminate ();
 }
 

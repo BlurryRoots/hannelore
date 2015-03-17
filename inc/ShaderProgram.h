@@ -4,6 +4,9 @@
 
 #include <string>
 #include <unordered_map>
+#include <iostream>
+#include <fstream>
+#include <stdexcept>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -147,23 +150,63 @@ private:
 	bool has_frag;
 
 	std::string
-	get_info_log (ShaderProgram program);
+	get_info_log (ShaderProgram program) {
+		GLint log_length;
+		glGetProgramiv (program.handle, GL_INFO_LOG_LENGTH, &log_length);
 
-//GL_DELETE_STATUS
-//
-//    params returns GL_TRUE if program is currently flagged for deletion, and GL_FALSE otherwise.
+		char log_buffer[log_length];
+		glGetProgramInfoLog (program.handle, log_length, NULL, log_buffer);
+
+		return std::string (log_buffer);
+	}
+
 	bool
-	is_deleted (ShaderProgram program);
-//GL_LINK_STATUS
-//
-//    params returns GL_TRUE if the last link operation on program was successful, and GL_FALSE otherwise.
+	is_deleted (ShaderProgram program) {
+		GLint value;
+		glGetProgramiv (program.handle, GL_DELETE_STATUS, &value);
+
+		if (GL_TRUE == value) {
+			return true;
+		}
+
+		if (GL_FALSE == value) {
+			return false;
+		}
+
+		throw this->get_info_log (program);
+	}
+
 	bool
-	is_linked (ShaderProgram program);
-//GL_VALIDATE_STATUS
-//
-//    params returns GL_TRUE or if the last validation operation on program was successful, and GL_FALSE otherwise.
+	is_linked (ShaderProgram program) {
+		GLint value;
+		glGetProgramiv (program.handle, GL_LINK_STATUS, &value);
+
+		if (GL_TRUE == value) {
+			return true;
+		}
+
+		if (GL_FALSE == value) {
+			return false;
+		}
+
+		throw this->get_info_log (program);
+	}
+
 	bool
-	is_validated (ShaderProgram program);
+	is_validated (ShaderProgram program) {
+		GLint value;
+		glGetProgramiv (program.handle, GL_VALIDATE_STATUS, &value);
+
+		if (GL_TRUE == value) {
+			return true;
+		}
+
+		if (GL_FALSE == value) {
+			return false;
+		}
+
+		throw this->get_info_log (program);
+	}
 //GL_INFO_LOG_LENGTH
 //
 //    params returns the number of characters in the information log for program including the null termination character (i.e., the size of the character buffer required to store the information log). If program has no information log, a value of 0 is returned.
@@ -211,19 +254,96 @@ private:
 //    params returns a symbolic constant indicating the primitive type that will be output by the geometry shader contained in program.
 
 public:
-	ShaderProgramBuilder (void);
+	ShaderProgramBuilder (void) {
+		this->program.handle = glCreateProgram ();
+		if (GL_FALSE == glIsProgram (this->program.handle)) {
+			throw std::string ("Could not create new program!");
+		}
+	}
 
 	virtual
-	~ShaderProgramBuilder (void);
+	~ShaderProgramBuilder (void) {
+	}
+
+	ShaderProgramBuilder&
+	add_shader (VertexShader vs) {
+		this->has_vert = true;
+		glAttachShader (this->program.handle, vs.get_handle ());
+
+		return *this;
+	}
 
 	ShaderProgramBuilder &
-	add_shader (VertexShader vs);
+	add_shader (FragmentShader fs) {
+		this->has_frag = true;
+		glAttachShader (this->program.handle, fs.get_handle ());
 
-	ShaderProgramBuilder &
-	add_shader (FragmentShader fs);
+		return *this;
+	}
 
 	ShaderProgram
-	link (void);
+	link (void) {
+		if (! this->has_vert) {
+			throw std::runtime_error ("ShaderProgram has no vertex shader attached!");
+		}
+
+		if (! this->has_frag) {
+			throw std::runtime_error ("ShaderProgram has no fragment shader attached!");
+		}
+
+		glLinkProgram (this->program.handle);
+		if (! this->is_linked (this->program)) {
+			throw std::runtime_error (this->get_info_log (this->program));
+		}
+
+		glValidateProgram (this->program.handle);
+		if (! this->is_validated (this->program)) {
+			throw std::runtime_error (this->get_info_log (this->program));
+		}
+
+		// search all active uniforms and cache their locations
+		GLint number_uniforms;
+		glGetProgramiv (this->program.handle,
+			GL_ACTIVE_UNIFORMS,
+			&number_uniforms
+		);
+		assert (0 < number_uniforms);
+
+		// TODO: Needs further research! Why the eff does the sampler gets found twice ?
+		for (GLuint index = 1; index < static_cast<GLuint> (number_uniforms); ++index) {
+			char name_buffer[100];
+			GLsizei name_buffer_size = sizeof (name_buffer) - 1;
+			GLint uniform_type_size;
+			GLenum uniform_type;
+
+			glGetActiveUniform (this->program.handle,
+				index,
+				name_buffer_size,
+				nullptr,
+				&uniform_type_size,
+				&uniform_type,
+				name_buffer
+			);
+
+			assert (0 < name_buffer_size);
+			assert (0 < uniform_type_size);
+
+			#ifdef DEBUG_MESSAGE
+			const auto &report = this->program.uniforms.emplace (name_buffer, index);
+			assert (report.second);
+
+			std::cout << "Found uniform "
+				<< report.first->first << "@" << report.first->second
+				<< std::endl;
+			#else
+			this->program.uniforms.emplace (name_buffer, index);
+			#endif
+
+		}
+
+		// voi la
+		return this->program;
+	}
 
 };
 
