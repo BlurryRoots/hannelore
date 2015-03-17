@@ -68,7 +68,16 @@ public:
 	void
 	set_uniform_vec3 (const std::string &name, glm::vec3 vec) {
 		std::size_t c = this->uniforms.count (name);
-		throw_if (0 == c, "Could not find ", name, " ", std::to_string (c));
+		if (0 == c) {
+			GLint loc = glGetUniformLocation (this->handle,
+				name.c_str ()
+			);
+			std::cout << "Wa? " << loc << std::endl;
+			throw_if (0 == loc, "Could not find ", name, " ", std::to_string (c));
+
+			this->uniforms.emplace (name, loc);
+		}
+
 
 		glProgramUniform3fv (
 			this->handle,
@@ -303,6 +312,7 @@ public:
 			throw std::runtime_error (this->get_info_log (this->program));
 		}
 
+		/*
 		// search all active uniforms and cache their locations
 		GLint number_uniforms;
 		glGetProgramiv (this->program.handle,
@@ -314,34 +324,35 @@ public:
 		// TODO: Needs further research! Why the eff does the sampler gets found twice ?
 		for (GLuint index = 1; index < static_cast<GLuint> (number_uniforms + 1); ++index) {
 			char name_buffer[100];
-			GLsizei name_buffer_size = sizeof (name_buffer) - 1;
+			GLsizei name_buffer_size = sizeof (name_buffer);
 			GLint uniform_type_size;
 			GLenum uniform_type;
+			GLsizei actual_size;
 
 			glGetActiveUniform (this->program.handle,
 				index,
 				name_buffer_size,
-				nullptr,
+				&actual_size,
 				&uniform_type_size,
 				&uniform_type,
 				name_buffer
 			);
 
 			throw_if (0 == name_buffer_size, "Uniform @", std::to_string (index), " has no name ?!");
-			throw_if (0 == uniform_type_size, "Uniform @", std::to_string (index), " has no size?!");
 
 			#ifdef DEBUG_MESSAGE
 			const auto &report = this->program.uniforms.emplace (name_buffer, index);
-			assert (report.second);
+			throw_if (! report.second, "There is already a uniform with the name ", name_buffer);
 
 			std::cout << "Found uniform "
-				<< report.first->first << "@" << report.first->second
+				<< report.first->first << "/" << name_buffer << "@" << report.first->second
 				<< std::endl;
 			#else
 			this->program.uniforms.emplace (name_buffer, index);
 			#endif
 
 		}
+		*/
 
 		// voi la
 		return this->program;

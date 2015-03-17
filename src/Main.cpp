@@ -38,6 +38,8 @@ struct GameData {
 	struct {
 		GLint color;
 	} uniforms;
+
+	//GLfloat *triangle_data;
 } game_data;
 
 //
@@ -175,7 +177,30 @@ on_update (double dt) {
 
 void
 on_render () {
+	glClearColor (0.5f, 0.5f, 1.0f, 1.0f);
+	glClear (GL_COLOR_BUFFER_BIT);
 
+	GLfloat data[] {
+		 0.0f, 1.0f, 0.0f,
+		 1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f
+	};
+
+	game_data.program.use ();
+
+	glEnableVertexAttribArray (game_data.attributes.position);
+	glVertexAttribPointer (
+		game_data.attributes.position,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		data
+	);
+
+	glDrawArrays (GL_TRIANGLES, 0, 3);
+
+	glDisableVertexAttribArray (game_data.attributes.position);
 }
 
 void
