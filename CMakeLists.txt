@@ -35,6 +35,11 @@ include_directories (lib/yanecos/inc)
 # json
 include_directories (lib/json/src)
 
+# obj loader
+add_subdirectory (lib/tinyobjloader)
+include_directories (lib/tinyobjloader)
+set (TINYOBJ_LIB tinyobjloader)
+
 # app specific includes
 include_directories (inc)
 
@@ -63,7 +68,7 @@ set (PNG_LIBS "")
 set (shader_path res/shaders)
 #file (COPY ${shader_path} DESTINATION '${EXECUTABLE_OUTPUT_PATH}')
 add_executable (main ${source_files} ${shader_files})
-target_link_libraries (main glfw ${GLFW_LIBRARIES} libglew_static ${GUID_LIB} png jpeg z pthread)
+target_link_libraries (main glfw ${GLFW_LIBRARIES} libglew_static ${TINYOBJ_LIB} ${GUID_LIB} png jpeg z pthread)
 
 # command to copy resources when using default target
 add_custom_target (assets

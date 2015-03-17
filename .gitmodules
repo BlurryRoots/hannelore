@@ -10,3 +10,6 @@
 [submodule "lib/json"]
 	path = lib/json
 	url = https://github.com/nlohmann/json.git
+[submodule "lib/tinyobjloader"]
+	path = lib/tinyobjloader
+	url = https://github.com/syoyo/tinyobjloader.git
