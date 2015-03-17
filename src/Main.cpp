@@ -28,6 +28,7 @@
 #include <TextureLoader.h>
 
 struct GameData {
+
 	GLFWwindow *window;
 	bool is_running;
 	ShaderProgram program;
@@ -49,6 +50,11 @@ struct GameData {
 		glm::mat4 view;
 		glm::mat4 projection;
 	} matrices;
+
+	float roll, pitch, yaw;
+	glm::vec3 cam_mov_buffer;
+	glm::vec3 cam_view_buffer;
+
 } game_data;
 
 struct Model {
@@ -220,24 +226,43 @@ initialize (void) {
 	glGenBuffers (1, &(game_data.element_buffer));
 
 	game_data.matrices.model = glm::translate (
-		glm::mat4(1.0f), glm::vec3(0.0, 0.0, -5.0)
+		glm::mat4 (1.0f), glm::vec3 (0.0, 0.0, -6.0)
 	);
 	game_data.matrices.view = glm::lookat (
-		glm::vec3(0.0, 0.0, 0.0),
-		glm::vec3(0.0, 0.0, -4.0),
-		glm::vec3(0.0, 1.0, 0.0)
+		glm::vec3 (0.0, 0.0, 0.0),
+		glm::vec3 (0.0, 0.0, -4.0),
+		glm::vec3 (0.0, 1.0, 0.0)
 	);
 }
 
 void
 on_update (double dt) {
+	float fdt = static_cast<float> (dt);
+
 	game_data.is_running = game_data.is_running
 		&& ! glfwWindowShouldClose (game_data.window)
 		;
 
-	game_data.matrices.model = glm::rotate (
-		game_data.matrices.model, 45.0f * static_cast<float> (dt), glm::vec3(0, 1, 0)
+	game_data.matrices.model = glm::rotate (game_data.matrices.model,
+		45.0f * fdt, glm::vec3 (0, 1, 0)
 	);
+
+	game_data.matrices.view = glm::translate (game_data.matrices.view,
+		game_data.cam_mov_buffer * 2.0f * fdt
+	);
+	game_data.matrices.view = glm::rotate (game_data.matrices.view,
+		45.0f * game_data.cam_view_buffer[0] * fdt, glm::vec3 (1, 0, 0)
+	);
+	game_data.matrices.view = glm::rotate (game_data.matrices.view,
+		45.0f * game_data.cam_view_buffer[1] * fdt, glm::vec3 (0, 1, 0)
+	);
+	game_data.matrices.view = glm::rotate (game_data.matrices.view,
+		45.0f * game_data.cam_view_buffer[2] * fdt, glm::vec3 (0, 0, 1)
+	);
+
+	game_data.pitch += 45.0f * game_data.cam_view_buffer[0] * fdt;
+	game_data.yaw += 45.0f * game_data.cam_view_buffer[1] * fdt;
+	game_data.roll += 45.0f * game_data.cam_view_buffer[2] * fdt;
 }
 
 void
@@ -345,6 +370,80 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 		if (action == GLFW_RELEASE) {
 			game_data.program.dispose ();
 			load_shader_program ();
+		}
+	}
+
+	// View
+	if (key == GLFW_KEY_UP) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_view_buffer -= glm::vec3 (1, 0, 0);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_view_buffer += glm::vec3 (1, 0, 0);
+		}
+	}
+
+	if (key == GLFW_KEY_DOWN) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_view_buffer += glm::vec3 (1, 0, 0);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_view_buffer -= glm::vec3 (1, 0, 0);
+		}
+	}
+
+	if (key == GLFW_KEY_LEFT) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_view_buffer -= glm::vec3 (0, 1, 0);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_view_buffer += glm::vec3 (0, 1, 0);
+		}
+	}
+
+	if (key == GLFW_KEY_RIGHT) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_view_buffer += glm::vec3 (0, 1, 0);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_view_buffer -= glm::vec3 (0, 1, 0);
+		}
+	}
+
+	// Move
+	if (key == GLFW_KEY_W) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_mov_buffer += glm::vec3 (0, 0, 1);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_mov_buffer -= glm::vec3 (0, 0, 1);
+		}
+	}
+
+	if (key == GLFW_KEY_S) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_mov_buffer -= glm::vec3 (0, 0, 1);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_mov_buffer += glm::vec3 (0, 0, 1);
+		}
+	}
+
+	if (key == GLFW_KEY_A) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_mov_buffer += glm::vec3 (1, 0, 0);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_mov_buffer -= glm::vec3 (1, 0, 0);
+		}
+	}
+
+	if (key == GLFW_KEY_D) {
+		if (action == GLFW_PRESS) {
+			game_data.cam_mov_buffer -= glm::vec3 (1, 0, 0);
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.cam_mov_buffer += glm::vec3 (1, 0, 0);
 		}
 	}
 }
