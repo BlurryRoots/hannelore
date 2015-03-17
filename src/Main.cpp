@@ -25,6 +25,7 @@
 #include <FragmentShader.h>
 #include <ShaderProgram.h>
 #include <VertexShader.h>
+#include <TextureLoader.h>
 
 struct GameData {
 	GLFWwindow *window;
@@ -33,13 +34,16 @@ struct GameData {
 
 	struct {
 		GLint position;
+		GLint uv;
 	} attributes;
 
 	struct {
 		GLint color;
 	} uniforms;
 
-	//GLfloat *triangle_data;
+	int width, height;
+
+	TextureLoader texture_loader;
 } game_data;
 
 //
@@ -166,6 +170,25 @@ initialize (void) {
 	if (0 > game_data.attributes.position) {
 		throw std::runtime_error ("Could not find attribute vertex_position! " + std::to_string (game_data.attributes.position));
 	}
+
+	game_data.attributes.uv = glGetAttribLocation (
+		game_data.program.get_handle (),
+		"vertex_uv"
+	);
+	if (0 > game_data.attributes.uv) {
+		throw std::runtime_error ("Could not find attribute vertex_uv! " + std::to_string (game_data.attributes.uv));
+	}
+
+	game_data.texture_loader.load ("textures/cat.png", "ship", 0);
+
+	glEnable (GL_ALPHA_TEST);
+	glAlphaFunc (GL_GREATER, 0.0f);
+
+	glEnable (GL_DEPTH_TEST);
+	glDepthFunc (GL_LESS);
+
+	glPointSize (200.0f);
+	glEnable (GL_LINE_SMOOTH);
 }
 
 void
@@ -178,16 +201,23 @@ on_update (double dt) {
 void
 on_render () {
 	glClearColor (0.5f, 0.5f, 1.0f, 1.0f);
-	glClear (GL_COLOR_BUFFER_BIT);
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	GLfloat data[] {
+	game_data.program.use ();
+
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
+	glm::mat4 view = glm::lookat(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
+	glm::mat4 projection = glm::perspective(45.0f, 1.0f*game_data.width/game_data.height, 0.1f, 10.0f);
+	glm::mat4 mvp = projection * view * model;
+	game_data.program.set_uniform_mat4 ("mvp", mvp);
+
+	game_data.texture_loader.bind ("ship");
+
+	GLfloat vertices[] {
 		 0.0f, 1.0f, 0.0f,
 		 1.0f, 0.0f, 0.0f,
 		-1.0f, 0.0f, 0.0f
 	};
-
-	game_data.program.use ();
-
 	glEnableVertexAttribArray (game_data.attributes.position);
 	glVertexAttribPointer (
 		game_data.attributes.position,
@@ -195,17 +225,36 @@ on_render () {
 		GL_FLOAT,
 		GL_FALSE,
 		0,
-		data
+		vertices
+	);
+
+	GLfloat uvs[] {
+		0.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+	};
+	glEnableVertexAttribArray (game_data.attributes.uv);
+	glVertexAttribPointer (
+		game_data.attributes.uv,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		uvs
 	);
 
 	glDrawArrays (GL_TRIANGLES, 0, 3);
 
+	glDisableVertexAttribArray (game_data.attributes.uv);
 	glDisableVertexAttribArray (game_data.attributes.position);
+
+	game_data.texture_loader.unbind ();
 }
 
 void
 dispose () {
 	game_data.program.dispose ();
+	game_data.texture_loader.dispose ();
 
 	glfwTerminate ();
 }
@@ -220,7 +269,8 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 
 void
 on_framebuffer (GLFWwindow *window, int width, int height) {
-	//
+	game_data.width = width;
+	game_data.height = height;
 }
 
 void

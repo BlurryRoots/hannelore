@@ -54,10 +54,18 @@ public:
 
 	void
 	set_uniform_mat4 (const std::string &name, glm::mat4 matrix) {
-		throw_if (0 == this->uniforms.count (name), "Could not find ", name);
+		std::size_t c = this->uniforms.count (name);
+		if (0 == c) {
+			GLint loc = glGetUniformLocation (this->handle,
+				name.c_str ()
+			);
+			std::cout << "Wa? " << loc << std::endl;
+			throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
 
-		glProgramUniformMatrix4fv (
-			this->handle,
+			this->uniforms.emplace (name, loc);
+		}
+
+		glUniformMatrix4fv (
 			this->uniforms.at (name),
 			1,
 			GL_FALSE,
@@ -73,14 +81,13 @@ public:
 				name.c_str ()
 			);
 			std::cout << "Wa? " << loc << std::endl;
-			throw_if (0 == loc, "Could not find ", name, " ", std::to_string (c));
+			throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
 
 			this->uniforms.emplace (name, loc);
 		}
 
 
-		glProgramUniform3fv (
-			this->handle,
+		glUniform3fv (
 			this->uniforms.at (name),
 			1,
 			vec.c_array ()
@@ -312,7 +319,7 @@ public:
 			throw std::runtime_error (this->get_info_log (this->program));
 		}
 
-		/*
+
 		// search all active uniforms and cache their locations
 		GLint number_uniforms;
 		glGetProgramiv (this->program.handle,
@@ -320,9 +327,10 @@ public:
 			&number_uniforms
 		);
 		throw_if (0 == number_uniforms, "No uniforms found!");
+		std::cout << "Found " << number_uniforms << " uniforms" << std::endl;
 
 		// TODO: Needs further research! Why the eff does the sampler gets found twice ?
-		for (GLuint index = 1; index < static_cast<GLuint> (number_uniforms + 1); ++index) {
+		for (GLuint index = 0; index < static_cast<GLuint> (number_uniforms); ++index) {
 			char name_buffer[100];
 			GLsizei name_buffer_size = sizeof (name_buffer);
 			GLint uniform_type_size;
@@ -339,7 +347,9 @@ public:
 			);
 
 			throw_if (0 == name_buffer_size, "Uniform @", std::to_string (index), " has no name ?!");
+			std::cout << "uniform " << name_buffer << "@" << index << std::endl;
 
+			#if 0
 			#ifdef DEBUG_MESSAGE
 			const auto &report = this->program.uniforms.emplace (name_buffer, index);
 			throw_if (! report.second, "There is already a uniform with the name ", name_buffer);
@@ -350,9 +360,9 @@ public:
 			#else
 			this->program.uniforms.emplace (name_buffer, index);
 			#endif
+			#endif
 
 		}
-		*/
 
 		// voi la
 		return this->program;
