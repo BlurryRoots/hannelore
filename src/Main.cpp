@@ -113,6 +113,39 @@ main (void) {
 	return 0;
 }
 
+void
+load_shader_program () {
+	game_data.program = ShaderProgramBuilder ()
+		.add_shader (VertexShader (FileReader ("shaders/es/basic.vert").to_string ()))
+		.add_shader (FragmentShader (FileReader ("shaders/es/basic.frag").to_string ()))
+		.link ()
+		;
+
+	game_data.attributes.position = glGetAttribLocation (
+		game_data.program.get_handle (),
+		"vertex_position"
+	);
+	if (0 > game_data.attributes.position) {
+		throw std::runtime_error ("Could not find attribute vertex_position! " + std::to_string (game_data.attributes.position));
+	}
+
+	game_data.attributes.uv = glGetAttribLocation (
+		game_data.program.get_handle (),
+		"vertex_uv"
+	);
+	if (0 > game_data.attributes.uv) {
+		throw std::runtime_error ("Could not find attribute vertex_uv! " + std::to_string (game_data.attributes.uv));
+	}
+
+	game_data.attributes.color = glGetAttribLocation (
+		game_data.program.get_handle (),
+		"vertex_color"
+	);
+	if (0 > game_data.attributes.color) {
+		throw std::runtime_error ("Could not find attribute vertex_color! " + std::to_string (game_data.attributes.color));
+	}
+}
+
 //
 void
 initialize (void) {
@@ -154,35 +187,8 @@ initialize (void) {
 
 	// setup game stuff
 	game_data.is_running = true;
-	game_data.program = ShaderProgramBuilder ()
-		.add_shader (VertexShader (FileReader ("shaders/es/basic.vert").to_string ()))
-		.add_shader (FragmentShader (FileReader ("shaders/es/basic.frag").to_string ()))
-		.link ()
-		;
 
-	game_data.attributes.position = glGetAttribLocation (
-		game_data.program.get_handle (),
-		"vertex_position"
-	);
-	if (0 > game_data.attributes.position) {
-		throw std::runtime_error ("Could not find attribute vertex_position! " + std::to_string (game_data.attributes.position));
-	}
-
-	game_data.attributes.uv = glGetAttribLocation (
-		game_data.program.get_handle (),
-		"vertex_uv"
-	);
-	if (0 > game_data.attributes.uv) {
-		throw std::runtime_error ("Could not find attribute vertex_uv! " + std::to_string (game_data.attributes.uv));
-	}
-
-	game_data.attributes.color = glGetAttribLocation (
-		game_data.program.get_handle (),
-		"vertex_color"
-	);
-	if (0 > game_data.attributes.color) {
-		throw std::runtime_error ("Could not find attribute vertex_color! " + std::to_string (game_data.attributes.color));
-	}
+	load_shader_program ();
 
 	game_data.texture_loader.load ("textures/cat.png", "ship", 0);
 
@@ -229,7 +235,8 @@ on_render () {
 	GLfloat vertices[] {
 		-1.0f,  1.0f, 0.0f,
 		 1.0f,  1.0f, 0.0f,
-		 0.0f, -1.0f, 0.0f
+		-1.0f, -1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
 	};
 	glEnableVertexAttribArray (game_data.attributes.position);
 	glVertexAttribPointer (
@@ -243,6 +250,7 @@ on_render () {
 
 	GLfloat uvs[] {
 		0.0f, 0.0f,
+		1.0f, 0.0f,
 		1.0f, 1.0f,
 		0.0f, 1.0f,
 	};
@@ -259,7 +267,8 @@ on_render () {
 	GLfloat colors[] {
 		1.0f, 0.0f, 0.0f, 1.0f,
 		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f
+		0.0f, 0.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
 	};
 	glEnableVertexAttribArray (game_data.attributes.color);
 	glVertexAttribPointer (
@@ -293,6 +302,15 @@ void
 on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 	if (GLFW_KEY_ESCAPE == key && GLFW_RELEASE == action) {
 		game_data.is_running = false;
+	}
+
+	if (key == GLFW_KEY_F1) {
+		if (action == GLFW_PRESS) {
+		}
+		if (action == GLFW_RELEASE) {
+			game_data.program.dispose ();
+			load_shader_program ();
+		}
 	}
 }
 
