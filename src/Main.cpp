@@ -43,7 +43,29 @@ struct GameData {
 	GLuint element_buffer;
 
 	TextureLoader texture_loader;
+
+	struct {
+		glm::mat4 model;
+		glm::mat4 view;
+		glm::mat4 projection;
+	} matrices;
 } game_data;
+
+struct Model {
+	std::vector<glm::vec4> vertices;
+	std::vector<glm::vec3> normals;
+	std::vector<GLushort> elements;
+
+	Model (
+		std::vector<glm::vec4> v,
+		std::vector<glm::vec3> n,
+		std::vector<GLushort> e
+	)
+	: vertices (v)
+	, normals (n)
+	, elements (e) {
+	}
+};
 
 //
 void
@@ -138,14 +160,6 @@ load_shader_program () {
 	if (0 > game_data.attributes.uv) {
 		throw std::runtime_error ("Could not find attribute vertex_uv! " + std::to_string (game_data.attributes.uv));
 	}
-
-	game_data.attributes.color = glGetAttribLocation (
-		game_data.program.get_handle (),
-		"vertex_color"
-	);
-	if (0 > game_data.attributes.color) {
-		throw std::runtime_error ("Could not find attribute vertex_color! " + std::to_string (game_data.attributes.color));
-	}
 }
 
 //
@@ -204,6 +218,15 @@ initialize (void) {
 	glEnable (GL_LINE_SMOOTH);
 
 	glGenBuffers (1, &(game_data.element_buffer));
+
+	game_data.matrices.model = glm::translate (
+		glm::mat4(1.0f), glm::vec3(0.0, 0.0, -5.0)
+	);
+	game_data.matrices.view = glm::lookat (
+		glm::vec3(0.0, 0.0, 0.0),
+		glm::vec3(0.0, 0.0, -4.0),
+		glm::vec3(0.0, 1.0, 0.0)
+	);
 }
 
 void
@@ -211,6 +234,10 @@ on_update (double dt) {
 	game_data.is_running = game_data.is_running
 		&& ! glfwWindowShouldClose (game_data.window)
 		;
+
+	game_data.matrices.model = glm::rotate (
+		game_data.matrices.model, 45.0f * static_cast<float> (dt), glm::vec3(0, 1, 0)
+	);
 }
 
 void
@@ -220,18 +247,10 @@ on_render () {
 
 	game_data.program.use ();
 
-	glm::mat4 model = glm::translate (
-		glm::mat4(1.0f), glm::vec3(0.0, 0.0, -1.0)
-	);
-	glm::mat4 view = glm::lookat (
-		glm::vec3(0.0, 0.0, 0.0),
-		glm::vec3(0.0, 0.0, -4.0),
-		glm::vec3(0.0, 1.0, 0.0)
-	);
-	glm::mat4 projection = glm::perspective (
-		45.0f, 1.0f*game_data.width/game_data.height, 0.01f, 100.0f
-	);
-	glm::mat4 mvp = projection * view * model;
+	glm::mat4 mvp = glm::mat4 (1)
+		* game_data.matrices.projection
+		* game_data.matrices.view
+		* game_data.matrices.model;
 	game_data.program.set_uniform_mat4 ("mvp", mvp);
 
 	game_data.texture_loader.bind ("ship");
@@ -273,25 +292,12 @@ on_render () {
 		uvs
 	);
 
-	GLfloat colors[] {
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-	};
-	glEnableVertexAttribArray (game_data.attributes.color);
-	glVertexAttribPointer (
-		game_data.attributes.color,
-		4,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		colors
-	);
-
 	GLushort indices[] {
 		0, 1, 2,
 		2, 3, 0,
+
+		4, 5, 6,
+		6, 7, 4,
 	};
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.element_buffer);
 	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
@@ -346,6 +352,10 @@ on_framebuffer (GLFWwindow *window, int width, int height) {
 	game_data.height = height;
 
 	glViewport (0, 0, game_data.width, game_data.height);
+
+	game_data.matrices.projection = glm::perspective (
+		45.0f, 1.0f*game_data.width/game_data.height, 0.01f, 100.0f
+	);
 }
 
 void
