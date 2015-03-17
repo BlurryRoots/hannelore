@@ -237,10 +237,15 @@ on_render () {
 	game_data.texture_loader.bind ("ship");
 
 	GLfloat vertices[] {
-		-1.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
+		-1, -1, -1,
+		 1, -1, -1,
+		 1,  1, -1,
+		-1,  1, -1,
+
+		 1, -1,  1,
+		-1, -1,  1,
+		-1,  1,  1,
+		 1,  1,  1,
 	};
 	glEnableVertexAttribArray (game_data.attributes.position);
 	glVertexAttribPointer (
@@ -255,8 +260,8 @@ on_render () {
 	GLfloat uvs[] {
 		0.0f, 0.0f,
 		1.0f, 0.0f,
-		0.0f, 1.0f,
 		1.0f, 1.0f,
+		0.0f, 1.0f,
 	};
 	glEnableVertexAttribArray (game_data.attributes.uv);
 	glVertexAttribPointer (
@@ -286,7 +291,7 @@ on_render () {
 
 	GLushort indices[] {
 		0, 1, 2,
-		1, 2, 3,
+		2, 3, 0,
 	};
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.element_buffer);
 	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
