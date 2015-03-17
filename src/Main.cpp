@@ -30,6 +30,17 @@
 #include <VertexShader.h>
 #include <TextureLoader.h>
 
+struct Model {
+
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+
+	GLuint index_buffer;
+	GLuint normal_buffer;
+	GLuint uv_buffer;
+	GLuint vertex_buffer;
+};
+
 struct GameData {
 
 	GLFWwindow *window;
@@ -44,8 +55,6 @@ struct GameData {
 
 	int width, height;
 
-	GLuint element_buffer;
-
 	TextureLoader texture_loader;
 
 	struct {
@@ -58,23 +67,9 @@ struct GameData {
 	glm::vec3 cam_mov_buffer;
 	glm::vec3 cam_view_buffer;
 
+	Model model;
+
 } game_data;
-
-struct Model {
-	std::vector<glm::vec4> vertices;
-	std::vector<glm::vec3> normals;
-	std::vector<GLushort> elements;
-
-	Model (
-		std::vector<glm::vec4> v,
-		std::vector<glm::vec3> n,
-		std::vector<GLushort> e
-	)
-	: vertices (v)
-	, normals (n)
-	, elements (e) {
-	}
-};
 
 void
 test_obj_loader (void);
@@ -149,6 +144,21 @@ main (void) {
 	return 0;
 }
 
+Model
+load_model (const std::string &model_path) {
+	Model m;
+
+	std::string err = tinyobj::LoadObj (
+		m.shapes, m.materials,
+		model_path.c_str ()
+	);
+	if (! err.empty ()) {
+		throw std::runtime_error (err);
+	}
+
+	return m;
+}
+
 void
 load_shader_program () {
 	game_data.program = ShaderProgramBuilder ()
@@ -218,7 +228,7 @@ initialize (void) {
 
 	load_shader_program ();
 
-	game_data.texture_loader.load ("textures/cat.png", "ship", 0);
+	game_data.texture_loader.load ("textures/ship.png", "ship", 0);
 
 	glEnable (GL_ALPHA_TEST);
 	glAlphaFunc (GL_GREATER, 0.0f);
@@ -229,8 +239,6 @@ initialize (void) {
 	glPointSize (200.0f);
 	glEnable (GL_LINE_SMOOTH);
 
-	glGenBuffers (1, &(game_data.element_buffer));
-
 	game_data.matrices.model = glm::translate (
 		glm::mat4 (1.0f), glm::vec3 (0.0, 0.0, -4.0)
 	);
@@ -240,7 +248,99 @@ initialize (void) {
 		glm::vec3 (0.0, 1.0, 0.0)
 	);
 
-	test_obj_loader ();
+#if 0
+	game_data.model = load_model ("models/suzanne.obj");
+	std::cout
+		<< game_data.model.shapes[0].mesh.positions.size ()
+		<< std::endl;
+
+	std::cout
+		<< "#vertices: " << game_data.model.shapes[0].mesh.positions.size () / 3
+		<< std::endl
+		;
+	std::cout
+		<< "#texcoords: " << game_data.model.shapes[0].mesh.texcoords.size () / 2
+		<< std::endl
+		;
+#endif
+
+	// Model vertices
+	glGenBuffers (1, &(game_data.model.vertex_buffer));
+	glBindBuffer (GL_ARRAY_BUFFER, game_data.model.vertex_buffer);
+	glEnableVertexAttribArray (game_data.attributes.position);
+	glVertexAttribPointer (
+		game_data.attributes.position,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		0
+	);
+	GLfloat vertices[] {
+		-1, -1, -1,
+		 1, -1, -1,
+		 1,  1, -1,
+		-1,  1, -1,
+
+		 1, -1,  1,
+		-1, -1,  1,
+		-1,  1,  1,
+		 1,  1,  1,
+	};
+	glBufferData (GL_ARRAY_BUFFER,
+		sizeof (vertices),
+		reinterpret_cast<void*> (vertices),
+		GL_STATIC_DRAW
+	);
+	glDisableVertexAttribArray (game_data.attributes.position);
+	glBindBuffer (GL_ARRAY_BUFFER, 0);
+
+	// UV Coordinates
+	glGenBuffers (1, &(game_data.model.uv_buffer));
+	glBindBuffer (GL_ARRAY_BUFFER, game_data.model.uv_buffer);
+	glEnableVertexAttribArray (game_data.attributes.uv);
+	glVertexAttribPointer (
+		game_data.attributes.uv,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		// array buffer offset
+		reinterpret_cast<GLvoid*> (0)
+	);
+	GLfloat uvs[] {
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+	};
+	glBufferData (GL_ARRAY_BUFFER,
+		sizeof (uvs),
+		reinterpret_cast<void*> (uvs),
+		GL_STATIC_DRAW
+	);
+	glDisableVertexAttribArray (game_data.attributes.uv);
+	glBindBuffer (GL_ARRAY_BUFFER, 0);
+
+	// Organize vertices into triangles
+	glGenBuffers (1, &(game_data.model.index_buffer));
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
+	GLushort indices[] {
+		0, 1, 2,
+		2, 3, 0,
+
+		4, 5, 6,
+		6, 7, 4,
+
+		0, 5, 4,
+		0, 4, 1,
+	};
+	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
+		sizeof (indices),
+		reinterpret_cast<void*> (indices),
+		GL_STATIC_DRAW
+	);
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void
@@ -275,7 +375,7 @@ on_update (double dt) {
 
 void
 on_render () {
-	glClearColor (0.5f, 0.5f, 1.0f, 1.0f);
+	glClearColor (0.05f, 0.05f, 0.0f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	game_data.program.use ();
@@ -283,72 +383,30 @@ on_render () {
 	glm::mat4 mvp = glm::mat4 (1)
 		* game_data.matrices.projection
 		* game_data.matrices.view
-		* game_data.matrices.model;
+		* game_data.matrices.model
+		;
 	game_data.program.set_uniform_mat4 ("mvp", mvp);
 
 	game_data.texture_loader.bind ("ship");
 
-	GLfloat vertices[] {
-		-1, -1, -1,
-		 1, -1, -1,
-		 1,  1, -1,
-		-1,  1, -1,
-
-		 1, -1,  1,
-		-1, -1,  1,
-		-1,  1,  1,
-		 1,  1,  1,
-	};
 	glEnableVertexAttribArray (game_data.attributes.position);
-	glVertexAttribPointer (
-		game_data.attributes.position,
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		vertices
-	);
-
-	GLfloat uvs[] {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-	};
 	glEnableVertexAttribArray (game_data.attributes.uv);
-	glVertexAttribPointer (
-		game_data.attributes.uv,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		uvs
+
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
+	int size; glGetBufferParameteriv (
+		GL_ELEMENT_ARRAY_BUFFER,
+		GL_BUFFER_SIZE,
+		&size
 	);
-
-	GLushort indices[] {
-		0, 1, 2,
-		2, 3, 0,
-
-		4, 5, 6,
-		6, 7, 4,
-
-		0, 5, 4,
-		0, 4, 1,
-	};
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.element_buffer);
-	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-		sizeof (indices),
-		reinterpret_cast<void*> (indices),
-		GL_STATIC_DRAW
-	);
-
+	int trinagle_count = size / sizeof (GLushort);
 	glDrawElements (GL_TRIANGLES,
-		sizeof (indices) / sizeof (GLushort),
+		trinagle_count,
 		GL_UNSIGNED_SHORT,
 		nullptr
 	);
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	glDisableVertexAttribArray (game_data.attributes.color);
+	//glDisableVertexAttribArray (game_data.attributes.color);
 	glDisableVertexAttribArray (game_data.attributes.uv);
 	glDisableVertexAttribArray (game_data.attributes.position);
 
@@ -360,7 +418,9 @@ dispose () {
 	game_data.program.dispose ();
 	game_data.texture_loader.dispose ();
 
-	glDeleteBuffers (1, &(game_data.element_buffer));
+	glDeleteBuffers (1, &(game_data.model.index_buffer));
+	glDeleteBuffers (1, &(game_data.model.uv_buffer));
+	glDeleteBuffers (1, &(game_data.model.vertex_buffer));
 
 	glfwTerminate ();
 }
