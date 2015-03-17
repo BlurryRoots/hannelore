@@ -11,8 +11,8 @@ uniform mat4 mvp;
 
 void
 main (void) {
-    gl_Position = mvp * vec4 (vertex_position, 1.0f);
+	gl_Position = mvp * vec4 (vertex_position, 1.0f);
 
-    fragment_uv = vertex_uv;
-    fragment_color = vertex_color;
+	fragment_uv = vertex_uv;
+	fragment_color = vertex_color;
 }
