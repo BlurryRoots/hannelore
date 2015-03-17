@@ -228,7 +228,7 @@ initialize (void) {
 
 	load_shader_program ();
 
-	game_data.texture_loader.load ("textures/ship.png", "ship", 0);
+	game_data.texture_loader.load ("textures/wood.png", "ship", 0);
 
 	glEnable (GL_ALPHA_TEST);
 	glAlphaFunc (GL_GREATER, 0.0f);
@@ -274,7 +274,8 @@ initialize (void) {
 		GL_FLOAT,
 		GL_FALSE,
 		0,
-		0
+		// array buffer offset
+		reinterpret_cast<GLvoid*> (0)
 	);
 	GLfloat vertices[] {
 		-1, -1, -1,
