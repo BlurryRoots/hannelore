@@ -40,6 +40,8 @@ struct GameData {
 
 	int width, height;
 
+	GLuint element_buffer;
+
 	TextureLoader texture_loader;
 } game_data;
 
@@ -200,6 +202,8 @@ initialize (void) {
 
 	glPointSize (200.0f);
 	glEnable (GL_LINE_SMOOTH);
+
+	glGenBuffers (1, &(game_data.element_buffer));
 }
 
 void
@@ -251,8 +255,8 @@ on_render () {
 	GLfloat uvs[] {
 		0.0f, 0.0f,
 		1.0f, 0.0f,
-		1.0f, 1.0f,
 		0.0f, 1.0f,
+		1.0f, 1.0f,
 	};
 	glEnableVertexAttribArray (game_data.attributes.uv);
 	glVertexAttribPointer (
@@ -280,7 +284,22 @@ on_render () {
 		colors
 	);
 
-	glDrawArrays (GL_TRIANGLES, 0, 3);
+	GLushort indices[] {
+		0, 1, 2,
+		1, 2, 3,
+	};
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.element_buffer);
+	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
+		sizeof (indices),
+		reinterpret_cast<void*> (indices),
+		GL_STATIC_DRAW
+	);
+
+	glDrawElements (GL_TRIANGLES,
+		sizeof (indices) / sizeof (GLushort),
+		GL_UNSIGNED_SHORT,
+		nullptr
+	);
 
 	glDisableVertexAttribArray (game_data.attributes.color);
 	glDisableVertexAttribArray (game_data.attributes.uv);
@@ -293,6 +312,8 @@ void
 dispose () {
 	game_data.program.dispose ();
 	game_data.texture_loader.dispose ();
+
+	glDeleteBuffers (1, &(game_data.element_buffer));
 
 	glfwTerminate ();
 }
