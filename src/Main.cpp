@@ -64,7 +64,15 @@ struct GameData {
 		glm::mat4 projection;
 	} matrices;
 
-	float roll, pitch, yaw;
+	struct {
+		float roll, pitch, yaw;
+		glm::vec3 position;
+		glm::vec3 forward;
+		glm::vec3 up;
+		glm::vec3 rotation;
+		float fov;
+	} camera;
+
 	glm::vec3 cam_mov_buffer;
 	glm::vec3 cam_view_buffer;
 
@@ -223,17 +231,12 @@ initialize (void) {
 	glEnable (GL_DEPTH_TEST);
 	glDepthFunc (GL_LESS);
 
-	game_data.matrices.model = glm::translate (
-		glm::mat4 (1.0f), glm::vec3 (0.0, 0.0, -4.0)
-	);
-	game_data.matrices.view = glm::lookat (
-		glm::vec3 (0.0, 0.0, 2.0),
-		glm::vec3 (0.0, 0.0, -4.0),
-		glm::vec3 (0.0, 1.0, 0.0)
-	);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 
 	game_data.texture_loader.load ("textures/suzanne.uv.png", "ship", 0);
-	game_data.model = load_model ("models/suzanne.obj");
+	game_data.model = load_model ("models/objs/suzanne.obj");
 
 	std::cout
 		<< game_data.model.shapes[0].mesh.positions.size ()
@@ -249,8 +252,9 @@ initialize (void) {
 		;
 
 	// Model vertices
-	glGenBuffers (1, &(game_data.model.vertex_buffer));
-	{GLint vaa = game_data.program.get_attribute_location ("vertex_position");
+	glGenBuffers (1, &(game_data.model.vertex_buffer)); {
+		GLint vaa = game_data.program.get_attribute_location ("vertex_position");
+
 		glBindBuffer (GL_ARRAY_BUFFER, game_data.model.vertex_buffer);
 		glEnableVertexAttribArray (vaa);
 		glVertexAttribPointer (
@@ -274,9 +278,40 @@ initialize (void) {
 		glBindBuffer (GL_ARRAY_BUFFER, 0);
 	}
 
+	// Normal directions
+	auto nnormals = game_data.model.shapes[0].mesh.normals.size ();
+	throw_if (0 == nnormals, "No normals :/");
+	std::cout << "#normals: " << nnormals << std::endl;;
+	glGenBuffers (1, &(game_data.model.normal_buffer)); {
+		GLint vaa = game_data.program.get_attribute_location ("vertex_normal");
+
+		glBindBuffer (GL_ARRAY_BUFFER, game_data.model.normal_buffer);
+		glEnableVertexAttribArray (vaa);
+		glVertexAttribPointer (
+			vaa,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			// array buffer offset
+			0
+		);
+		glBufferData (GL_ARRAY_BUFFER,
+			game_data.model.shapes[0].mesh.normals.size ()
+				* sizeof (float),
+			reinterpret_cast<void*> (
+				game_data.model.shapes[0].mesh.normals.data ()
+			),
+			GL_STATIC_DRAW
+		);
+		glDisableVertexAttribArray (vaa);
+		glBindBuffer (GL_ARRAY_BUFFER, 0);
+	}
+
 	// UV Coordinates
-	glGenBuffers (1, &(game_data.model.uv_buffer));
-	{GLint vaa = game_data.program.get_attribute_location ("vertex_uv");
+	glGenBuffers (1, &(game_data.model.uv_buffer)); {
+		GLint vaa = game_data.program.get_attribute_location ("vertex_uv");
+
 		glBindBuffer (GL_ARRAY_BUFFER, game_data.model.uv_buffer);
 		glEnableVertexAttribArray (vaa);
 		glVertexAttribPointer (
@@ -301,18 +336,27 @@ initialize (void) {
 	}
 
 	// Organize vertices into triangles
-	glGenBuffers (1, &(game_data.model.index_buffer));
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
-	// DATA
-	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-		game_data.model.shapes[0].mesh.indices.size ()
-			* sizeof (unsigned int),
-		reinterpret_cast<void*> (
-			game_data.model.shapes[0].mesh.indices.data ()
-		),
-		GL_STATIC_DRAW
+	glGenBuffers (1, &(game_data.model.index_buffer)); {
+		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
+		// DATA
+		glBufferData (GL_ELEMENT_ARRAY_BUFFER,
+			game_data.model.shapes[0].mesh.indices.size ()
+				* sizeof (unsigned int),
+			reinterpret_cast<void*> (
+				game_data.model.shapes[0].mesh.indices.data ()
+			),
+			GL_STATIC_DRAW
+		);
+		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+
+	game_data.matrices.model = glm::translate (
+		glm::mat4 (1.0f), glm::vec3 (0.0, 0.0, 4.0)
 	);
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	game_data.camera.forward = glm::vec3 (0, 0, 1);
+	game_data.camera.up = glm::vec3 (0, 1, 0);
+	game_data.camera.fov = 23.0f;
 }
 
 void
@@ -330,22 +374,38 @@ on_update (double dt) {
 	//	-42.0f * fdt, glm::vec3 (1, 0, 0)
 	//);
 
-	game_data.matrices.view = glm::translate (game_data.matrices.view,
-		game_data.cam_mov_buffer * 2.0f * fdt
-	);
-	game_data.matrices.view = glm::rotate (game_data.matrices.view,
-		45.0f * game_data.cam_view_buffer[0] * fdt, glm::vec3 (1, 0, 0)
-	);
-	game_data.matrices.view = glm::rotate (game_data.matrices.view,
-		45.0f * game_data.cam_view_buffer[1] * fdt, glm::vec3 (0, 1, 0)
-	);
-	game_data.matrices.view = glm::rotate (game_data.matrices.view,
-		45.0f * game_data.cam_view_buffer[2] * fdt, glm::vec3 (0, 0, 1)
+	//glm::mat4 camera_orientation = glm::mat4 (1);
+	//camera_orientation = glm::rotate (camera_orientation,
+	//	game_data.camera.rotation[0], glm::vec3 (1, 0, 0)
+	//);
+	//camera_orientation = glm::rotate (camera_orientation,
+	//	game_data.camera.rotation[1], glm::vec3 (0, 1, 0)
+	//);
+	//camera_orientation = glm::rotate (camera_orientation,
+	//	game_data.camera.rotation[2], glm::vec3 (0, 0, 1)
+	//);
+	//glm::mat4 inverse_camera_orientation = glm::transpose (camera_orientation);
+
+	//game_data.matrices.view = camera_orientation
+	//	* glm::translate(glm::mat4(), -1.0f * game_data.camera.position);
+
+	//game_data.camera.forward = glm::vec3 (
+	//	inverse_camera_orientation * glm::vec4 (0, 0, -1, 1)
+	//);
+	//game_data.camera.up = glm::vec3 (
+	//	inverse_camera_orientation * glm::vec4 (0, 1, 0, 1)
+	//);
+
+	glm::mat4 camera_look = glm::lookat (
+		game_data.camera.position,
+		game_data.camera.position + game_data.camera.forward,
+		game_data.camera.up
 	);
 
-	game_data.pitch += 90.0f * game_data.cam_view_buffer[0] * fdt;
-	game_data.yaw += 90.0f * game_data.cam_view_buffer[1] * fdt;
-	game_data.roll += 90.0f * game_data.cam_view_buffer[2] * fdt;
+	game_data.matrices.view = camera_look;
+
+	game_data.camera.position += game_data.cam_mov_buffer * 2.0f * fdt;
+	game_data.camera.rotation += 45.0f * fdt * game_data.cam_view_buffer;
 }
 
 void
@@ -356,20 +416,26 @@ on_render () {
 	game_data.program.use ();
 	game_data.texture_loader.bind ("ship");
 
-	glm::mat4 mvp = glm::mat4 (1)
-		* game_data.matrices.projection
-		* game_data.matrices.view
-		* game_data.matrices.model
-		;
-	game_data.program.set_uniform_mat4 ("mvp", mvp);
+	//glm::mat4 mvp = glm::mat4 (1)
+	//	* game_data.matrices.projection
+	//	* game_data.matrices.view
+	//	* game_data.matrices.model
+	//	;
+	game_data.program.set_uniform_mat4 ("m", game_data.matrices.model);
+	game_data.program.set_uniform_mat4 ("v", game_data.matrices.view);
+	game_data.program.set_uniform_mat4 ("p", game_data.matrices.projection);
 
 	GLint vertex_position =
 		game_data.program.get_attribute_location ("vertex_position");
+	glEnableVertexAttribArray (vertex_position);
+
 	GLint vertex_uv =
 		game_data.program.get_attribute_location ("vertex_uv");
-
-	glEnableVertexAttribArray (vertex_position);
 	glEnableVertexAttribArray (vertex_uv);
+
+	GLint vertex_normal =
+		game_data.program.get_attribute_location ("vertex_normal");
+	glEnableVertexAttribArray (vertex_normal);
 
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer); {
 		int size; glGetBufferParameteriv (
@@ -386,7 +452,7 @@ on_render () {
 	}
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	//glDisableVertexAttribArray (game_data.attributes.vertex_color);
+	glDisableVertexAttribArray (vertex_normal);
 	glDisableVertexAttribArray (vertex_uv);
 	glDisableVertexAttribArray (vertex_position);
 
@@ -401,6 +467,7 @@ dispose () {
 	glDeleteBuffers (1, &(game_data.model.index_buffer));
 	glDeleteBuffers (1, &(game_data.model.uv_buffer));
 	glDeleteBuffers (1, &(game_data.model.vertex_buffer));
+	glDeleteBuffers (1, &(game_data.model.normal_buffer));
 
 	glfwTerminate ();
 }
@@ -517,7 +584,7 @@ on_framebuffer (GLFWwindow *window, int width, int height) {
 	glViewport (0, 0, game_data.width, game_data.height);
 
 	game_data.matrices.projection = glm::perspective (
-		45.0f, 1.0f*game_data.width/game_data.height, 0.01f, 100.0f
+		game_data.camera.fov, 1.0f*game_data.width/game_data.height, 0.01f, 100.0f
 	);
 }
 
