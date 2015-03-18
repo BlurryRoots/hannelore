@@ -235,7 +235,7 @@ initialize (void) {
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
 
-	game_data.texture_loader.load ("textures/suzanne.uv.png", "ship", 0);
+	game_data.texture_loader.load ("textures/grass.png", "ship", 0);
 	game_data.model = load_model ("models/objs/suzanne.obj");
 
 	std::cout

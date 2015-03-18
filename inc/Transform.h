@@ -15,6 +15,10 @@
 
 class Transform : public Yanecos::Data<Transform> {
 
+static constexpr glm::vec3 FORWARD;
+static constexpr glm::vec3 UP;
+static constexpr glm::vec3 RIGHT;
+
 private:
 	glm::vec3 position;
 	glm::vec3 rotation;
@@ -48,9 +52,40 @@ public:
 		this->rotation += v;
 	}
 
+	glm::mat4
+	to_rotation_matrix (void) const {
+		return glm::mat4 (1)
+			* glm::rotate (glm::mat4 (1), this->rotation[0], glm::vec3 (1, 0, 0))
+			* glm::rotate (glm::mat4 (1), this->rotation[1], glm::vec3 (0, 1, 0))
+			* glm::rotate (glm::mat4 (1), this->rotation[2], glm::vec3 (0, 0, 1))
+			;
+	}
+
+	glm::vec3
+	get_forward (void) const {
+		return this->to_rotation_matrix () * FORWARD;
+	}
+
+	glm::vec3
+	get_up (void) const {
+		return this->to_rotation_matrix () * UP;
+	}
+
+	glm::vec3
+	get_right (void) const {
+		return this->to_rotation_matrix () * RIGHT;
+	}
+
 	void
 	translate (glm::vec3 v) {
 		this->position += v;
+	}
+
+	glm::mat4
+	to_translation_matrix (void) const {
+		return glm::mat4 (1)
+			* glm::translate (glm::mat4 (1), this->position)
+			;
 	}
 
 	void
@@ -64,16 +99,26 @@ public:
 	}
 
 	glm::mat4
-	to_matrix (void) const {
+	to_scaling_matrix (void) const {
 		return glm::mat4 (1)
-			* glm::translate (glm::mat4 (1), this->position)
-			* glm::rotate (glm::mat4 (1), this->rotation[0], glm::vec3 (1, 0, 0))
-			* glm::rotate (glm::mat4 (1), this->rotation[1], glm::vec3 (0, 1, 0))
-			* glm::rotate (glm::mat4 (1), this->rotation[2], glm::vec3 (0, 0, 1))
 			* glm::scale (glm::mat4 (1), this->size)
 			;
 	}
 
+	glm::mat4
+	to_matrix (void) const {
+		return glm::mat4 (1)
+			* this->to_translation_matrix ()
+			* this->to_rotation_matrix ()
+			* this->to_scaling_matrix ()
+			;
+	}
+
 };
+
+
+Transform::FORWARD = glm::vec3 (0, 0, 1);
+Transform::UP = glm::vec3 (0, 1, 0);
+Transform::RIGHT = glm::vec3 (1, 0, 0);
 
 #endif
