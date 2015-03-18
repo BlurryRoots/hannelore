@@ -15,14 +15,18 @@
 
 class Transform : public Yanecos::Data<Transform> {
 
-static constexpr glm::vec3 FORWARD;
-static constexpr glm::vec3 UP;
-static constexpr glm::vec3 RIGHT;
+public:
+	static const glm::vec3 FORWARD;
+	static const glm::vec3 UP;
+	static const glm::vec3 RIGHT;
 
 private:
 	glm::vec3 position;
 	glm::vec3 rotation;
 	glm::vec3 size;
+	glm::vec3 up;
+	glm::vec3 right;
+	glm::vec3 forward;
 
 public:
 	Transform (void)
@@ -48,8 +52,30 @@ public:
 	~Transform (void) {}
 
 	void
+	translate (glm::vec3 v) {
+		this->position += v;
+	}
+
+	glm::vec3
+	get_translation (void) const {
+		return this->position;
+	}
+
+	glm::mat4
+	to_translation_matrix (void) const {
+		return glm::mat4 (1)
+			* glm::translate (glm::mat4 (1), this->position)
+			;
+	}
+
+	void
 	rotate (glm::vec3 v) {
 		this->rotation += v;
+
+		auto rm = this->to_rotation_matrix ();
+		this->up = glm::normalize (glm::vec3 (rm * glm::vec4 (UP, 0)));
+		this->right = glm::normalize (glm::vec3 (rm * glm::vec4 (RIGHT, 0)));
+		this->forward = glm::normalize (glm::vec3 (rm * glm::vec4 (FORWARD, 0)));
 	}
 
 	glm::mat4
@@ -63,29 +89,17 @@ public:
 
 	glm::vec3
 	get_forward (void) const {
-		return this->to_rotation_matrix () * FORWARD;
+		return this->forward;
 	}
 
 	glm::vec3
 	get_up (void) const {
-		return this->to_rotation_matrix () * UP;
+		return this->up;
 	}
 
 	glm::vec3
 	get_right (void) const {
-		return this->to_rotation_matrix () * RIGHT;
-	}
-
-	void
-	translate (glm::vec3 v) {
-		this->position += v;
-	}
-
-	glm::mat4
-	to_translation_matrix (void) const {
-		return glm::mat4 (1)
-			* glm::translate (glm::mat4 (1), this->position)
-			;
+		return this->right;
 	}
 
 	void
@@ -116,9 +130,8 @@ public:
 
 };
 
-
-Transform::FORWARD = glm::vec3 (0, 0, 1);
-Transform::UP = glm::vec3 (0, 1, 0);
-Transform::RIGHT = glm::vec3 (1, 0, 0);
+const glm::vec3 Transform::FORWARD = glm::vec3 (0, 0, 1);
+const glm::vec3 Transform::UP = glm::vec3 (0, 1, 0);
+const glm::vec3 Transform::RIGHT = glm::vec3 (1, 0, 0);
 
 #endif
