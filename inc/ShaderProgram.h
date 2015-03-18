@@ -76,7 +76,6 @@ public:
 			GLint loc = glGetUniformLocation (this->handle,
 				name.c_str ()
 			);
-			std::cout << "Wa? " << loc << std::endl;
 			throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
 
 			this->uniforms.emplace (name, loc);
@@ -97,7 +96,6 @@ public:
 			GLint loc = glGetUniformLocation (this->handle,
 				name.c_str ()
 			);
-			std::cout << "Wa? " << loc << std::endl;
 			throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
 
 			this->uniforms.emplace (name, loc);
