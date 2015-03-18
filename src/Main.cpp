@@ -213,16 +213,15 @@ initialize (void) {
 
 	load_shader_program ();
 
-	game_data.texture_loader.load ("textures/cat.png", "ship", 0);
-
 	glEnable (GL_ALPHA_TEST);
 	glAlphaFunc (GL_GREATER, 0.0f);
 
+	// Enable alpha
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glEnable (GL_DEPTH_TEST);
 	glDepthFunc (GL_LESS);
-
-	glPointSize (200.0f);
-	glEnable (GL_LINE_SMOOTH);
 
 	game_data.matrices.model = glm::translate (
 		glm::mat4 (1.0f), glm::vec3 (0.0, 0.0, -4.0)
@@ -233,8 +232,9 @@ initialize (void) {
 		glm::vec3 (0.0, 1.0, 0.0)
 	);
 
-#if 0
+	game_data.texture_loader.load ("textures/suzanne.uv.png", "ship", 0);
 	game_data.model = load_model ("models/suzanne.obj");
+
 	std::cout
 		<< game_data.model.shapes[0].mesh.positions.size ()
 		<< std::endl;
@@ -247,7 +247,6 @@ initialize (void) {
 		<< "#texcoords: " << game_data.model.shapes[0].mesh.texcoords.size () / 2
 		<< std::endl
 		;
-#endif
 
 	// Model vertices
 	glGenBuffers (1, &(game_data.model.vertex_buffer));
@@ -261,89 +260,14 @@ initialize (void) {
 			GL_FALSE,
 			0,
 			// array buffer offset
-			reinterpret_cast<GLvoid*> (0)
+			0
 		);
-#if 0
--1, -1, -1, // 0
- 1, -1, -1, // 1
- 1,  1, -1, // 2
--1,  1, -1, // 3
-
- 1, -1,  1, // 4
--1, -1,  1, // 5
--1,  1,  1, // 6
- 1,  1,  1, // 7
-#endif
-
-#if 1
-		GLfloat vertices[] {
-			-1,  1,  1, // 6
-			-1,  1, -1, // 3
-			-1, -1, -1, // 0
-			-1, -1,  1, // 5
-
-			-1,  1, -1, // 3
-			 1,  1, -1, // 2
-			 1, -1, -1, // 1
-			-1, -1, -1, // 0
-
-			 1,  1, -1, // 2
-			 1,  1,  1, // 7
-			 1, -1,  1, // 4
-			 1, -1, -1, // 1
-
-			-1, -1, -1, // 0
-			 1, -1, -1, // 1
-			 1, -1,  1, // 4
-			-1, -1,  1, // 5
-
-			-1, -1,  1, // 5
-			 1, -1,  1, // 4
-			 1,  1,  1, // 7
-			-1,  1,  1, // 6
-
-			-1,  1,  1, // 6
-			 1,  1,  1, // 7
-			 1,  1, -1, // 2
-			-1,  1, -1, // 3
-		};
-#else
-		GLfloat vertices[] {
-			// front
-			-1.0, -1.0,  1.0,
-			 1.0, -1.0,  1.0,
-			 1.0,  1.0,  1.0,
-			-1.0,  1.0,  1.0,
-			// top
-			-1.0,  1.0,  1.0,
-			 1.0,  1.0,  1.0,
-			 1.0,  1.0, -1.0,
-			-1.0,  1.0, -1.0,
-			// back
-			 1.0, -1.0, -1.0,
-			-1.0, -1.0, -1.0,
-			-1.0,  1.0, -1.0,
-			 1.0,  1.0, -1.0,
-			// bottom
-			-1.0, -1.0, -1.0,
-			 1.0, -1.0, -1.0,
-			 1.0, -1.0,  1.0,
-			-1.0, -1.0,  1.0,
-			// left
-			-1.0, -1.0, -1.0,
-			-1.0, -1.0,  1.0,
-			-1.0,  1.0,  1.0,
-			-1.0,  1.0, -1.0,
-			// right
-			 1.0, -1.0,  1.0,
-			 1.0, -1.0, -1.0,
-			 1.0,  1.0, -1.0,
-			 1.0,  1.0,  1.0,
-		};
-#endif
 		glBufferData (GL_ARRAY_BUFFER,
-			sizeof (vertices),
-			reinterpret_cast<void*> (vertices),
+			game_data.model.shapes[0].mesh.positions.size ()
+				* sizeof (float),
+			reinterpret_cast<void*> (
+				game_data.model.shapes[0].mesh.positions.data ()
+			),
 			GL_STATIC_DRAW
 		);
 		glDisableVertexAttribArray (vaa);
@@ -362,56 +286,14 @@ initialize (void) {
 			GL_FALSE,
 			0,
 			// array buffer offset
-			reinterpret_cast<GLvoid*> (0)
+			0
 		);
-#if 1
-		GLfloat uvs[] {
-			// F
-			0/3.0f, 0/4.0f,
-			1/3.0f, 0/4.0f,
-			1/3.0f, 1/4.0f,
-			0/3.0f, 1/4.0f,
-			// A
-			1/3.0f, 0/4.0f,
-			2/3.0f, 0/4.0f,
-			2/3.0f, 1/4.0f,
-			1/3.0f, 1/4.0f,
-			// E
-			2/3.0f, 0/4.0f,
-			3/3.0f, 0/4.0f,
-			3/3.0f, 1/4.0f,
-			2/3.0f, 1/4.0f,
-			// B
-			1/3.0f, 1/4.0f,
-			2/3.0f, 1/4.0f,
-			2/3.0f, 2/4.0f,
-			1/3.0f, 2/4.0f,
-			// C
-			1/3.0f, 2/4.0f,
-			2/3.0f, 2/4.0f,
-			2/3.0f, 3/4.0f,
-			1/3.0f, 3/4.0f,
-			// D
-			1/3.0f, 3/4.0f,
-			2/3.0f, 3/4.0f,
-			2/3.0f, 4/4.0f,
-			1/3.0f, 4/4.0f,
-		};
-#else
-		GLfloat uvs[2*4*6] = {
-			// front
-			0.0, 0.0,
-			1.0, 0.0,
-			1.0, 1.0,
-			0.0, 1.0,
-		};
-		for (int i = 1; i < 6; i++) {
-			memcpy(&uvs[i*4*2], &uvs[0], 2*4*sizeof(GLfloat));
-		}
-#endif
 		glBufferData (GL_ARRAY_BUFFER,
-			sizeof (uvs),
-			reinterpret_cast<void*> (uvs),
+			game_data.model.shapes[0].mesh.texcoords.size ()
+				* sizeof (float),
+			reinterpret_cast<void*> (
+				game_data.model.shapes[0].mesh.texcoords.data ()
+			),
 			GL_STATIC_DRAW
 		);
 		glDisableVertexAttribArray (vaa);
@@ -421,29 +303,13 @@ initialize (void) {
 	// Organize vertices into triangles
 	glGenBuffers (1, &(game_data.model.index_buffer));
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
-	GLushort indices[] {
-		// front
-		 0,  1,  2,
-		 2,  3,  0,
-		// top
-		 4,  5,  6,
-		 6,  7,  4,
-		// back
-		 8,  9, 10,
-		10, 11,  8,
-		// bottom
-		12, 13, 14,
-		14, 15, 12,
-		// left
-		16, 17, 18,
-		18, 19, 16,
-		// right
-		20, 21, 22,
-		22, 23, 20,
-	};
+	// DATA
 	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-		sizeof (indices),
-		reinterpret_cast<void*> (indices),
+		game_data.model.shapes[0].mesh.indices.size ()
+			* sizeof (unsigned int),
+		reinterpret_cast<void*> (
+			game_data.model.shapes[0].mesh.indices.data ()
+		),
 		GL_STATIC_DRAW
 	);
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -488,6 +354,7 @@ on_render () {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	game_data.program.use ();
+	game_data.texture_loader.bind ("ship");
 
 	glm::mat4 mvp = glm::mat4 (1)
 		* game_data.matrices.projection
@@ -495,8 +362,6 @@ on_render () {
 		* game_data.matrices.model
 		;
 	game_data.program.set_uniform_mat4 ("mvp", mvp);
-
-	game_data.texture_loader.bind ("ship");
 
 	GLint vertex_position =
 		game_data.program.get_attribute_location ("vertex_position");
@@ -506,18 +371,19 @@ on_render () {
 	glEnableVertexAttribArray (vertex_position);
 	glEnableVertexAttribArray (vertex_uv);
 
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
-	int size; glGetBufferParameteriv (
-		GL_ELEMENT_ARRAY_BUFFER,
-		GL_BUFFER_SIZE,
-		&size
-	);
-	int trinagle_count = size / sizeof (GLushort);
-	glDrawElements (GL_TRIANGLES,
-		trinagle_count,
-		GL_UNSIGNED_SHORT,
-		nullptr
-	);
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer); {
+		int size; glGetBufferParameteriv (
+			GL_ELEMENT_ARRAY_BUFFER,
+			GL_BUFFER_SIZE,
+			&size
+		);
+
+		glDrawElements (GL_TRIANGLES,
+			size / sizeof (unsigned int),
+			GL_UNSIGNED_INT,
+			0
+		);
+	}
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	//glDisableVertexAttribArray (game_data.attributes.vertex_color);
