@@ -12,13 +12,12 @@
 #include <GLFW/glfw3.h>
 
 // GLM
-#include <glm/glm.h>
-#include <glm/matrix.h>
-#include <glm/projection.h>
-#include <glm/quaternion.h>
-#include <glm/transform.h>
-#include <glm/utils.h>
-#include <glm/vector.h>
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp> // glm::vec3
+#include <glm/vec4.hpp> // glm::vec4, glm::ivec4
+#include <glm/mat4x4.hpp> // glm::mat4
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
+#include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 
 //
 #include <tiny_obj_loader.h>
@@ -345,7 +344,10 @@ initialize (void) {
 		glm::mat4 (1.0f), glm::vec3 (0.0, 0.0, 3.0)
 	);
 	game_data.matrices.model = glm::rotate (
-		game_data.matrices.model, 180.0f, glm::vec3 (0.0, 1.0, 0.0)
+		game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 0.0, 1.0)
+	);
+	game_data.matrices.model = glm::rotate (
+		game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 1.0, 0.0)
 	);
 
 	game_data.camera_processor.on_initialize ();

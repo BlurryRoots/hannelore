@@ -11,8 +11,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <glm/glm.h>
-#include <glm/matrix.h>
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp> // glm::vec3
+#include <glm/vec4.hpp> // glm::vec4, glm::ivec4
+#include <glm/mat4x4.hpp> // glm::mat4
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
+#include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 
 #include <VertexShader.h>
 #include <FragmentShader.h>
@@ -105,7 +109,7 @@ public:
 		glUniform3fv (
 			this->uniforms.at (name),
 			1,
-			vec.c_array ()
+			glm::value_ptr (vec)
 		);
 	}
 

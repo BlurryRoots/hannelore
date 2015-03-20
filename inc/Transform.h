@@ -2,13 +2,13 @@
 #define __Transform_h__
 
 // GLM
-#include <glm/glm.h>
-#include <glm/matrix.h>
-#include <glm/projection.h>
-#include <glm/quaternion.h>
-#include <glm/transform.h>
-#include <glm/utils.h>
-#include <glm/vector.h>
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp> // glm::vec3
+#include <glm/vec4.hpp> // glm::vec4, glm::ivec4
+#include <glm/mat4x4.hpp> // glm::mat4
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
+#include <glm/gtc/type_ptr.hpp> // glm::value_ptr
+
 #include <cmath>
 
 #include <yanecos/Data.h>
@@ -79,12 +79,12 @@ public:
 	}
 
 	glm::mat4
-	to_rotation_matrix (void) const {
-		return glm::mat4 (1)
-			* glm::rotate (glm::mat4 (1), this->rotation[0], RIGHT)
-			* glm::rotate (glm::mat4 (1), this->rotation[1], UP)
-			* glm::rotate (glm::mat4 (1), this->rotation[2], FORWARD)
-			;
+	to_rotation_matrix () const {
+		glm::mat4 rotx = glm::rotate (glm::mat4 (1), this->rotation[0], RIGHT);
+		glm::mat4 roty = glm::rotate (glm::mat4 (1), this->rotation[1], UP);
+		glm::mat4 rotz = glm::rotate (glm::mat4 (1), this->rotation[2], FORWARD);
+
+		return rotx * roty * rotz;
 	}
 
 	glm::vec3

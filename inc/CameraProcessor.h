@@ -8,13 +8,12 @@
 #include <GLFW/glfw3.h>
 
 // GLM
-#include <glm/glm.h>
-#include <glm/matrix.h>
-#include <glm/projection.h>
-#include <glm/quaternion.h>
-#include <glm/transform.h>
-#include <glm/utils.h>
-#include <glm/vector.h>
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp> // glm::vec3
+#include <glm/vec4.hpp> // glm::vec4, glm::ivec4
+#include <glm/mat4x4.hpp> // glm::mat4
+#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
+#include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 
 #include <Transform.h>
 
@@ -52,7 +51,7 @@ public:
 	void
 	on_update (double dt) {
 		float fdt = static_cast<float> (dt);
-		this->transform.rotate (45.0f * fdt * this->data.looking);
+		this->transform.rotate (fdt * this->data.looking);
 
 		glm::vec4 direction = this->transform.to_rotation_matrix ()
 			* glm::vec4 (2.0f * fdt * this->data.movement, 0);
@@ -60,7 +59,7 @@ public:
 		//this->transform.translate (2.0f * fdt * this->data.movement);
 
 
-		this->data.view = glm::lookat (
+		this->data.view = glm::lookAt (
 			this->transform.get_translation (),
 			this->transform.get_translation () + this->transform.get_forward (),
 			this->transform.get_up ()
@@ -90,91 +89,89 @@ public:
 		// View
 		if (key == GLFW_KEY_UP) {
 			if (action == GLFW_PRESS) {
-				this->data.looking += Transform::RIGHT * -1.0f;
+				this->data.looking += Transform::RIGHT;
 			}
 			if (action == GLFW_RELEASE) {
-				this->data.looking += Transform::RIGHT;
+				this->data.looking += Transform::RIGHT * -1.0f;
 			}
 		}
 		if (key == GLFW_KEY_DOWN) {
 			if (action == GLFW_PRESS) {
-				this->data.looking += Transform::RIGHT;
+				this->data.looking += Transform::RIGHT * -1.0f;
 			}
 			if (action == GLFW_RELEASE) {
-				this->data.looking += Transform::RIGHT * -1.0f;
+				this->data.looking += Transform::RIGHT;
 			}
 		}
 
 		if (key == GLFW_KEY_LEFT) {
 			if (action == GLFW_PRESS) {
-				this->data.looking += Transform::UP;
+				this->data.looking += Transform::UP * -1.0f;
 			}
 			if (action == GLFW_RELEASE) {
-				this->data.looking += Transform::UP * -1.0f;
+				this->data.looking += Transform::UP;
 			}
 		}
 		if (key == GLFW_KEY_RIGHT) {
 			if (action == GLFW_PRESS) {
-				this->data.looking += Transform::UP * -1.0f;
+				this->data.looking += Transform::UP;
 			}
 			if (action == GLFW_RELEASE) {
-				this->data.looking += Transform::UP;
+				this->data.looking += Transform::UP * -1.0f;
 			}
 		}
 
-#if 0
 		// Move
 		if (key == GLFW_KEY_W) {
 			if (action == GLFW_PRESS) {
-				game_data.camera_processor.on_start_moving_forwards ();
+				this->data.movement += Transform::FORWARD;
 			}
 			if (action == GLFW_RELEASE) {
-				game_data.camera_processor.on_stop_moving_forwards ();
+				this->data.movement += Transform::FORWARD * -1.0f;
 			}
 		}
 		if (key == GLFW_KEY_S) {
 			if (action == GLFW_PRESS) {
-				game_data.camera_processor.on_start_moving_backwards ();
+				this->data.movement += Transform::FORWARD * -1.0f;
 			}
 			if (action == GLFW_RELEASE) {
-				game_data.camera_processor.on_stop_moving_backwards ();
+				this->data.movement += Transform::FORWARD;
 			}
 		}
 
 		if (key == GLFW_KEY_A) {
 			if (action == GLFW_PRESS) {
-				game_data.camera_processor.on_start_moving_left ();
+				this->data.movement += Transform::RIGHT * -1.0f;
 			}
 			if (action == GLFW_RELEASE) {
-				game_data.camera_processor.on_stop_moving_left ();
+				this->data.movement += Transform::RIGHT;
 			}
 		}
 		if (key == GLFW_KEY_D) {
 			if (action == GLFW_PRESS) {
-				game_data.camera_processor.on_start_moving_right ();
+				this->data.movement += Transform::RIGHT;
 			}
 			if (action == GLFW_RELEASE) {
-				game_data.camera_processor.on_stop_moving_right ();
+				this->data.movement += Transform::RIGHT * -1.0f;
 			}
 		}
 
 		if (key == GLFW_KEY_Q) {
 			if (action == GLFW_PRESS) {
-				game_data.camera_processor.on_start_moving_upwards ();
+				this->data.movement += Transform::UP;
 			}
 			if (action == GLFW_RELEASE) {
-				game_data.camera_processor.on_stop_moving_upwards ();
+				this->data.movement += Transform::UP * -1.0f;
 			}
 		}
 		if (key == GLFW_KEY_E) {
 			if (action == GLFW_PRESS) {
-				game_data.camera_processor.on_start_moving_downwards ();
+				this->data.movement += Transform::UP;
 			}
 			if (action == GLFW_RELEASE) {
-				game_data.camera_processor.on_stop_moving_downwards ();
+				this->data.movement += Transform::UP * -1.0f;
 			}
 		}
-#endif
 	}
 
 };
