@@ -81,9 +81,9 @@ public:
 	glm::mat4
 	to_rotation_matrix (void) const {
 		return glm::mat4 (1)
-			* glm::rotate (glm::mat4 (1), this->rotation[0], glm::vec3 (1, 0, 0))
-			* glm::rotate (glm::mat4 (1), this->rotation[1], glm::vec3 (0, 1, 0))
-			* glm::rotate (glm::mat4 (1), this->rotation[2], glm::vec3 (0, 0, 1))
+			* glm::rotate (glm::mat4 (1), this->rotation[0], RIGHT)
+			* glm::rotate (glm::mat4 (1), this->rotation[1], UP)
+			* glm::rotate (glm::mat4 (1), this->rotation[2], FORWARD)
 			;
 	}
 
