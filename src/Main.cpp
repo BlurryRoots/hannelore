@@ -371,9 +371,6 @@ initialize (void) {
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
-	game_data.matrices.model = glm::translate (
-		glm::mat4 (1.0f), glm::vec3 (0.0, 0.0, 3.0)
-	);
 	game_data.matrices.model = glm::rotate (
 		game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 0.0, 1.0)
 	);

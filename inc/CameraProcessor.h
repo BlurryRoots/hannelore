@@ -67,7 +67,7 @@ public:
 
 	void
 	on_initialize (void) {
-		this->data.field_of_view = 23.0f;
+		this->data.field_of_view = 42.0f;
 		this->data.near = 0.01f;
 		this->data.far = 100.0f;
 		this->data.aspect_ratio = 3.0f / 4.0f;
@@ -79,32 +79,9 @@ public:
 			return;
 		}
 
-		float fdt = static_cast<float> (dt);
-		float mouse_yaw = HORIZONTAL_MOUSE_LOOK_FACTOR
-			* this->data.mouse_position_difference.x
-			;
-
-		this->transform.pitch (fdt * this->data.looking.x);
-		this->transform.yaw (fdt * this->data.looking.y);
-		//this->transform.yaw (fdt * mouse_yaw);
-		this->transform.roll (fdt * this->data.looking.z);
-
-		this->transform.translate (
-			fdt * this->data.movement.x * this->transform.get_right ()
-		);
-		this->transform.translate (
-			fdt * this->data.movement.y * this->transform.get_up ()
-		);
-		this->transform.translate (
-			fdt * this->data.movement.z * this->transform.get_forward ()
-		);
-
-		glm::vec3 current_position = this->transform.get_translation ();
-		glm::vec3 look_target = current_position + this->transform.get_forward ();
-
 		this->data.view = glm::lookAt (
-			current_position,
-			look_target,
+			glm::vec3 (0, 0, -3),
+			glm::vec3 (0, 0,  1),
 			Transform::UP
 		);
 	}
