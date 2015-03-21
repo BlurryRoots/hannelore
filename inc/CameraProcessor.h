@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
+#include <sstream>
 
 #include <GLFW/glfw3.h>
 
@@ -51,18 +52,28 @@ public:
 	void
 	on_update (double dt) {
 		float fdt = static_cast<float> (dt);
-		this->transform.rotate (fdt * this->data.looking);
 
-		glm::vec4 direction = this->transform.to_rotation_matrix ()
-			* glm::vec4 (2.0f * fdt * this->data.movement, 0);
-		this->transform.translate (glm::vec3 (direction));
-		//this->transform.translate (2.0f * fdt * this->data.movement);
+		this->transform.pitch (fdt * this->data.looking.x);
+		this->transform.yaw (fdt * this->data.looking.y);
+		this->transform.roll (fdt * this->data.looking.z);
 
+		this->transform.translate (
+			fdt * this->data.movement.x * this->transform.get_right ()
+		);
+		this->transform.translate (
+			fdt * this->data.movement.y * this->transform.get_up ()
+		);
+		this->transform.translate (
+			fdt * this->data.movement.z * this->transform.get_forward ()
+		);
+
+		glm::vec3 current_position = this->transform.get_translation ();
+		glm::vec3 look_target = current_position + this->transform.get_forward ();
 
 		this->data.view = glm::lookAt (
-			this->transform.get_translation (),
-			this->transform.get_translation () + this->transform.get_forward (),
-			this->transform.get_up ()
+			current_position,
+			look_target,
+			Transform::UP
 		);
 	}
 
@@ -174,6 +185,18 @@ public:
 		}
 	}
 
+	static std::string
+	vec3_to_string (const glm::vec3 &v) {
+		std::stringstream ss;
+		ss
+			<< "("
+			<< "x:" << v.x << ","
+			<< "y:" << v.y << ","
+			<< "z:" << v.z << ")"
+			;
+
+		return ss.str ();
+	}
 };
 
 #endif
