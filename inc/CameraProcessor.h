@@ -18,6 +18,10 @@
 
 #include <Transform.h>
 
+#define PI 3.1415f
+#define PI_OVER_4 PI / 4.0f
+#define HORIZONTAL_MOUSE_LOOK_FACTOR -1.0f * PI_OVER_4 / 150.0f
+
 struct CameraData {
 	float field_of_view;
 	float near;
@@ -29,16 +33,36 @@ struct CameraData {
 
 	glm::vec3 movement;
 	glm::vec3 looking;
+
+	struct {
+		float x;
+		float y;
+	} mouse_position, mouse_position_difference;
 };
 
 class CameraProcessor {
+
+private:
+	bool is_running;
 
 public:
 	Transform transform;
 	CameraData data;
 
 	CameraProcessor ()
-	: transform () {
+	: transform ()
+	, data ()
+	, is_running (true) {
+	}
+
+	void
+	activate () {
+		this->is_running = true;
+	}
+
+	void
+	deactivate () {
+		this->is_running = false;
 	}
 
 	void
@@ -51,10 +75,18 @@ public:
 
 	void
 	on_update (double dt) {
+		if (! this->is_running) {
+			return;
+		}
+
 		float fdt = static_cast<float> (dt);
+		float mouse_yaw = HORIZONTAL_MOUSE_LOOK_FACTOR
+			* this->data.mouse_position_difference.x
+			;
 
 		this->transform.pitch (fdt * this->data.looking.x);
 		this->transform.yaw (fdt * this->data.looking.y);
+		//this->transform.yaw (fdt * mouse_yaw);
 		this->transform.roll (fdt * this->data.looking.z);
 
 		this->transform.translate (
@@ -169,10 +201,10 @@ public:
 
 		if (key == GLFW_KEY_Q) {
 			if (action == GLFW_PRESS) {
-				this->data.movement += Transform::UP;
+				this->data.movement += Transform::UP * -1.0f;
 			}
 			if (action == GLFW_RELEASE) {
-				this->data.movement += Transform::UP * -1.0f;
+				this->data.movement += Transform::UP;
 			}
 		}
 		if (key == GLFW_KEY_E) {
@@ -183,6 +215,17 @@ public:
 				this->data.movement += Transform::UP * -1.0f;
 			}
 		}
+	}
+
+	void
+	on_cursor_position (double x, double y) {
+		this->data.mouse_position_difference.x =
+			this->data.mouse_position.x - x;
+		this->data.mouse_position_difference.y =
+			this->data.mouse_position.y - y;
+
+		this->data.mouse_position.x = x;
+		this->data.mouse_position.y = y;
 	}
 
 	static std::string

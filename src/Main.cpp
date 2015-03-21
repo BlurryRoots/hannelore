@@ -30,6 +30,8 @@
 #include <TextureLoader.h>
 #include <CameraProcessor.h>
 
+#define TITLE "Hans die Wurst"
+
 struct Model {
 
 	std::vector<tinyobj::shape_t> shapes;
@@ -67,6 +69,8 @@ struct GameData {
 	Model model;
 
 	CameraProcessor camera_processor;
+
+	bool fullscreen;
 
 } game_data;
 
@@ -167,29 +171,32 @@ load_shader_program () {
 		;
 }
 
-//
 void
-initialize (void) {
-	// Initialize GLFW
-	if (! glfwInit ()) {
-		throw std::runtime_error ("Could not initialize glfw!");
-	}
+open_window (GameData &ctx, const std::string &title, bool fullscreen) {
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor ();
 
-	std::cout
-		<< "Build with GLFW version "
-		<< GLFW_VERSION_MAJOR << "."
-		<< GLFW_VERSION_MINOR << "."
-		<< GLFW_VERSION_REVISION << std::endl;
+	const GLFWvidmode* mode = glfwGetVideoMode (monitor);
+	glfwWindowHint (GLFW_RED_BITS, mode->redBits);
+	glfwWindowHint (GLFW_GREEN_BITS, mode->greenBits);
+	glfwWindowHint (GLFW_BLUE_BITS, mode->blueBits);
+	glfwWindowHint (GLFW_REFRESH_RATE, mode->refreshRate);
+	glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
 
 	// Create a window and its OpenGL context
-	game_data.window = glfwCreateWindow (640, 480, "Hello World", NULL, NULL);
-	if (nullptr == game_data.window) {
+	ctx.window = glfwCreateWindow (
+		mode->width, mode->height,
+		title.c_str (),
+		fullscreen ? monitor : nullptr,
+		nullptr // OpendGL context sharing
+	);
+	if (nullptr == ctx.window) {
 		throw std::runtime_error ("Could not create window!");
 	}
+	ctx.fullscreen = fullscreen;
 
 	// THIS HAS TO BE CALLED BEFORE GLEW GETS LOADED!
 	// Make the window's context current
-	glfwMakeContextCurrent (game_data.window);
+	glfwMakeContextCurrent (ctx.window);
 
 	// Extension wrangler initialising
 	glewExperimental = GL_TRUE;
@@ -198,18 +205,19 @@ initialize (void) {
 		throw std::runtime_error ("Could not initialize glew!");
 	}
 
+	glfwShowWindow (ctx.window); {
+		int width, height;
+		glfwGetFramebufferSize (ctx.window, &width, &height);
+		glViewport (0, 0, width, height);
+	}
+
 	// callbacks
-	glfwSetKeyCallback (game_data.window, on_key);
-	glfwSetFramebufferSizeCallback (game_data.window, on_framebuffer);
-	glfwSetCursorPosCallback (game_data.window, on_cursor_position);
-	glfwSetCursorEnterCallback (game_data.window, on_cursor_enter);
-	glfwSetMouseButtonCallback (game_data.window, on_mouse_button);
-	glfwSetScrollCallback (game_data.window, on_scroll);
-
-	// setup game stuff
-	game_data.is_running = true;
-
-	load_shader_program ();
+	glfwSetKeyCallback (ctx.window, on_key);
+	glfwSetFramebufferSizeCallback (ctx.window, on_framebuffer);
+	glfwSetCursorPosCallback (ctx.window, on_cursor_position);
+	glfwSetCursorEnterCallback (ctx.window, on_cursor_enter);
+	glfwSetMouseButtonCallback (ctx.window, on_mouse_button);
+	glfwSetScrollCallback (ctx.window, on_scroll);
 
 	glEnable (GL_ALPHA_TEST);
 	glAlphaFunc (GL_GREATER, 0.0f);
@@ -224,9 +232,32 @@ initialize (void) {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
+}
 
-	game_data.texture_loader.load ("textures/grass.png", "ship", 0);
-	game_data.model = load_model ("models/objs/suzanne.obj");
+//
+void
+initialize (void) {
+	// Initialize GLFW
+	if (! glfwInit ()) {
+		throw std::runtime_error ("Could not initialize glfw!");
+	}
+
+	std::cout
+		<< "Build with GLFW version "
+		<< GLFW_VERSION_MAJOR << "."
+		<< GLFW_VERSION_MINOR << "."
+		<< GLFW_VERSION_REVISION << std::endl;
+
+	//
+	open_window (game_data, TITLE, false);
+
+	// setup game stuff
+	game_data.is_running = true;
+
+	load_shader_program ();
+
+	game_data.texture_loader.load ("textures/ground.lines.png", "ship", 0);
+	game_data.model = load_model ("models/objs/ground.obj");
 
 	std::cout
 		<< game_data.model.shapes[0].mesh.positions.size ()
@@ -361,14 +392,12 @@ on_update (double dt) {
 		&& ! glfwWindowShouldClose (game_data.window)
 		;
 
-#if 0
-	game_data.matrices.model = glm::rotate (game_data.matrices.model,
-		42.0f * fdt, glm::vec3 (0, 1, 0)
-	);
-	game_data.matrices.model = glm::rotate (game_data.matrices.model,
-		42.0f * fdt, glm::vec3 (0, 0, 1)
-	);
-#endif
+	//game_data.matrices.model = glm::rotate (game_data.matrices.model,
+	//	fdt, glm::vec3 (0, 1, 0)
+	//);
+	//game_data.matrices.model = glm::rotate (game_data.matrices.model,
+	//	3.1415f * fdt, glm::vec3 (0, 0, 1)
+	//);
 
 	game_data.camera_processor.on_update (dt);
 }
@@ -453,6 +482,12 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 
 void
 on_framebuffer (GLFWwindow *window, int width, int height) {
+	std::cout << "framebuffer changed from"
+		<< "\nw: " << game_data.width << " to " << width
+		<< "\nh: " << game_data.height << " to " << height
+		<< "\non window " << window
+		<< std::endl;
+		;
 	game_data.width = width;
 	game_data.height = height;
 
@@ -463,15 +498,18 @@ on_framebuffer (GLFWwindow *window, int width, int height) {
 void
 on_cursor_position (GLFWwindow *window, double xpos, double ypos) {
 	//
+	game_data.camera_processor.on_cursor_position (xpos, ypos);
 }
 
 void
 on_cursor_enter (GLFWwindow *window, int entered) {
 	if (entered) {
 		// The cursor entered the client area of the window
+		game_data.camera_processor.activate ();
 	}
 	else {
 		// The cursor left the client area of the window
+		game_data.camera_processor.deactivate ();
 	}
 }
 
@@ -483,4 +521,5 @@ on_mouse_button (GLFWwindow *window, int button, int action, int mods) {
 void
 on_scroll (GLFWwindow *window, double xoffset, double yoffset) {
 	//
+	std::cout << "scrolling ?" << xoffset << ":" << yoffset << std::endl;
 }
