@@ -1,6 +1,5 @@
-
-#ifndef __SHADERPROGRAM__
-#define __SHADERPROGRAM__
+#ifndef SHADERPROGRAM_H
+#define SHADERPROGRAM_H
 
 #include <string>
 #include <unordered_map>
