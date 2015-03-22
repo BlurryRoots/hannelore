@@ -1,14 +1,14 @@
 #ifndef MESHRENDERER_H
 #define MESHRENDERER_H
 
-namespace blurryroots { namespace model {
-
 #include <memory>
 #include <cassert>
 #include <stdexcept>
 
 #include <MeshData.h>
 #include <Util.h>
+
+namespace blurryroots { namespace model {
 
 class MeshRenderer {
 
