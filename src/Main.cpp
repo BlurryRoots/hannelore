@@ -147,9 +147,9 @@ load_model (const std::string &model_path) {
 		shapes, materials,
 		model_path.c_str ()
 	);
-	if (! err.empty ()) {
-		throw std::runtime_error (err);
-	}
+	THROW_IF (! err.empty (),
+		err
+	);
 
 	return blurryroots::model::Mesh (shapes, materials);
 }
@@ -165,14 +165,25 @@ load_shader_program () {
 
 void
 open_window (GameData &ctx, const std::string &title, bool fullscreen) {
-	GLFWmonitor* monitor = glfwGetPrimaryMonitor ();
+	// Initialize GLFW
+	THROW_IF (GL_TRUE != glfwInit (),
+		"Could not initialize glfw!"
+	);
 
-	const GLFWvidmode* mode = glfwGetVideoMode (monitor);
+	GLFWmonitor *monitor = glfwGetPrimaryMonitor ();
+	THROW_IF (nullptr == monitor,
+		"Could not primary monitor!"
+	);
+
+	const GLFWvidmode *mode = glfwGetVideoMode (monitor);
+	THROW_IF (nullptr == mode,
+		"Could get video mode for primary monitor!"
+	);
 	glfwWindowHint (GLFW_RED_BITS, mode->redBits);
 	glfwWindowHint (GLFW_GREEN_BITS, mode->greenBits);
 	glfwWindowHint (GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint (GLFW_REFRESH_RATE, mode->refreshRate);
-	glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+	glfwWindowHint (GLFW_VISIBLE, GL_FALSE);
 
 	// Create a window and its OpenGL context
 	ctx.window = glfwCreateWindow (
@@ -181,9 +192,9 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 		fullscreen ? monitor : nullptr,
 		nullptr // OpendGL context sharing
 	);
-	if (nullptr == ctx.window) {
-		throw std::runtime_error ("Could not create window!");
-	}
+	THROW_IF (nullptr == ctx.window,
+		"Could not create window!"
+	);
 	ctx.fullscreen = fullscreen;
 
 	// THIS HAS TO BE CALLED BEFORE GLEW GETS LOADED!
@@ -193,9 +204,9 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	// Extension wrangler initialising
 	glewExperimental = GL_TRUE;
 	GLuint glew_status = glewInit ();
-	if (GLEW_OK != glew_status) {
-		throw std::runtime_error ("Could not initialize glew!");
-	}
+	THROW_IF (GLEW_OK != glew_status,
+		"Could not initialize glew!"
+	);
 
 	glfwShowWindow (ctx.window); {
 		int width, height;
@@ -215,15 +226,15 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	glAlphaFunc (GL_GREATER, 0.0f);
 
 	// Enable alpha
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable (GL_DEPTH_TEST);
 	glDepthFunc (GL_LESS);
 
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
+	glEnable (GL_CULL_FACE);
+	glCullFace (GL_BACK);
+	glFrontFace (GL_CCW);
 }
 
 void
@@ -273,7 +284,9 @@ load_model () {
 
 	// Normal directions
 	auto nnormals = game_data.model.shapes[0].mesh.normals.size ();
-	blurryroots::util::throw_if (0 == nnormals, "No normals :/");
+	THROW_IF (0 == nnormals,
+		"No normals :/"
+	);
 	std::cout << "#normals: " << nnormals << std::endl;;
 	glGenBuffers (1, &(game_data.model.normal_buffer)); {
 		GLint vaa = game_data.program.get_attribute_location ("vertex_normal");
@@ -344,19 +357,33 @@ load_model () {
 	}
 }
 
-//
 void
 initialize (void) {
-	// Initialize GLFW
-	if (! glfwInit ()) {
-		throw std::runtime_error ("Could not initialize glfw!");
-	}
 
 	std::cout
 		<< "Build with GLFW version "
 		<< GLFW_VERSION_MAJOR << "."
 		<< GLFW_VERSION_MINOR << "."
 		<< GLFW_VERSION_REVISION << std::endl;
+	{
+		int major, minor, revision;
+		glfwGetVersion (&major, &minor, &revision);
+		THROW_IF (GLFW_VERSION_MAJOR != major,
+			"GLFW major version differs! Runtime: ",
+			std::to_string (GLFW_VERSION_MAJOR), " "
+			"Build: ", std::to_string (major)
+		);
+		THROW_IF (GLFW_VERSION_MINOR != minor,
+			"GLFW minor version differs! Runtime: ",
+			std::to_string (GLFW_VERSION_MINOR), " "
+			"Build: ", std::to_string (minor)
+		);
+		THROW_IF (GLFW_VERSION_REVISION != revision,
+			"GLFW revision version differs! Runtime: ",
+			std::to_string (GLFW_VERSION_REVISION), " "
+			"Build: ", std::to_string (revision)
+		);
+	}
 
 	//
 	open_window (game_data, TITLE, false);
@@ -368,16 +395,7 @@ initialize (void) {
 
 	load_model ();
 
-	//game_data.matrices.model = glm::rotate (
-	//	game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 0.0, 1.0)
-	//);
-	//game_data.matrices.model = glm::rotate (
-	//	game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 1.0, 0.0)
-	//);
-
 	game_data.camera_processor.on_initialize ();
-	//std::cout << "up " << game_data.camera_processor.transform.to_up ()
-	//game_data.camera_processor.transform.rotate (3.1415f / 4, Transform::UP);
 }
 
 void

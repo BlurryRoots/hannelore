@@ -36,11 +36,11 @@ private:
 	std::unordered_map<std::string, GLint> attributes;
 
 public:
-	ShaderProgram () {
+	ShaderProgram (void) {
 	}
 
 	virtual
-	~ShaderProgram () {
+	~ShaderProgram (void) {
 	}
 
 	void
@@ -72,10 +72,12 @@ public:
 				name.c_str ()
 			);
 
-			blurryroots::util::throw_if (0 > location, "Could not find attribute ", name);
+			THROW_IF (0 > location,
+				"Could not find attribute ", name
+			);
 
 			const auto &r = this->attributes.emplace (name, location);
-			blurryroots::util::throw_if (! r.second, "Trying to override ", name);
+			THROW_IF (! r.second, "Trying to override ", name);
 		}
 
 		return this->attributes.at (name);
@@ -88,12 +90,16 @@ public:
 			GLint loc = glGetUniformLocation (this->handle,
 				name.c_str ()
 			);
-			blurryroots::util::throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
+			THROW_IF (0 > loc,
+				"Could not find ", name, " ", std::to_string (c)
+			);
 
 			this->uniforms.emplace (name, loc);
 		}
 
-		blurryroots::util::throw_if (! this->in_use, "Unable to set uniform without activating program!");
+		THROW_IF (! this->in_use,
+			"Unable to set uniform without activating program!"
+		);
 
 		glUniformMatrix4fv (
 			this->uniforms.at (name),
@@ -111,12 +117,16 @@ public:
 			GLint loc = glGetUniformLocation (this->handle,
 				name.c_str ()
 			);
-			blurryroots::util::throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
+			THROW_IF (0 > loc,
+				"Could not find ", name, " ", std::to_string (c)
+			);
 
 			this->uniforms.emplace (name, loc);
 		}
 
-		blurryroots::util::throw_if (! this->in_use, "Unable to set uniform without activating program!");
+		THROW_IF (! this->in_use,
+			"Unable to set uniform without activating program!"
+		);
 
 		glUniform3fv (
 			this->uniforms.at (name),
@@ -127,9 +137,13 @@ public:
 
 	void
 	set_uniform_f (const std::string &name, float value) {
-		blurryroots::util::throw_if (0 == this->uniforms.count (name), "Could not find ", name);
+		THROW_IF (0 == this->uniforms.count (name),
+			"Could not find ", name
+		);
 
-		blurryroots::util::throw_if (! this->in_use, "Unable to set uniform without activating program!");
+		THROW_IF (! this->in_use,
+			"Unable to set uniform without activating program!"
+		);
 
 		glUniform1f (
 			this->uniforms.at (name),
@@ -306,9 +320,10 @@ private:
 public:
 	ShaderProgramBuilder (void) {
 		this->program.handle = glCreateProgram ();
-		if (GL_FALSE == glIsProgram (this->program.handle)) {
-			throw std::string ("Could not create new program!");
-		}
+		bool invalid = GL_FALSE == glIsProgram (this->program.handle);
+		THROW_IF (invalid,
+			SOURCE_LOCATION, " Program handle creation failed!"
+		);
 	}
 
 	virtual
@@ -333,23 +348,23 @@ public:
 
 	ShaderProgram
 	link (void) {
-		if (! this->has_vert) {
-			throw std::runtime_error ("ShaderProgram has no vertex shader attached!");
-		}
+		THROW_IF (! this->has_vert,
+			SOURCE_LOCATION, "ShaderProgram has no vertex shader attached!"
+		);
 
-		if (! this->has_frag) {
-			throw std::runtime_error ("ShaderProgram has no fragment shader attached!");
-		}
+		THROW_IF (! this->has_frag,
+			SOURCE_LOCATION, "ShaderProgram has no fragment shader attached!"
+		);
 
 		glLinkProgram (this->program.handle);
-		if (! this->is_linked (this->program)) {
-			throw std::runtime_error (this->get_info_log (this->program));
-		}
+		THROW_IF (! this->is_linked (this->program),
+			SOURCE_LOCATION, "Error linking program: ", this->get_info_log (this->program)
+		);
 
 		glValidateProgram (this->program.handle);
-		if (! this->is_validated (this->program)) {
-			throw std::runtime_error (this->get_info_log (this->program));
-		}
+		THROW_IF (! this->is_validated (this->program),
+			SOURCE_LOCATION, "Error validating program: ", this->get_info_log (this->program)
+		);
 
 
 		// search all active uniforms and cache their locations
@@ -358,11 +373,15 @@ public:
 			GL_ACTIVE_UNIFORMS,
 			&number_uniforms
 		);
-		blurryroots::util::throw_if (0 == number_uniforms, "No uniforms found!");
-		std::cout << "Found " << number_uniforms << " uniforms" << std::endl;
+		THROW_IF (0 == number_uniforms,
+			SOURCE_LOCATION, "No uniforms found!"
+		);
 
-		// TODO: Needs further research! Why the eff does the sampler gets found twice ?
-		for (GLuint index = 0; index < static_cast<GLuint> (number_uniforms); ++index) {
+		#ifdef DEBUG_MESSAGE
+		std::cout << "Found " << number_uniforms << " uniforms" << std::endl;
+		#endif
+
+		for (GLuint index = 0; index < number_uniforms; ++index) {
 			char name_buffer[100];
 			GLsizei name_buffer_size = sizeof (name_buffer);
 			GLint uniform_type_size;
@@ -378,20 +397,21 @@ public:
 				name_buffer
 			);
 
-			blurryroots::util::throw_if (0 == name_buffer_size, "Uniform @", std::to_string (index), " has no name ?!");
-			std::cout << "uniform " << name_buffer << "@" << index << std::endl;
+			THROW_IF (0 == name_buffer_size,
+				"Uniform @", std::to_string (index), " has no name ?!"
+			);
 
-			#if 0
+			const auto &report =
+				this->program.uniforms.emplace (name_buffer, index);
+			THROW_IF (! report.second,
+				"There is already a uniform with the name ", name_buffer
+			);
+
 			#ifdef DEBUG_MESSAGE
-			const auto &report = this->program.uniforms.emplace (name_buffer, index);
-			blurryroots::util::throw_if (! report.second, "There is already a uniform with the name ", name_buffer);
-
 			std::cout << "Found uniform "
-				<< report.first->first << "/" << name_buffer << "@" << report.first->second
+				<< report.first->first << "/" << name_buffer
+				<< "@" << report.first->second
 				<< std::endl;
-			#else
-			this->program.uniforms.emplace (name_buffer, index);
-			#endif
 			#endif
 
 		}

@@ -23,7 +23,7 @@ public:
 	~MeshLoader (void) {}
 
 	void
-	load (const std::string &key, Mesh *mesh) {
+	load (const std::string &key, Mesh *mesh, const ShaderProgram &program) {
 		glGenBuffers (1, &(mesh->vertex_buffer));
 		glGenBuffers (1, &(mesh->color_buffer));
 		glGenBuffers (1, &(mesh->index_buffer));

@@ -4,6 +4,12 @@
 #include <vector>
 #include <sstream>
 #include <stdexcept>
+#include <string>
+
+#define SOURCE_LOCATION \
+	__FILE__, "@", std::to_string (__LINE__), ": "
+#define THROW_IF(premise, ...) \
+	blurryroots::util::throw_if (premise, SOURCE_LOCATION, ##__VA_ARGS__)
 
 namespace blurryroots { namespace util {
 
