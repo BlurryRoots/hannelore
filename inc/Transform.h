@@ -117,6 +117,15 @@ public:
 
 		return glm::vec3 (x, y, z);
 	}
+
+	static glm::vec3
+	to_position (const glm::mat4 &translation) {
+		float x = translation[3][0];
+		float y = translation[3][1];
+		float z = translation[3][2];
+
+		return glm::vec3 (x, y, z);
+	}
 };
 
 const glm::vec3 Transform::FORWARD = glm::vec3 (0, 0, 1);

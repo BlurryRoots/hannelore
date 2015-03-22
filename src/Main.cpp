@@ -139,28 +139,132 @@ main (void) {
 }
 
 blurryroots::model::Mesh
-load_model (const std::string &model_path) {
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
+load_model (const std::string &model_path, ShaderProgram &program) {
+	blurryroots::model::Mesh model; {
+		std::string err = tinyobj::LoadObj (
+			model.shapes, model.materials,
+			model_path.c_str ()
+		);
+		THROW_IF (! err.empty (),
+			err
+		);
+	}
 
-	std::string err = tinyobj::LoadObj (
-		shapes, materials,
-		model_path.c_str ()
-	);
-	THROW_IF (! err.empty (),
-		err
-	);
+	std::cout
+		<< model.shapes[0].mesh.positions.size ()
+		<< std::endl;
 
-	return blurryroots::model::Mesh (shapes, materials);
-}
-
-void
-load_shader_program () {
-	game_data.program = ShaderProgramBuilder ()
-		.add_shader (VertexShader (FileReader ("shaders/es/basic.vert").to_string ()))
-		.add_shader (FragmentShader (FileReader ("shaders/es/basic.frag").to_string ()))
-		.link ()
+	std::cout
+		<< "#vertices: " << model.shapes[0].mesh.positions.size () / 3
+		<< std::endl
 		;
+	std::cout
+		<< "#texcoords: " << model.shapes[0].mesh.texcoords.size () / 2
+		<< std::endl
+		;
+
+	// Model vertices
+	glGenBuffers (1, &(model.vertex_buffer)); {
+		GLint vaa = program.get_attribute_location ("vertex_position");
+
+		glBindBuffer (GL_ARRAY_BUFFER, model.vertex_buffer);
+		glEnableVertexAttribArray (vaa);
+		glVertexAttribPointer (
+			vaa,
+			3,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			// array buffer offset
+			0
+		);
+		glBufferData (GL_ARRAY_BUFFER,
+			model.shapes[0].mesh.positions.size ()
+				* sizeof (float),
+			reinterpret_cast<void*> (
+				model.shapes[0].mesh.positions.data ()
+			),
+			GL_STATIC_DRAW
+		);
+		glDisableVertexAttribArray (vaa);
+		glBindBuffer (GL_ARRAY_BUFFER, 0);
+	}
+
+	// Normal directions
+	auto nnormals = model.shapes[0].mesh.normals.size ();
+	THROW_IF (0 == nnormals,
+		"No normals :/"
+	);
+	std::cout << "#normals: " << nnormals << std::endl;;
+	glGenBuffers (1, &(model.normal_buffer)); {
+		GLint vaa = program.get_attribute_location ("vertex_normal");
+
+		glBindBuffer (GL_ARRAY_BUFFER, model.normal_buffer);
+		glEnableVertexAttribArray (vaa);
+		glVertexAttribPointer (
+			vaa,
+			3,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			// array buffer offset
+			0
+		);
+		glBufferData (GL_ARRAY_BUFFER,
+			model.shapes[0].mesh.normals.size ()
+				* sizeof (float),
+			reinterpret_cast<void*> (
+				model.shapes[0].mesh.normals.data ()
+			),
+			GL_STATIC_DRAW
+		);
+		glDisableVertexAttribArray (vaa);
+		glBindBuffer (GL_ARRAY_BUFFER, 0);
+	}
+
+	// UV Coordinates
+	glGenBuffers (1, &(model.uv_buffer)); {
+		GLint vaa = program.get_attribute_location ("vertex_uv");
+
+		glBindBuffer (GL_ARRAY_BUFFER, model.uv_buffer);
+		glEnableVertexAttribArray (vaa);
+		glVertexAttribPointer (
+			vaa,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			// array buffer offset
+			0
+		);
+		glBufferData (GL_ARRAY_BUFFER,
+			model.shapes[0].mesh.texcoords.size ()
+				* sizeof (float),
+			reinterpret_cast<void*> (
+				model.shapes[0].mesh.texcoords.data ()
+			),
+			GL_STATIC_DRAW
+		);
+		glDisableVertexAttribArray (vaa);
+		glBindBuffer (GL_ARRAY_BUFFER, 0);
+	}
+
+	// Organize vertices into triangles
+	glGenBuffers (1, &(model.index_buffer)); {
+		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, model.index_buffer);
+		// DATA
+		glBufferData (GL_ELEMENT_ARRAY_BUFFER,
+			model.shapes[0].mesh.indices.size ()
+				* sizeof (unsigned int),
+			reinterpret_cast<void*> (
+				model.shapes[0].mesh.indices.data ()
+			),
+			GL_STATIC_DRAW
+		);
+		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+
+	return model;
 }
 
 void
@@ -238,126 +342,6 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 }
 
 void
-load_model () {
-	game_data.texture_loader.load ("textures/ground.lines.png", "ship", 0);
-	game_data.model = load_model ("models/objs/ground.obj");
-
-	std::cout
-		<< game_data.model.shapes[0].mesh.positions.size ()
-		<< std::endl;
-
-	std::cout
-		<< "#vertices: " << game_data.model.shapes[0].mesh.positions.size () / 3
-		<< std::endl
-		;
-	std::cout
-		<< "#texcoords: " << game_data.model.shapes[0].mesh.texcoords.size () / 2
-		<< std::endl
-		;
-
-	// Model vertices
-	glGenBuffers (1, &(game_data.model.vertex_buffer)); {
-		GLint vaa = game_data.program.get_attribute_location ("vertex_position");
-
-		glBindBuffer (GL_ARRAY_BUFFER, game_data.model.vertex_buffer);
-		glEnableVertexAttribArray (vaa);
-		glVertexAttribPointer (
-			vaa,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			// array buffer offset
-			0
-		);
-		glBufferData (GL_ARRAY_BUFFER,
-			game_data.model.shapes[0].mesh.positions.size ()
-				* sizeof (float),
-			reinterpret_cast<void*> (
-				game_data.model.shapes[0].mesh.positions.data ()
-			),
-			GL_STATIC_DRAW
-		);
-		glDisableVertexAttribArray (vaa);
-		glBindBuffer (GL_ARRAY_BUFFER, 0);
-	}
-
-	// Normal directions
-	auto nnormals = game_data.model.shapes[0].mesh.normals.size ();
-	THROW_IF (0 == nnormals,
-		"No normals :/"
-	);
-	std::cout << "#normals: " << nnormals << std::endl;;
-	glGenBuffers (1, &(game_data.model.normal_buffer)); {
-		GLint vaa = game_data.program.get_attribute_location ("vertex_normal");
-
-		glBindBuffer (GL_ARRAY_BUFFER, game_data.model.normal_buffer);
-		glEnableVertexAttribArray (vaa);
-		glVertexAttribPointer (
-			vaa,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			// array buffer offset
-			0
-		);
-		glBufferData (GL_ARRAY_BUFFER,
-			game_data.model.shapes[0].mesh.normals.size ()
-				* sizeof (float),
-			reinterpret_cast<void*> (
-				game_data.model.shapes[0].mesh.normals.data ()
-			),
-			GL_STATIC_DRAW
-		);
-		glDisableVertexAttribArray (vaa);
-		glBindBuffer (GL_ARRAY_BUFFER, 0);
-	}
-
-	// UV Coordinates
-	glGenBuffers (1, &(game_data.model.uv_buffer)); {
-		GLint vaa = game_data.program.get_attribute_location ("vertex_uv");
-
-		glBindBuffer (GL_ARRAY_BUFFER, game_data.model.uv_buffer);
-		glEnableVertexAttribArray (vaa);
-		glVertexAttribPointer (
-			vaa,
-			2,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			// array buffer offset
-			0
-		);
-		glBufferData (GL_ARRAY_BUFFER,
-			game_data.model.shapes[0].mesh.texcoords.size ()
-				* sizeof (float),
-			reinterpret_cast<void*> (
-				game_data.model.shapes[0].mesh.texcoords.data ()
-			),
-			GL_STATIC_DRAW
-		);
-		glDisableVertexAttribArray (vaa);
-		glBindBuffer (GL_ARRAY_BUFFER, 0);
-	}
-
-	// Organize vertices into triangles
-	glGenBuffers (1, &(game_data.model.index_buffer)); {
-		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer);
-		// DATA
-		glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-			game_data.model.shapes[0].mesh.indices.size ()
-				* sizeof (unsigned int),
-			reinterpret_cast<void*> (
-				game_data.model.shapes[0].mesh.indices.data ()
-			),
-			GL_STATIC_DRAW
-		);
-		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
-}
-
-void
 initialize (void) {
 
 	std::cout
@@ -391,11 +375,19 @@ initialize (void) {
 	// setup game stuff
 	game_data.is_running = true;
 
-	load_shader_program ();
+	game_data.program = ShaderProgramBuilder ()
+		.add_shader (VertexShader (FileReader ("shaders/es/basic.vert").to_string ()))
+		.add_shader (FragmentShader (FileReader ("shaders/es/basic.frag").to_string ()))
+		.link ()
+		;
 
-	load_model ();
+	game_data.texture_loader.load ("textures/ground.lines.png", "ship", 0);
+	game_data.model = load_model ("models/objs/suzanne.smooth.obj", game_data.program);
+	//game_data.model = load_model ("/home/main/Documents/Meshes/Dragon/dragon.obj", game_data.program);
+
 
 	game_data.camera_processor.on_initialize ();
+	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 3));
 }
 
 void
@@ -405,13 +397,6 @@ on_update (double dt) {
 	game_data.is_running = game_data.is_running
 		&& ! glfwWindowShouldClose (game_data.window)
 		;
-
-	//game_data.matrices.model = glm::rotate (game_data.matrices.model,
-	//	fdt, glm::vec3 (0, 1, 0)
-	//);
-	//game_data.matrices.model = glm::rotate (game_data.matrices.model,
-	//	3.1415f * fdt, glm::vec3 (0, 0, 1)
-	//);
 
 	game_data.camera_processor.on_update (dt);
 }
@@ -481,15 +466,6 @@ void
 on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 	if (GLFW_KEY_ESCAPE == key && GLFW_RELEASE == action) {
 		game_data.is_running = false;
-	}
-
-	if (key == GLFW_KEY_F1) {
-		if (action == GLFW_PRESS) {
-		}
-		if (action == GLFW_RELEASE) {
-			game_data.program.dispose ();
-			load_shader_program ();
-		}
 	}
 
 	game_data.camera_processor.on_key (key, scancode, action, mods);

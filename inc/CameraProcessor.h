@@ -124,7 +124,7 @@ public:
 				);
 			}
 			if (! zero_movement.y) {
-				glm::vec3 direction = this->data.movement.y * up;
+				glm::vec3 direction = this->data.movement.y * Transform::UP;
 				this->transform.translate (
 					fdt * speed * direction
 				);
@@ -135,15 +135,15 @@ public:
 					fdt * speed * direction
 				);
 			}
-
-			this->data.light0 = glm::vec3 (
-				this->transform.to_rotation () * glm::vec4 (Transform::FORWARD, 1)
-			);
-
-			this->data.view = this->transform.to_rotation ()
-				* glm::inverse (this->transform.to_translation ())
-				;
 		}
+
+		this->data.light0 = Transform::to_position (
+			glm::inverse (this->transform.to_translation ())
+		);
+
+		this->data.view = this->transform.to_rotation ()
+			* glm::inverse (this->transform.to_translation ())
+			;
 	}
 
 	void
@@ -151,6 +151,7 @@ public:
 		program.set_uniform_mat4 ("v", this->data.view);
 		program.set_uniform_mat4 ("p", this->data.projection);
 		program.set_uniform_vec3 ("LIGHT0", this->data.light0);
+		program.set_uniform_f ("LIGHT0_intensity", 1.0f);
 	}
 
 	void
@@ -258,6 +259,17 @@ public:
 		}
 
 		if (GLFW_KEY_SPACE == key) {
+			if (GLFW_RELEASE == action) {
+				std::cout
+					<< "Camera @ "
+					<< vec3_to_string (Transform::to_position (
+						glm::inverse (this->transform.to_translation ())
+					))
+					<< std::endl;
+			}
+		}
+
+		if (GLFW_KEY_ENTER == key) {
 			if (GLFW_RELEASE == action) {
 				this->data.rotation = glm::mat4 (1);
 			}
