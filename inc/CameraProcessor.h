@@ -15,6 +15,7 @@
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
+#include <glm/gtc/epsilon.hpp> // glm::epsilonEqual
 
 #include <Transform.h>
 
@@ -31,13 +32,14 @@ struct CameraData {
 	glm::mat4 view;
 	glm::mat4 projection;
 
+	int yaw;
+	int pitch;
 	glm::vec3 movement;
-	glm::vec3 looking;
 
-	struct {
-		float x;
-		float y;
-	} mouse_position, mouse_position_difference;
+	glm::mat4 rotation;
+	glm::mat4 translation;
+
+	glm::vec3 light0;
 };
 
 class CameraProcessor {
@@ -67,10 +69,12 @@ public:
 
 	void
 	on_initialize (void) {
-		this->data.field_of_view = 42.0f;
-		this->data.near = 0.01f;
-		this->data.far = 100.0f;
-		this->data.aspect_ratio = 3.0f / 4.0f;
+		this->data.field_of_view = 70.0f;
+		this->data.near = 0.1f;
+		this->data.far = 10.0f;
+		this->data.aspect_ratio = 4.0f / 3.0f;
+
+		this->data.light0 = glm::vec3 (0, 0, 1);
 	}
 
 	void
@@ -79,17 +83,100 @@ public:
 			return;
 		}
 
-		this->data.view = glm::lookAt (
-			glm::vec3 (0, 0, -3),
-			glm::vec3 (0, 0,  1),
-			Transform::UP
-		);
+		float fdt = static_cast<float> (dt);
+
+		{
+			glm::mat4 inv_rotation = glm::inverse (this->data.rotation);
+			glm::vec3 right   = this->to_right (inv_rotation);
+			glm::vec3 up      = this->to_up (inv_rotation);
+
+			if (0 != this->data.yaw) {
+				float v = static_cast<float> (this->data.yaw) * fdt;
+				this->data.rotation = glm::rotate (this->data.rotation,
+					//v, glm::vec3 (0, 1, 0)
+					v, Transform::UP
+				);
+			}
+
+			if (0 != this->data.pitch) {
+				float v = static_cast<float> (this->data.pitch) * fdt;
+				this->data.rotation = glm::rotate (this->data.rotation,
+					//v, glm::vec3 (1, 0, 0)
+					v, right
+				);
+			}
+		}
+
+		{
+			float speed = 1.618f;
+			glm::mat4 inv_rotation = glm::inverse (this->data.rotation);
+			glm::vec3 right   = this->to_right (inv_rotation);
+			glm::vec3 up      = this->to_up (inv_rotation);
+			glm::vec3 forward = this->to_forward (inv_rotation);
+
+			auto zero_movement =
+				glm::epsilonEqual (Transform::ZERO, this->data.movement, 0.01f);
+			if (! zero_movement.x) {
+				glm::vec3 direction = this->data.movement.x * right;
+				this->data.translation = glm::translate (this->data.translation,
+					fdt * speed * direction
+				);
+			}
+			if (! zero_movement.y) {
+				glm::vec3 direction = this->data.movement.y * up;
+				this->data.translation = glm::translate (this->data.translation,
+					fdt * speed * direction
+				);
+			}
+			if (! zero_movement.z) {
+				glm::vec3 direction = this->data.movement.z * forward;
+				this->data.translation = glm::translate (this->data.translation,
+					fdt * speed * direction
+				);
+			}
+
+			auto inv_translation = glm::inverse (this->data.translation);
+
+			this->data.light0 = glm::vec3 (-1, -1, 1)
+				* forward
+				;
+
+			this->data.view = this->data.rotation * inv_translation;
+		}
 	}
 
 	void
 	on_render (ShaderProgram &program) {
 		program.set_uniform_mat4 ("v", this->data.view);
 		program.set_uniform_mat4 ("p", this->data.projection);
+		program.set_uniform_vec3 ("LIGHT0", this->data.light0);
+	}
+
+	glm::vec3
+	to_right (const glm::mat4 &rotation) {
+		float x = rotation[0][0];
+		float y = rotation[0][1];
+		float z = rotation[0][2];
+
+		return glm::vec3 (x, y, z);
+	}
+
+	glm::vec3
+	to_up (const glm::mat4 &rotation) {
+		float x = rotation[1][0];
+		float y = rotation[1][1];
+		float z = rotation[1][2];
+
+		return glm::vec3 (x, y, z);
+	}
+
+	glm::vec3
+	to_forward (const glm::mat4 &rotation) {
+		float x = rotation[2][0];
+		float y = rotation[2][1];
+		float z = rotation[2][2];
+
+		return glm::vec3 (x, y, z);
 	}
 
 	void
@@ -106,103 +193,105 @@ public:
 
 	void
 	on_key (int key, int scancode, int action, int mods) {
-		// View
-		if (key == GLFW_KEY_UP) {
-			if (action == GLFW_PRESS) {
-				this->data.looking += Transform::RIGHT;
+		if (GLFW_KEY_LEFT == key) {
+			if (GLFW_PRESS == action) {
+				this->data.yaw += -1;
 			}
-			if (action == GLFW_RELEASE) {
-				this->data.looking += Transform::RIGHT * -1.0f;
-			}
-		}
-		if (key == GLFW_KEY_DOWN) {
-			if (action == GLFW_PRESS) {
-				this->data.looking += Transform::RIGHT * -1.0f;
-			}
-			if (action == GLFW_RELEASE) {
-				this->data.looking += Transform::RIGHT;
+			if (GLFW_RELEASE == action) {
+				this->data.yaw += 1;
 			}
 		}
 
-		if (key == GLFW_KEY_LEFT) {
-			if (action == GLFW_PRESS) {
-				this->data.looking += Transform::UP * -1.0f;
+		if (GLFW_KEY_RIGHT == key) {
+			if (GLFW_PRESS == action) {
+				this->data.yaw += 1;
 			}
-			if (action == GLFW_RELEASE) {
-				this->data.looking += Transform::UP;
-			}
-		}
-		if (key == GLFW_KEY_RIGHT) {
-			if (action == GLFW_PRESS) {
-				this->data.looking += Transform::UP;
-			}
-			if (action == GLFW_RELEASE) {
-				this->data.looking += Transform::UP * -1.0f;
+			if (GLFW_RELEASE == action) {
+				this->data.yaw += -1;
 			}
 		}
 
-		// Move
-		if (key == GLFW_KEY_W) {
-			if (action == GLFW_PRESS) {
-				this->data.movement += Transform::FORWARD;
+		if (GLFW_KEY_UP == key) {
+			if (GLFW_PRESS == action) {
+				this->data.pitch += -1;
 			}
-			if (action == GLFW_RELEASE) {
-				this->data.movement += Transform::FORWARD * -1.0f;
-			}
-		}
-		if (key == GLFW_KEY_S) {
-			if (action == GLFW_PRESS) {
-				this->data.movement += Transform::FORWARD * -1.0f;
-			}
-			if (action == GLFW_RELEASE) {
-				this->data.movement += Transform::FORWARD;
+			if (GLFW_RELEASE == action) {
+				this->data.pitch += 1;
 			}
 		}
 
-		if (key == GLFW_KEY_A) {
-			if (action == GLFW_PRESS) {
-				this->data.movement += Transform::RIGHT * -1.0f;
+		if (GLFW_KEY_DOWN == key) {
+			if (GLFW_PRESS == action) {
+				this->data.pitch += 1;
 			}
-			if (action == GLFW_RELEASE) {
-				this->data.movement += Transform::RIGHT;
-			}
-		}
-		if (key == GLFW_KEY_D) {
-			if (action == GLFW_PRESS) {
-				this->data.movement += Transform::RIGHT;
-			}
-			if (action == GLFW_RELEASE) {
-				this->data.movement += Transform::RIGHT * -1.0f;
+			if (GLFW_RELEASE == action) {
+				this->data.pitch += -1;
 			}
 		}
 
-		if (key == GLFW_KEY_Q) {
-			if (action == GLFW_PRESS) {
-				this->data.movement += Transform::UP * -1.0f;
+		if (GLFW_KEY_W == key) {
+			if (GLFW_PRESS == action) {
+				this->data.movement.z += -1;
 			}
-			if (action == GLFW_RELEASE) {
-				this->data.movement += Transform::UP;
+			if (GLFW_RELEASE == action) {
+				this->data.movement.z += 1;
 			}
 		}
-		if (key == GLFW_KEY_E) {
-			if (action == GLFW_PRESS) {
-				this->data.movement += Transform::UP;
+
+		if (GLFW_KEY_S == key) {
+			if (GLFW_PRESS == action) {
+				this->data.movement.z += 1;
 			}
-			if (action == GLFW_RELEASE) {
-				this->data.movement += Transform::UP * -1.0f;
+			if (GLFW_RELEASE == action) {
+				this->data.movement.z += -1;
+			}
+		}
+
+		if (GLFW_KEY_A == key) {
+			if (GLFW_PRESS == action) {
+				this->data.movement.x += -1;
+			}
+			if (GLFW_RELEASE == action) {
+				this->data.movement.x += 1;
+			}
+		}
+
+		if (GLFW_KEY_D == key) {
+			if (GLFW_PRESS == action) {
+				this->data.movement.x += 1;
+			}
+			if (GLFW_RELEASE == action) {
+				this->data.movement.x += -1;
+			}
+		}
+
+		if (GLFW_KEY_Q == key) {
+			if (GLFW_PRESS == action) {
+				this->data.movement.y += 1;
+			}
+			if (GLFW_RELEASE == action) {
+				this->data.movement.y += -1;
+			}
+		}
+
+		if (GLFW_KEY_E == key) {
+			if (GLFW_PRESS == action) {
+				this->data.movement.y += -1;
+			}
+			if (GLFW_RELEASE == action) {
+				this->data.movement.y += 1;
+			}
+		}
+
+		if (GLFW_KEY_SPACE == key) {
+			if (GLFW_RELEASE == action) {
+				this->data.rotation = glm::mat4 (1);
 			}
 		}
 	}
 
 	void
 	on_cursor_position (double x, double y) {
-		this->data.mouse_position_difference.x =
-			this->data.mouse_position.x - x;
-		this->data.mouse_position_difference.y =
-			this->data.mouse_position.y - y;
-
-		this->data.mouse_position.x = x;
-		this->data.mouse_position.y = y;
 	}
 
 	static std::string
