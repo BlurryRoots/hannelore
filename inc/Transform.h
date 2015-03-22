@@ -90,6 +90,33 @@ public:
 			* this->scaling
 			;
 	}
+
+	static glm::vec3
+	to_right (const glm::mat4 &rotation) {
+		float x = rotation[0][0];
+		float y = rotation[0][1];
+		float z = rotation[0][2];
+
+		return glm::vec3 (x, y, z);
+	}
+
+	static glm::vec3
+	to_up (const glm::mat4 &rotation) {
+		float x = rotation[1][0];
+		float y = rotation[1][1];
+		float z = rotation[1][2];
+
+		return glm::vec3 (x, y, z);
+	}
+
+	static glm::vec3
+	to_forward (const glm::mat4 &rotation) {
+		float x = rotation[2][0];
+		float y = rotation[2][1];
+		float z = rotation[2][2];
+
+		return glm::vec3 (x, y, z);
+	}
 };
 
 const glm::vec3 Transform::FORWARD = glm::vec3 (0, 0, 1);

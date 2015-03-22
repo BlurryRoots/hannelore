@@ -87,8 +87,8 @@ public:
 
 		{
 			glm::mat4 inv_rotation = glm::inverse (this->data.rotation);
-			glm::vec3 right   = this->to_right (inv_rotation);
-			glm::vec3 up      = this->to_up (inv_rotation);
+			glm::vec3 right   = Transform::to_right (inv_rotation);
+			glm::vec3 up      = Transform::to_up (inv_rotation);
 
 			if (0 != this->data.yaw) {
 				float v = static_cast<float> (this->data.yaw) * fdt;
@@ -110,9 +110,9 @@ public:
 		{
 			float speed = 1.618f;
 			glm::mat4 inv_rotation = glm::inverse (this->data.rotation);
-			glm::vec3 right   = this->to_right (inv_rotation);
-			glm::vec3 up      = this->to_up (inv_rotation);
-			glm::vec3 forward = this->to_forward (inv_rotation);
+			glm::vec3 right   = Transform::to_right (inv_rotation);
+			glm::vec3 up      = Transform::to_up (inv_rotation);
+			glm::vec3 forward = Transform::to_forward (inv_rotation);
 
 			auto zero_movement =
 				glm::epsilonEqual (Transform::ZERO, this->data.movement, 0.01f);
@@ -150,33 +150,6 @@ public:
 		program.set_uniform_mat4 ("v", this->data.view);
 		program.set_uniform_mat4 ("p", this->data.projection);
 		program.set_uniform_vec3 ("LIGHT0", this->data.light0);
-	}
-
-	glm::vec3
-	to_right (const glm::mat4 &rotation) {
-		float x = rotation[0][0];
-		float y = rotation[0][1];
-		float z = rotation[0][2];
-
-		return glm::vec3 (x, y, z);
-	}
-
-	glm::vec3
-	to_up (const glm::mat4 &rotation) {
-		float x = rotation[1][0];
-		float y = rotation[1][1];
-		float z = rotation[1][2];
-
-		return glm::vec3 (x, y, z);
-	}
-
-	glm::vec3
-	to_forward (const glm::mat4 &rotation) {
-		float x = rotation[2][0];
-		float y = rotation[2][1];
-		float z = rotation[2][2];
-
-		return glm::vec3 (x, y, z);
 	}
 
 	void
