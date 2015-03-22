@@ -11,6 +11,11 @@ class MeshLoader {
 private:
 	std::unordered_map<std::string, Mesh*> meshes;
 
+	void
+	upload (Mesh *mesh) {
+		throw_if (true, "Not implemented yet!");
+	}
+
 public:
 	MeshLoader (void) {}
 
@@ -19,9 +24,9 @@ public:
 
 	void
 	load (const std::string &key, Mesh *mesh) {
-		glGenBuffers (1, &(mesh->vertexbuffer));
-		glGenBuffers (1, &(mesh->colorbuffer));
-		glGenBuffers (1, &(mesh->indexbuffer));
+		glGenBuffers (1, &(mesh->vertex_buffer));
+		glGenBuffers (1, &(mesh->color_buffer));
+		glGenBuffers (1, &(mesh->index_buffer));
 
 		this->upload (mesh);
 		this->store (key, mesh);
@@ -41,9 +46,9 @@ public:
 		auto mesh = this->meshes.at (key);
 		this->meshes.erase (key);
 
-		glDeleteBuffers (1, &(mesh->vertexbuffer));
-		glDeleteBuffers (1, &(mesh->colorbuffer));
-		glDeleteBuffers (1, &(mesh->indexbuffer));
+		glDeleteBuffers (1, &(mesh->vertex_buffer));
+		glDeleteBuffers (1, &(mesh->color_buffer));
+		glDeleteBuffers (1, &(mesh->index_buffer));
 
 		delete mesh;
 	}
@@ -53,16 +58,16 @@ public:
 		for (auto &entry : this->meshes) {
 			auto mesh = entry.second;
 
-			if (0 < mesh->vertexbuffer) {
-				glDeleteBuffers (1, &(mesh->vertexbuffer));
+			if (0 < mesh->vertex_buffer) {
+				glDeleteBuffers (1, &(mesh->vertex_buffer));
 			}
 
-			if (0 < mesh->colorbuffer) {
-				glDeleteBuffers (1, &(mesh->colorbuffer));
+			if (0 < mesh->color_buffer) {
+				glDeleteBuffers (1, &(mesh->color_buffer));
 			}
 
-			if (0 < mesh->indexbuffer) {
-				glDeleteBuffers (1, &(mesh->indexbuffer));
+			if (0 < mesh->index_buffer) {
+				glDeleteBuffers (1, &(mesh->index_buffer));
 			}
 		}
 

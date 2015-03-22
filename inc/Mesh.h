@@ -1,51 +1,51 @@
 #ifndef MESH_H
 #define MESH_H
 
-namespace blurryroots { namespace model {
-
 #include <vector>
+#include <tiny_obj_loader.h>
 
-// TODO: implement face normals insead of vertex normals !
-//       or should i?
-
-struct Vertex {
-
-	GLfloat position[3];
-	GLfloat uv[2];
-	GLfloat normal[3];
-
-};
-
-struct Color {
-
-	GLfloat rgba[4];
-
-};
+namespace blurryroots { namespace model {
 
 struct Mesh {
 
-	GLuint vertexbuffer;
-	std::vector<Vertex> vertices;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
 
-	GLuint colorbuffer;
-	std::vector<Color> colors;
+	GLuint vertex_buffer;
+	GLuint index_buffer;
+	GLuint uv_buffer;
+	GLuint normal_buffer;
+	GLuint color_buffer;
 
-	GLuint indexbuffer;
-	std::vector<GLuint> indices;
+	Mesh ()
+	: shapes ()
+	, materials ()
+	, vertex_buffer (0)
+	, index_buffer (0)
+	, uv_buffer (0)
+	, normal_buffer (0)
+	, color_buffer (0) {}
 
 	Mesh (
-		std::vector<Vertex> vertices,
-		std::vector<Color> colors,
-		std::vector<GLuint> indices
+		std::vector<tinyobj::shape_t> shapes,
+		std::vector<tinyobj::material_t> materials
 	)
-	: vertexbuffer (0), vertices (vertices)
-	, colorbuffer (0), colors (colors)
-	, indexbuffer (0), indices (indices) {}
+	: shapes (shapes)
+	, materials (materials)
+	, vertex_buffer (0)
+	, index_buffer (0)
+	, uv_buffer (0)
+	, normal_buffer (0)
+	, color_buffer (0) {}
 
 	Mesh (const Mesh &other)
-	: vertexbuffer (other.vertexbuffer), vertices (other.vertices)
-	, colorbuffer (other.colorbuffer), colors (other.colors)
-	, indexbuffer (other.indexbuffer), indices (other.indices) {}
+	: shapes (other.shapes)
+	, materials (other.materials)
+	, vertex_buffer (other.vertex_buffer)
+	, index_buffer (other.index_buffer)
+	, uv_buffer (other.uv_buffer)
+	, normal_buffer (other.normal_buffer)
+	, color_buffer (other.color_buffer) {}
 
 	virtual
 	~Mesh (void) {}

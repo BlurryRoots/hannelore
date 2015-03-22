@@ -20,9 +20,6 @@
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 
 //
-#include <tiny_obj_loader.h>
-
-//
 #include <FileReader.h>
 #include <FragmentShader.h>
 #include <ShaderProgram.h>
@@ -31,18 +28,11 @@
 #include <CameraProcessor.h>
 #include <Util.h>
 
+//
+#include <tiny_obj_loader.h>
+#include <Mesh.h>
+
 #define TITLE "Hans die Wurst"
-
-struct Model {
-
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-
-	GLuint index_buffer;
-	GLuint normal_buffer;
-	GLuint uv_buffer;
-	GLuint vertex_buffer;
-};
 
 struct GameData {
 
@@ -67,7 +57,7 @@ struct GameData {
 		glm::mat4 projection;
 	} matrices;
 
-	Model model;
+	blurryroots::model::Mesh model;
 
 	CameraProcessor camera_processor;
 
@@ -148,19 +138,20 @@ main (void) {
 	return 0;
 }
 
-Model
+blurryroots::model::Mesh
 load_model (const std::string &model_path) {
-	Model m;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
 
 	std::string err = tinyobj::LoadObj (
-		m.shapes, m.materials,
+		shapes, materials,
 		model_path.c_str ()
 	);
 	if (! err.empty ()) {
 		throw std::runtime_error (err);
 	}
 
-	return m;
+	return blurryroots::model::Mesh (shapes, materials);
 }
 
 void
@@ -235,28 +226,8 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	glFrontFace(GL_CCW);
 }
 
-//
 void
-initialize (void) {
-	// Initialize GLFW
-	if (! glfwInit ()) {
-		throw std::runtime_error ("Could not initialize glfw!");
-	}
-
-	std::cout
-		<< "Build with GLFW version "
-		<< GLFW_VERSION_MAJOR << "."
-		<< GLFW_VERSION_MINOR << "."
-		<< GLFW_VERSION_REVISION << std::endl;
-
-	//
-	open_window (game_data, TITLE, false);
-
-	// setup game stuff
-	game_data.is_running = true;
-
-	load_shader_program ();
-
+load_model () {
 	game_data.texture_loader.load ("textures/ground.lines.png", "ship", 0);
 	game_data.model = load_model ("models/objs/ground.obj");
 
@@ -371,6 +342,31 @@ initialize (void) {
 		);
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
+}
+
+//
+void
+initialize (void) {
+	// Initialize GLFW
+	if (! glfwInit ()) {
+		throw std::runtime_error ("Could not initialize glfw!");
+	}
+
+	std::cout
+		<< "Build with GLFW version "
+		<< GLFW_VERSION_MAJOR << "."
+		<< GLFW_VERSION_MINOR << "."
+		<< GLFW_VERSION_REVISION << std::endl;
+
+	//
+	open_window (game_data, TITLE, false);
+
+	// setup game stuff
+	game_data.is_running = true;
+
+	load_shader_program ();
+
+	load_model ();
 
 	//game_data.matrices.model = glm::rotate (
 	//	game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 0.0, 1.0)

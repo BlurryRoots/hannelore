@@ -28,7 +28,7 @@ public:
 	void
 	bind (const Mesh *mesh) {
 		assert (mesh);
-		assert (0 < mesh->indexbuffer);
+		assert (0 < mesh->index_buffer);
 
 		// if current mesh is already bound, just leave it like that ;)
 		if (this->current_mesh == mesh) {
@@ -36,7 +36,7 @@ public:
 		}
 
 		// indices
-		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mesh->indexbuffer);
+		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mesh->index_buffer);
 
 		// bye bye const
 		this->current_mesh = const_cast<Mesh*> (mesh);
