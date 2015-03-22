@@ -86,13 +86,13 @@ public:
 		float fdt = static_cast<float> (dt);
 
 		{
-			glm::mat4 inv_rotation = glm::inverse (this->data.rotation);
+			glm::mat4 inv_rotation = glm::inverse (this->transform.to_rotation ());
 			glm::vec3 right   = Transform::to_right (inv_rotation);
 			glm::vec3 up      = Transform::to_up (inv_rotation);
 
 			if (0 != this->data.yaw) {
 				float v = static_cast<float> (this->data.yaw) * fdt;
-				this->data.rotation = glm::rotate (this->data.rotation,
+				this->transform.rotate (
 					//v, glm::vec3 (0, 1, 0)
 					v, Transform::UP
 				);
@@ -100,7 +100,7 @@ public:
 
 			if (0 != this->data.pitch) {
 				float v = static_cast<float> (this->data.pitch) * fdt;
-				this->data.rotation = glm::rotate (this->data.rotation,
+				this->transform.rotate (
 					//v, glm::vec3 (1, 0, 0)
 					v, right
 				);
@@ -109,7 +109,7 @@ public:
 
 		{
 			float speed = 1.618f;
-			glm::mat4 inv_rotation = glm::inverse (this->data.rotation);
+			glm::mat4 inv_rotation = glm::inverse (this->transform.to_rotation ());
 			glm::vec3 right   = Transform::to_right (inv_rotation);
 			glm::vec3 up      = Transform::to_up (inv_rotation);
 			glm::vec3 forward = Transform::to_forward (inv_rotation);
@@ -118,30 +118,30 @@ public:
 				glm::epsilonEqual (Transform::ZERO, this->data.movement, 0.01f);
 			if (! zero_movement.x) {
 				glm::vec3 direction = this->data.movement.x * right;
-				this->data.translation = glm::translate (this->data.translation,
+				this->transform.translate (
 					fdt * speed * direction
 				);
 			}
 			if (! zero_movement.y) {
 				glm::vec3 direction = this->data.movement.y * up;
-				this->data.translation = glm::translate (this->data.translation,
+				this->transform.translate (
 					fdt * speed * direction
 				);
 			}
 			if (! zero_movement.z) {
 				glm::vec3 direction = this->data.movement.z * forward;
-				this->data.translation = glm::translate (this->data.translation,
+				this->transform.translate (
 					fdt * speed * direction
 				);
 			}
 
-			auto inv_translation = glm::inverse (this->data.translation);
-
 			this->data.light0 = glm::vec3 (-1, -1, 1)
-				* forward
+				* glm::normalize (forward + right)
 				;
 
-			this->data.view = this->data.rotation * inv_translation;
+			this->data.view = this->transform.to_rotation ()
+				* glm::inverse (this->transform.to_translation ())
+				;
 		}
 	}
 
