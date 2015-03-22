@@ -1,40 +1,15 @@
 #ifndef MESHRENDERER_H
 #define MESHRENDERER_H
 
+namespace blurryroots { namespace model {
+
 #include <MeshData.h>
 
 #include <memory>
 #include <cassert>
 #include <stdexcept>
 
-#define PRIMITIVE_COUNT (std::size_t)12
-
 class MeshRenderer {
-	static bool
-	is_valid_primitive_type (GLenum type) {
-		static constexpr GLenum primitive_types[PRIMITIVE_COUNT] = {
-			GL_POINTS,
-			GL_LINE_STRIP,
-			GL_LINE_LOOP,
-			GL_LINES,
-			GL_LINE_STRIP_ADJACENCY,
-			GL_LINES_ADJACENCY,
-			GL_TRIANGLE_STRIP,
-			GL_TRIANGLE_FAN,
-			GL_TRIANGLES,
-			GL_TRIANGLE_STRIP_ADJACENCY,
-			GL_TRIANGLES_ADJACENCY,
-			GL_PATCHES
-		};
-
-		for (std::size_t i = 0; i < PRIMITIVE_COUNT; ++i) {
-			if (primitive_types[i] == type) {
-				return true;
-			}
-		}
-
-		return false;
-	}
 
 private:
 	Mesh *current_mesh;
@@ -112,6 +87,38 @@ public:
 	get_primitive () {
 		return this->primitive;
 	}
+
 };
+
+
+#define PRIMITIVE_COUNT (std::size_t)12
+
+static bool
+is_valid_primitive_type (GLenum type) {
+	static constexpr GLenum primitive_types[PRIMITIVE_COUNT] = {
+		GL_POINTS,
+		GL_LINE_STRIP,
+		GL_LINE_LOOP,
+		GL_LINES,
+		GL_LINE_STRIP_ADJACENCY,
+		GL_LINES_ADJACENCY,
+		GL_TRIANGLE_STRIP,
+		GL_TRIANGLE_FAN,
+		GL_TRIANGLES,
+		GL_TRIANGLE_STRIP_ADJACENCY,
+		GL_TRIANGLES_ADJACENCY,
+		GL_PATCHES
+	};
+
+	for (std::size_t i = 0; i < PRIMITIVE_COUNT; ++i) {
+		if (primitive_types[i] == type) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+}}
 
 #endif
