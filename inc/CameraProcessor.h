@@ -91,9 +91,11 @@ public:
 			glm::vec3 up      = Transform::to_up (inv_rotation);
 
 			if (0 != this->data.yaw) {
+				// Use the world up vector to create a obsever like camera look.
+				// If you want to create a spaceship like camera use the local
+				// up vector.
 				float v = static_cast<float> (this->data.yaw) * fdt;
 				this->transform.rotate (
-					//v, glm::vec3 (0, 1, 0)
 					v, Transform::UP
 				);
 			}
@@ -101,7 +103,6 @@ public:
 			if (0 != this->data.pitch) {
 				float v = static_cast<float> (this->data.pitch) * fdt;
 				this->transform.rotate (
-					//v, glm::vec3 (1, 0, 0)
 					v, right
 				);
 			}
