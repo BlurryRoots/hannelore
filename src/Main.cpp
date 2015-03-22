@@ -371,14 +371,16 @@ initialize (void) {
 		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
-	game_data.matrices.model = glm::rotate (
-		game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 0.0, 1.0)
-	);
-	game_data.matrices.model = glm::rotate (
-		game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 1.0, 0.0)
-	);
+	//game_data.matrices.model = glm::rotate (
+	//	game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 0.0, 1.0)
+	//);
+	//game_data.matrices.model = glm::rotate (
+	//	game_data.matrices.model, 3.1415f, glm::vec3 (0.0, 1.0, 0.0)
+	//);
 
 	game_data.camera_processor.on_initialize ();
+	//std::cout << "up " << game_data.camera_processor.transform.to_up ()
+	//game_data.camera_processor.transform.rotate (3.1415f / 4, Transform::UP);
 }
 
 void
@@ -443,6 +445,7 @@ on_render () {
 	glDisableVertexAttribArray (vertex_position);
 
 	game_data.texture_loader.unbind ();
+	game_data.program.deactivate ();
 }
 
 void

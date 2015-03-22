@@ -29,6 +29,7 @@ class ShaderProgram {
 friend class ShaderProgramBuilder;
 
 private:
+	bool in_use;
 	GLuint handle;
 
 	std::unordered_map<std::string, GLuint> uniforms;
@@ -43,8 +44,15 @@ public:
 	}
 
 	void
-	use (void) const {
+	use (void) {
+		in_use = true;
 		glUseProgram (this->handle);
+	}
+
+	void
+	deactivate (void) {
+		in_use = false;
+		glUseProgram (0);
 	}
 
 	void
@@ -74,7 +82,7 @@ public:
 	}
 
 	void
-	set_uniform_mat4 (const std::string &name, glm::mat4 matrix) {
+	set_uniform_mat4 (const std::string &name, const glm::mat4 &matrix) {
 		std::size_t c = this->uniforms.count (name);
 		if (0 == c) {
 			GLint loc = glGetUniformLocation (this->handle,
@@ -84,17 +92,20 @@ public:
 
 			this->uniforms.emplace (name, loc);
 		}
+
+		throw_if (! this->in_use, "Unable to set uniform without activating program!");
 
 		glUniformMatrix4fv (
 			this->uniforms.at (name),
 			1,
 			GL_FALSE,
-			&matrix[0][0]
+			//&matrix[0][0]
+			glm::value_ptr (matrix)
 		);
 	}
 
 	void
-	set_uniform_vec3 (const std::string &name, glm::vec3 vec) {
+	set_uniform_vec3 (const std::string &name, const glm::vec3 &vec) {
 		std::size_t c = this->uniforms.count (name);
 		if (0 == c) {
 			GLint loc = glGetUniformLocation (this->handle,
@@ -105,6 +116,7 @@ public:
 			this->uniforms.emplace (name, loc);
 		}
 
+		throw_if (! this->in_use, "Unable to set uniform without activating program!");
 
 		glUniform3fv (
 			this->uniforms.at (name),
@@ -117,8 +129,9 @@ public:
 	set_uniform_f (const std::string &name, float value) {
 		throw_if (0 == this->uniforms.count (name), "Could not find ", name);
 
-		glProgramUniform1f (
-			this->handle,
+		throw_if (! this->in_use, "Unable to set uniform without activating program!");
+
+		glUniform1f (
 			this->uniforms.at (name),
 			value
 		);

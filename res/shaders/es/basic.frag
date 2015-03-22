@@ -7,8 +7,9 @@ varying vec2 fragment_uv;
 varying vec3 fragment_normal;
 
 uniform sampler2D texture_sampler;
+uniform vec3 LIGHT0;
 
-vec3 LIGHT0 = vec3 (0, -0.5, 1);
+//vec3 LIGHT0 = vec3 (0, -0.5, 1);
 
 // Calculate lighting value via lampert reflectance
 float
