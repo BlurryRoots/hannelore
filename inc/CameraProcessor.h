@@ -136,9 +136,9 @@ public:
 				);
 			}
 
-			this->data.light0 = glm::vec3 (-1, -1, 1)
-				* glm::normalize (forward + right)
-				;
+			this->data.light0 = glm::vec3 (
+				this->transform.to_rotation () * glm::vec4 (Transform::FORWARD, 1)
+			);
 
 			this->data.view = this->transform.to_rotation ()
 				* glm::inverse (this->transform.to_translation ())
