@@ -3,11 +3,12 @@
 
 namespace blurryroots { namespace model {
 
-#include <MeshData.h>
-
 #include <memory>
 #include <cassert>
 #include <stdexcept>
+
+#include <MeshData.h>
+#include <Util.h>
 
 class MeshRenderer {
 

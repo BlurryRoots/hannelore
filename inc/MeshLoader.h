@@ -4,6 +4,7 @@
 namespace blurryroots { namespace model {
 
 #include <unordered_map>
+#include <Util.h>
 
 class MeshLoader {
 

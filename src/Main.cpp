@@ -29,6 +29,7 @@
 #include <VertexShader.h>
 #include <TextureLoader.h>
 #include <CameraProcessor.h>
+#include <Util.h>
 
 #define TITLE "Hans die Wurst"
 
@@ -301,7 +302,7 @@ initialize (void) {
 
 	// Normal directions
 	auto nnormals = game_data.model.shapes[0].mesh.normals.size ();
-	throw_if (0 == nnormals, "No normals :/");
+	blurryroots::util::throw_if (0 == nnormals, "No normals :/");
 	std::cout << "#normals: " << nnormals << std::endl;;
 	glGenBuffers (1, &(game_data.model.normal_buffer)); {
 		GLint vaa = game_data.program.get_attribute_location ("vertex_normal");

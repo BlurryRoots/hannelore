@@ -72,10 +72,10 @@ public:
 				name.c_str ()
 			);
 
-			throw_if (0 > location, "Could not find attribute ", name);
+			blurryroots::util::throw_if (0 > location, "Could not find attribute ", name);
 
 			const auto &r = this->attributes.emplace (name, location);
-			throw_if (! r.second, "Trying to override ", name);
+			blurryroots::util::throw_if (! r.second, "Trying to override ", name);
 		}
 
 		return this->attributes.at (name);
@@ -88,12 +88,12 @@ public:
 			GLint loc = glGetUniformLocation (this->handle,
 				name.c_str ()
 			);
-			throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
+			blurryroots::util::throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
 
 			this->uniforms.emplace (name, loc);
 		}
 
-		throw_if (! this->in_use, "Unable to set uniform without activating program!");
+		blurryroots::util::throw_if (! this->in_use, "Unable to set uniform without activating program!");
 
 		glUniformMatrix4fv (
 			this->uniforms.at (name),
@@ -111,12 +111,12 @@ public:
 			GLint loc = glGetUniformLocation (this->handle,
 				name.c_str ()
 			);
-			throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
+			blurryroots::util::throw_if (0 > loc, "Could not find ", name, " ", std::to_string (c));
 
 			this->uniforms.emplace (name, loc);
 		}
 
-		throw_if (! this->in_use, "Unable to set uniform without activating program!");
+		blurryroots::util::throw_if (! this->in_use, "Unable to set uniform without activating program!");
 
 		glUniform3fv (
 			this->uniforms.at (name),
@@ -127,9 +127,9 @@ public:
 
 	void
 	set_uniform_f (const std::string &name, float value) {
-		throw_if (0 == this->uniforms.count (name), "Could not find ", name);
+		blurryroots::util::throw_if (0 == this->uniforms.count (name), "Could not find ", name);
 
-		throw_if (! this->in_use, "Unable to set uniform without activating program!");
+		blurryroots::util::throw_if (! this->in_use, "Unable to set uniform without activating program!");
 
 		glUniform1f (
 			this->uniforms.at (name),
@@ -358,7 +358,7 @@ public:
 			GL_ACTIVE_UNIFORMS,
 			&number_uniforms
 		);
-		throw_if (0 == number_uniforms, "No uniforms found!");
+		blurryroots::util::throw_if (0 == number_uniforms, "No uniforms found!");
 		std::cout << "Found " << number_uniforms << " uniforms" << std::endl;
 
 		// TODO: Needs further research! Why the eff does the sampler gets found twice ?
@@ -378,13 +378,13 @@ public:
 				name_buffer
 			);
 
-			throw_if (0 == name_buffer_size, "Uniform @", std::to_string (index), " has no name ?!");
+			blurryroots::util::throw_if (0 == name_buffer_size, "Uniform @", std::to_string (index), " has no name ?!");
 			std::cout << "uniform " << name_buffer << "@" << index << std::endl;
 
 			#if 0
 			#ifdef DEBUG_MESSAGE
 			const auto &report = this->program.uniforms.emplace (name_buffer, index);
-			throw_if (! report.second, "There is already a uniform with the name ", name_buffer);
+			blurryroots::util::throw_if (! report.second, "There is already a uniform with the name ", name_buffer);
 
 			std::cout << "Found uniform "
 				<< report.first->first << "/" << name_buffer << "@" << report.first->second

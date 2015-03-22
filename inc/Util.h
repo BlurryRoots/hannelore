@@ -3,8 +3,11 @@
 
 #include <vector>
 #include <sstream>
+#include <stdexcept>
 
-template<class... TArgs> void
+namespace blurryroots { namespace util {
+
+template<class... TArgs> static void
 throw_if (bool premise, TArgs... args) {
 	if (! premise) {
 		return;
@@ -23,5 +26,7 @@ throw_if (bool premise, TArgs... args) {
 
 	throw std::runtime_error (ss.str ());
 }
+
+}}
 
 #endif
