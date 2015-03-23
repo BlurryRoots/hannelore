@@ -26,10 +26,10 @@
 #include <VertexShader.h>
 #include <TextureLoader.h>
 #include <CameraProcessor.h>
+#include <Transform.h>
 #include <Util.h>
 
 //
-#include <tiny_obj_loader.h>
 #include <Mesh.h>
 #include <MeshLoader.h>
 
@@ -51,6 +51,7 @@ struct GameData {
 	int width, height;
 
 	TextureLoader texture_loader;
+	blurryroots::model::MeshLoader mesh_loader;
 
 	struct {
 		glm::mat4 model;
@@ -58,7 +59,7 @@ struct GameData {
 		glm::mat4 projection;
 	} matrices;
 
-	blurryroots::model::Mesh model;
+	Transform model;
 
 	CameraProcessor camera_processor;
 
@@ -137,135 +138,6 @@ main (void) {
 	dispose ();
 
 	return 0;
-}
-
-blurryroots::model::Mesh
-load_model (const std::string &model_path, ShaderProgram &program) {
-	blurryroots::model::Mesh model; {
-		std::string err = tinyobj::LoadObj (
-			model.shapes, model.materials,
-			model_path.c_str ()
-		);
-		THROW_IF (! err.empty (),
-			err
-		);
-	}
-
-	std::cout
-		<< model.shapes[0].mesh.positions.size ()
-		<< std::endl;
-
-	std::cout
-		<< "#vertices: " << model.shapes[0].mesh.positions.size () / 3
-		<< std::endl
-		;
-	std::cout
-		<< "#texcoords: " << model.shapes[0].mesh.texcoords.size () / 2
-		<< std::endl
-		;
-
-	// Model vertices
-	glGenBuffers (1, &(model.vertex_buffer)); {
-		GLint vaa = program.get_attribute_location ("vertex_position");
-
-		glBindBuffer (GL_ARRAY_BUFFER, model.vertex_buffer);
-		glEnableVertexAttribArray (vaa);
-		glVertexAttribPointer (
-			vaa,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			// array buffer offset
-			0
-		);
-		glBufferData (GL_ARRAY_BUFFER,
-			model.shapes[0].mesh.positions.size ()
-				* sizeof (float),
-			reinterpret_cast<void*> (
-				model.shapes[0].mesh.positions.data ()
-			),
-			GL_STATIC_DRAW
-		);
-		glDisableVertexAttribArray (vaa);
-		glBindBuffer (GL_ARRAY_BUFFER, 0);
-	}
-
-	// Normal directions
-	auto nnormals = model.shapes[0].mesh.normals.size ();
-	THROW_IF (0 == nnormals,
-		"No normals :/"
-	);
-	std::cout << "#normals: " << nnormals << std::endl;;
-	glGenBuffers (1, &(model.normal_buffer)); {
-		GLint vaa = program.get_attribute_location ("vertex_normal");
-
-		glBindBuffer (GL_ARRAY_BUFFER, model.normal_buffer);
-		glEnableVertexAttribArray (vaa);
-		glVertexAttribPointer (
-			vaa,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			// array buffer offset
-			0
-		);
-		glBufferData (GL_ARRAY_BUFFER,
-			model.shapes[0].mesh.normals.size ()
-				* sizeof (float),
-			reinterpret_cast<void*> (
-				model.shapes[0].mesh.normals.data ()
-			),
-			GL_STATIC_DRAW
-		);
-		glDisableVertexAttribArray (vaa);
-		glBindBuffer (GL_ARRAY_BUFFER, 0);
-	}
-
-	// UV Coordinates
-	glGenBuffers (1, &(model.uv_buffer)); {
-		GLint vaa = program.get_attribute_location ("vertex_uv");
-
-		glBindBuffer (GL_ARRAY_BUFFER, model.uv_buffer);
-		glEnableVertexAttribArray (vaa);
-		glVertexAttribPointer (
-			vaa,
-			2,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			// array buffer offset
-			0
-		);
-		glBufferData (GL_ARRAY_BUFFER,
-			model.shapes[0].mesh.texcoords.size ()
-				* sizeof (float),
-			reinterpret_cast<void*> (
-				model.shapes[0].mesh.texcoords.data ()
-			),
-			GL_STATIC_DRAW
-		);
-		glDisableVertexAttribArray (vaa);
-		glBindBuffer (GL_ARRAY_BUFFER, 0);
-	}
-
-	// Organize vertices into triangles
-	glGenBuffers (1, &(model.index_buffer)); {
-		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, model.index_buffer);
-		// DATA
-		glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-			model.shapes[0].mesh.indices.size ()
-				* sizeof (unsigned int),
-			reinterpret_cast<void*> (
-				model.shapes[0].mesh.indices.data ()
-			),
-			GL_STATIC_DRAW
-		);
-		glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
-
-	return model;
 }
 
 void
@@ -383,7 +255,12 @@ initialize (void) {
 		;
 
 	game_data.texture_loader.load ("textures/wool.png", "ship", 0);
-	game_data.model = load_model ("models/objs/suzanne.smooth.obj", game_data.program);
+	game_data.mesh_loader.load (
+		"models/objs/suzanne.smooth.obj",
+		"suzanne",
+		game_data.program
+	);
+	//game_data.model = load_model ("models/objs/suzanne.smooth.obj", game_data.program);
 	//game_data.model = load_model ("models/objs/suzanne.smooth.obj", game_data.program);
 
 	game_data.camera_processor.on_initialize ();
@@ -400,30 +277,34 @@ on_update (double dt) {
 }
 
 void
-on_render () {
-	glClearColor (0.01f, 0.01f, 0.01f, 1.0f);
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+render_model (
+	ShaderProgram &program,
+	TextureLoader &texture_loader,
+	const std::string &texture_key,
+	blurryroots::model::MeshLoader &mesh_loader,
+	const std::string &mesh_key,
+	Transform &transform
+) {
+	program.use ();
+	texture_loader.bind (texture_key);
 
-	game_data.program.use ();
-	game_data.texture_loader.bind ("ship");
+	auto model = game_data.mesh_loader.get (mesh_key);
 
-	game_data.program.set_uniform_mat4 ("m", game_data.matrices.model);
-
-	game_data.camera_processor.on_render (game_data.program);
+	program.set_uniform_mat4 ("m", transform.to_matrix ());
 
 	GLint vertex_position =
-		game_data.program.get_attribute_location ("vertex_position");
+		program.get_attribute_location ("vertex_position");
 	glEnableVertexAttribArray (vertex_position);
 
 	GLint vertex_uv =
-		game_data.program.get_attribute_location ("vertex_uv");
+		program.get_attribute_location ("vertex_uv");
 	glEnableVertexAttribArray (vertex_uv);
 
 	GLint vertex_normal =
-		game_data.program.get_attribute_location ("vertex_normal");
+		program.get_attribute_location ("vertex_normal");
 	glEnableVertexAttribArray (vertex_normal);
 
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, game_data.model.index_buffer); {
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, model->index_buffer); {
 		int size; glGetBufferParameteriv (
 			GL_ELEMENT_ARRAY_BUFFER,
 			GL_BUFFER_SIZE,
@@ -442,19 +323,32 @@ on_render () {
 	glDisableVertexAttribArray (vertex_uv);
 	glDisableVertexAttribArray (vertex_position);
 
-	game_data.texture_loader.unbind ();
+	texture_loader.unbind ();
+	program.deactivate ();
+}
+
+void
+on_render () {
+	glClearColor (0.01f, 0.01f, 0.01f, 1.0f);
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	game_data.program.use ();
+	game_data.camera_processor.on_render (game_data.program);
 	game_data.program.deactivate ();
+
+	render_model (
+		game_data.program,
+		game_data.texture_loader, "ship",
+		game_data.mesh_loader, "suzanne",
+		game_data.model
+	);
 }
 
 void
 dispose () {
 	game_data.program.dispose ();
 	game_data.texture_loader.dispose ();
-
-	glDeleteBuffers (1, &(game_data.model.index_buffer));
-	glDeleteBuffers (1, &(game_data.model.uv_buffer));
-	glDeleteBuffers (1, &(game_data.model.vertex_buffer));
-	glDeleteBuffers (1, &(game_data.model.normal_buffer));
+	game_data.mesh_loader.dispose ();
 
 	glfwTerminate ();
 }
