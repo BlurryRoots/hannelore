@@ -284,7 +284,7 @@ public:
 		//GLint alignment; // buffer that to restore it later
 		//glGetIntegerv (GL_UNPACK_ALIGNMENT, &alignment);
 		//glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-		std::cout << "Stored aligment to restore later" << std::endl;
+		//std::cout << "Stored aligment to restore later" << std::endl;
 
 		// TODO: find library
 		//unsigned char *data = nullptr;

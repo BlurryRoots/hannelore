@@ -1,3 +1,20 @@
+/*
+OpenGL ES 2.0
+Built-In Variable	Precision	Data Type
+
+Vertex Shader Built-In Variables
+gl_Position			highp		vec4
+gl_FrontFacing		-			bool
+gl_PointSize		mediump		float
+
+Fragment Shader Built-In Variables
+gl_FragColor		mediump		vec4
+gl_FrontFacing		-			bool
+gl_FragCoord		mediump		vec4
+gl_PointCoord		mediump		vec2
+*/
+
+
 // std shit
 #include <iostream>
 #include <fstream>
@@ -154,6 +171,31 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 		"Could not initialize glfw!"
 	);
 
+	std::cout
+		<< "Build with GLFW version "
+		<< GLFW_VERSION_MAJOR << "."
+		<< GLFW_VERSION_MINOR << "."
+		<< GLFW_VERSION_REVISION << std::endl;
+	{
+		int major, minor, revision;
+		glfwGetVersion (&major, &minor, &revision);
+		THROW_IF (GLFW_VERSION_MAJOR != major,
+			"GLFW major version differs! Runtime: ",
+			std::to_string (GLFW_VERSION_MAJOR), " "
+			"Build: ", std::to_string (major)
+		);
+		THROW_IF (GLFW_VERSION_MINOR != minor,
+			"GLFW minor version differs! Runtime: ",
+			std::to_string (GLFW_VERSION_MINOR), " "
+			"Build: ", std::to_string (minor)
+		);
+		THROW_IF (GLFW_VERSION_REVISION != revision,
+			"GLFW revision version differs! Runtime: ",
+			std::to_string (GLFW_VERSION_REVISION), " "
+			"Build: ", std::to_string (revision)
+		);
+	}
+
 	GLFWmonitor *monitor = glfwGetPrimaryMonitor ();
 	THROW_IF (nullptr == monitor,
 		"Could not primary monitor!"
@@ -169,8 +211,8 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	glfwWindowHint (GLFW_REFRESH_RATE, mode->refreshRate);
 	glfwWindowHint (GLFW_VISIBLE, GL_FALSE);
 
-	//glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
-	//glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+	glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 2);
 
 	// Create a window and its OpenGL context
 	ctx.window = glfwCreateWindow (
@@ -194,6 +236,11 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	THROW_IF (GLEW_OK != glew_status,
 		"Could not initialize glew!"
 	);
+
+	std::cout
+		<< "OpenGL Version: " << glGetString (GL_VERSION) << "\n"
+		<< "OpenGL Shader : " << glGetString (GL_SHADING_LANGUAGE_VERSION)
+		<< std::endl;
 
 	glfwShowWindow (ctx.window); {
 		int width, height;
@@ -329,36 +376,36 @@ create_mesh (const std::string &path, ShaderProgram &program) {
 		);
 	}
 
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, loading_data[0].buffer);
-	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-		loading_data[0].size, loading_data[0].payload, GL_STATIC_DRAW
-	);
-
 	glBindBuffer (GL_ARRAY_BUFFER, loading_data[1].buffer);
-	glBufferData (GL_ARRAY_BUFFER,
-		loading_data[1].size, loading_data[1].payload, GL_STATIC_DRAW
-	);
 	glEnableVertexAttribArray (loading_data[1].attribute);
 	glVertexAttribPointer (loading_data[1].attribute,
 		loading_data[1].components, loading_data[1].payload_type, GL_FALSE, 0, 0
 	);
+	glBufferData (GL_ARRAY_BUFFER,
+		loading_data[1].size, loading_data[1].payload, GL_STATIC_DRAW
+	);
 
 	glBindBuffer (GL_ARRAY_BUFFER, loading_data[2].buffer);
-	glBufferData (GL_ARRAY_BUFFER,
-		loading_data[2].size, loading_data[2].payload, GL_STATIC_DRAW
-	);
 	glEnableVertexAttribArray (loading_data[2].attribute);
 	glVertexAttribPointer (loading_data[2].attribute,
 		loading_data[2].components, loading_data[2].payload_type, GL_FALSE, 0, 0
 	);
+	glBufferData (GL_ARRAY_BUFFER,
+		loading_data[2].size, loading_data[2].payload, GL_STATIC_DRAW
+	);
 
 	glBindBuffer (GL_ARRAY_BUFFER, loading_data[3].buffer);
-	glBufferData (GL_ARRAY_BUFFER,
-		loading_data[3].size, loading_data[3].payload, GL_STATIC_DRAW
-	);
 	glEnableVertexAttribArray (loading_data[3].attribute);
 	glVertexAttribPointer (loading_data[3].attribute,
 		loading_data[3].components, loading_data[3].payload_type, GL_FALSE, 0, 0
+	);
+	glBufferData (GL_ARRAY_BUFFER,
+		loading_data[3].size, loading_data[3].payload, GL_STATIC_DRAW
+	);
+
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, loading_data[0].buffer);
+	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
+		loading_data[0].size, loading_data[0].payload, GL_STATIC_DRAW
 	);
 
 	glBindVertexArray (0);
@@ -379,32 +426,6 @@ dispose_mesh (blurryroots::model::Mesh &mesh) {
 
 void
 initialize (void) {
-
-	std::cout
-		<< "Build with GLFW version "
-		<< GLFW_VERSION_MAJOR << "."
-		<< GLFW_VERSION_MINOR << "."
-		<< GLFW_VERSION_REVISION << std::endl;
-	{
-		int major, minor, revision;
-		glfwGetVersion (&major, &minor, &revision);
-		THROW_IF (GLFW_VERSION_MAJOR != major,
-			"GLFW major version differs! Runtime: ",
-			std::to_string (GLFW_VERSION_MAJOR), " "
-			"Build: ", std::to_string (major)
-		);
-		THROW_IF (GLFW_VERSION_MINOR != minor,
-			"GLFW minor version differs! Runtime: ",
-			std::to_string (GLFW_VERSION_MINOR), " "
-			"Build: ", std::to_string (minor)
-		);
-		THROW_IF (GLFW_VERSION_REVISION != revision,
-			"GLFW revision version differs! Runtime: ",
-			std::to_string (GLFW_VERSION_REVISION), " "
-			"Build: ", std::to_string (revision)
-		);
-	}
-
 	//
 	open_window (game_data, TITLE, false);
 
@@ -457,11 +478,23 @@ on_update (double dt) {
 
 void
 on_render () {
-	glClearColor (0.01f, 0.01f, 0.01f, 1.0f);
+	glClearColor (0.1f, 0.2f, 0.1f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	game_data.program.use ();
-	game_data.texture_loader.bind ("ship");
+
+	//game_data.texture_loader.bind ("ship");
+	auto info = game_data.texture_loader.get_info ("ship");
+	THROW_IF (nullptr == info,
+		"NE NE!"
+	);
+	auto sampler_location = glGetUniformLocation (game_data.program.get_handle (), "texture_sampler");
+	THROW_IF (0 >= sampler_location,
+		"FUUUUUUCK!"
+	);
+	glActiveTexture (GL_TEXTURE0);
+	glBindTexture (GL_TEXTURE_2D, info->handle);
+	//glUniform1i (sampler_location, 0);
 
 	game_data.camera_processor.on_render (game_data.program);
 
@@ -478,12 +511,14 @@ on_render () {
 	);
 
 	auto &mesh = game_data.suzanne;
+
+	glBindVertexArray (mesh.vertex_array_object);
+	//glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mesh.index_buffer);
+
 	// calculate and forward mesh transform
 	game_data.program.set_uniform_mat4 ("m",
 		game_data.models[0].to_matrix ()
 	);
-
-	glBindVertexArray (mesh.vertex_array_object);
 
 	int size;
 	glGetBufferParameteriv (
@@ -496,11 +531,12 @@ on_render () {
 	);
 
 	// draw all the triangles!
-	int trinagle_count = size / sizeof (mesh.shapes[0].mesh.indices.at (0));
-	glDrawElements (GL_TRIANGLES, trinagle_count, GL_UNSIGNED_INT, 0);
-
-	glBindVertexArray (0);
-
+	int element_count = size / sizeof (mesh.shapes[0].mesh.indices.at (0));
+	int real_element_count = mesh.shapes[0].mesh.indices.size ();
+	THROW_IF (element_count != real_element_count,
+		"Unequal element_count ", std::to_string (element_count), " vs ", std::to_string (real_element_count)
+	);
+	glDrawElements (GL_TRIANGLES, element_count, GL_UNSIGNED_INT, 0);
 }
 
 void
