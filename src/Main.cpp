@@ -62,6 +62,8 @@ struct GameData {
 		glm::mat4 projection;
 	} matrices;
 
+	blurryroots::model::Mesh suzanne;
+
 	Transform models[4];
 
 	Transform lights[4];
@@ -222,6 +224,159 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	glFrontFace (GL_CCW);
 }
 
+struct MeshLoadingData {
+	GLvoid *payload;
+	std::size_t size;
+	GLenum payload_type;
+	GLuint buffer;
+	GLint attribute;
+	std::size_t components;
+
+	MeshLoadingData ()
+	: payload (nullptr)
+	, size (0)
+	, payload_type (GL_FLOAT)
+	, buffer (0)
+	, attribute (-1)
+	, components (0) {}
+
+	MeshLoadingData (
+		GLvoid *payload,
+		std::size_t size,
+		GLenum payload_type,
+		GLuint buffer,
+		GLint attribute,
+		std::size_t components
+	)
+	: payload (payload)
+	, size (size)
+	, payload_type (payload_type)
+	, buffer (buffer)
+	, attribute (attribute)
+	, components (components) {}
+
+	MeshLoadingData (const MeshLoadingData &other)
+	: payload (other.payload)
+	, size (other.size)
+	, payload_type (other.payload_type)
+	, buffer (other.buffer)
+	, attribute (other.attribute)
+	, components (other.components) {}
+};
+
+blurryroots::model::Mesh
+create_mesh (const std::string &path, ShaderProgram &program) {
+	blurryroots::model::Mesh mesh; {
+		std::string err = tinyobj::LoadObj (
+			mesh.shapes, mesh.materials,
+			path.c_str ()
+		);
+		THROW_IF (! err.empty (),
+			err
+		);
+	}
+
+	// cheffe
+	glGenVertexArrays (1, &(mesh.vertex_array_object));
+	glBindVertexArray (mesh.vertex_array_object);
+
+	glGenBuffers (1, &(mesh.color_buffer));
+
+	MeshLoadingData loading_data[4];
+	{
+		auto &indices = mesh.shapes[0].mesh.indices;
+		glGenBuffers (1, &(mesh.index_buffer));
+		loading_data[0] = MeshLoadingData (
+			reinterpret_cast<GLvoid*> (indices.data ()),
+			sizeof (indices.at (0)) * indices.size (),
+			GL_UNSIGNED_INT,
+			mesh.index_buffer,
+			-1,
+			0
+		);
+
+		auto &vertices = mesh.shapes[0].mesh.positions;
+		glGenBuffers (1, &(mesh.vertex_buffer));
+		loading_data[1] = MeshLoadingData (
+			reinterpret_cast<GLvoid*> (vertices.data ()),
+			sizeof (vertices.at (0)) * vertices.size (),
+			GL_FLOAT,
+			mesh.vertex_buffer,
+			program.get_attribute_location ("vertex_position"),
+			3
+		);
+
+		auto &uvs = mesh.shapes[0].mesh.texcoords;
+		glGenBuffers (1, &(mesh.uv_buffer));
+		loading_data[2] = MeshLoadingData (
+			reinterpret_cast<GLvoid*> (uvs.data ()),
+			sizeof (uvs.at (0)) * uvs.size (),
+			GL_FLOAT,
+			mesh.uv_buffer,
+			program.get_attribute_location ("vertex_uv"),
+			2
+		);
+
+		auto &normals = mesh.shapes[0].mesh.normals;
+		glGenBuffers (1, &(mesh.normal_buffer));
+		loading_data[3] = MeshLoadingData (
+			reinterpret_cast<GLvoid*> (normals.data ()),
+			sizeof (normals.at (0)) * normals.size (),
+			GL_FLOAT,
+			mesh.normal_buffer,
+			program.get_attribute_location ("vertex_normal"),
+			3
+		);
+	}
+
+	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, loading_data[0].buffer);
+	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
+		loading_data[0].size, loading_data[0].payload, GL_STATIC_DRAW
+	);
+
+	glBindBuffer (GL_ARRAY_BUFFER, loading_data[1].buffer);
+	glBufferData (GL_ARRAY_BUFFER,
+		loading_data[1].size, loading_data[1].payload, GL_STATIC_DRAW
+	);
+	glEnableVertexAttribArray (loading_data[1].attribute);
+	glVertexAttribPointer (loading_data[1].attribute,
+		loading_data[1].components, loading_data[1].payload_type, GL_FALSE, 0, 0
+	);
+
+	glBindBuffer (GL_ARRAY_BUFFER, loading_data[2].buffer);
+	glBufferData (GL_ARRAY_BUFFER,
+		loading_data[2].size, loading_data[2].payload, GL_STATIC_DRAW
+	);
+	glEnableVertexAttribArray (loading_data[2].attribute);
+	glVertexAttribPointer (loading_data[2].attribute,
+		loading_data[2].components, loading_data[2].payload_type, GL_FALSE, 0, 0
+	);
+
+	glBindBuffer (GL_ARRAY_BUFFER, loading_data[3].buffer);
+	glBufferData (GL_ARRAY_BUFFER,
+		loading_data[3].size, loading_data[3].payload, GL_STATIC_DRAW
+	);
+	glEnableVertexAttribArray (loading_data[3].attribute);
+	glVertexAttribPointer (loading_data[3].attribute,
+		loading_data[3].components, loading_data[3].payload_type, GL_FALSE, 0, 0
+	);
+
+	glBindVertexArray (0);
+
+	return mesh;
+}
+
+void
+dispose_mesh (blurryroots::model::Mesh &mesh) {
+	glDeleteBuffers (1, &(mesh.vertex_buffer));
+	glDeleteBuffers (1, &(mesh.index_buffer));
+	glDeleteBuffers (1, &(mesh.uv_buffer));
+	glDeleteBuffers (1, &(mesh.normal_buffer));
+	glDeleteBuffers (1, &(mesh.color_buffer));
+
+	glDeleteVertexArrays (1, &(mesh.vertex_array_object));
+}
+
 void
 initialize (void) {
 
@@ -266,11 +421,12 @@ initialize (void) {
 		;
 
 	game_data.texture_loader.load ("textures/wool.png", "ship", 0);
-	game_data.mesh_loader.load (
-		"models/objs/suzanne.smooth.obj",
-		"suzanne",
-		game_data.program
-	);
+	//game_data.mesh_loader.load (
+	//	"models/objs/suzanne.smooth.obj",
+	//	"suzanne",
+	//	game_data.program
+	//);
+	game_data.suzanne = create_mesh ("models/objs/suzanne.smooth.obj", game_data.program);
 
 	game_data.camera_processor.on_initialize ();
 	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 0));
@@ -304,43 +460,47 @@ on_render () {
 	glClearColor (0.01f, 0.01f, 0.01f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	game_data.program.use (); {
-		game_data.camera_processor.on_render (game_data.program);
+	game_data.program.use ();
+	game_data.texture_loader.bind ("ship");
 
-		// ambient light
-		game_data.program.set_uniform_vec3 ("ambient_light",
-			glm::vec3 (0.06f, 0.06f, 0.1f)
-		);
+	game_data.camera_processor.on_render (game_data.program);
 
-		//glm::vec4 lights[4];
-		//for (auto i = 0; i < 4; ++i) {
-		//	lights[i] = glm::vec4 (
-		//		Transform::to_position (game_data.lights[i].to_translation ()),
-		//		1.0f
-		//	);
-		//}
-		//game_data.program.set_uniform_vec4_array ("point_lights",
-		//	lights, 4
-		//);
-		game_data.program.set_uniform_vec4 ("point_light",
-			glm::vec4 (
-				Transform::to_position (game_data.lights[0].to_translation ()),
-				1.0f
-			)
-		);
+	// ambient light
+	game_data.program.set_uniform_vec3 ("ambient_light",
+		glm::vec3 (0.06f, 0.06f, 0.1f)
+	);
+	// point light
+	game_data.program.set_uniform_vec4 ("point_light",
+		glm::vec4 (
+			Transform::to_position (game_data.lights[0].to_translation ()),
+			1.0f
+		)
+	);
 
-		game_data.texture_loader.bind ("ship");
-		game_data.mesh_renderer.bind (
-			game_data.mesh_loader.get ("suzanne"),
-			game_data.program
-		);
+	auto &mesh = game_data.suzanne;
+	// calculate and forward mesh transform
+	game_data.program.set_uniform_mat4 ("m",
+		game_data.models[0].to_matrix ()
+	);
 
-		for (auto i = 0; i < 4; ++i) {
-			game_data.mesh_renderer.render (game_data.program, &(game_data.models[i]));
-		}
+	glBindVertexArray (mesh.vertex_array_object);
 
-		game_data.mesh_renderer.unbind (game_data.program);
-	} game_data.program.deactivate ();
+	int size;
+	glGetBufferParameteriv (
+		GL_ELEMENT_ARRAY_BUFFER,
+		GL_BUFFER_SIZE,
+		&size
+	);
+	THROW_IF (0 >= size,
+		"Invalid element buffer!"
+	);
+
+	// draw all the triangles!
+	int trinagle_count = size / sizeof (mesh.shapes[0].mesh.indices.at (0));
+	glDrawElements (GL_TRIANGLES, trinagle_count, GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray (0);
+
 }
 
 void
