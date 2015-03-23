@@ -16,6 +16,9 @@ uniform int colorized_debug;
 uniform sampler2D texture_sampler;
 uniform vec4 point_light;
 
+//
+uniform vec3 ambient_light;
+
 // Calculate lighting value via lampert reflectance
 float
 calculate_lighting_value (vec3 light_direction, vec3 normal) {
@@ -62,7 +65,7 @@ main (void) {
 		brightness = 0.0f;
 	}
 
-	vec3 diffuse_color = sample_color.rgb * brightness;
+	vec3 diffuse_color = sample_color.rgb * brightness + sample_color.rgb * ambient_light;
 
 	gl_FragColor = vec4 (diffuse_color, sample_color.a);
 }

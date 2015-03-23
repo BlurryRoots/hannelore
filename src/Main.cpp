@@ -167,6 +167,9 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	glfwWindowHint (GLFW_REFRESH_RATE, mode->refreshRate);
 	glfwWindowHint (GLFW_VISIBLE, GL_FALSE);
 
+	//glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
+	//glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+
 	// Create a window and its OpenGL context
 	ctx.window = glfwCreateWindow (
 		mode->width, mode->height,
@@ -303,6 +306,11 @@ on_render () {
 
 	game_data.program.use (); {
 		game_data.camera_processor.on_render (game_data.program);
+
+		// ambient light
+		game_data.program.set_uniform_vec3 ("ambient_light",
+			glm::vec3 (0.06f, 0.06f, 0.1f)
+		);
 
 		//glm::vec4 lights[4];
 		//for (auto i = 0; i < 4; ++i) {
