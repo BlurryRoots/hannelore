@@ -15,23 +15,34 @@ varying vec2 fragment_uv;
 varying vec3 fragment_normal;
 varying vec3 fragment_pointing_to_light0;
 
-//vec3 LIGHT0 = vec3 (0, -0.5, 1);
-
 // Calculate lighting value via lampert reflectance
 float
 calculate_lighting_value (vec3 light_direction, vec3 normal) {
-	return clamp (dot (-light_direction, normal), 0.0f, 1.0f);
+	return dot (-1.0f * light_direction, normal);
 }
 
 void
 main (void) {
-	float shade = calculate_lighting_value (LIGHT0, fragment_normal) * LIGHT0_intensity;
-	vec4 sample_color = texture2D (texture_sampler, fragment_uv) * shade;
-	gl_FragColor = vec4 (sample_color.rgb * shade, sample_color.a);
-	//if (0.01f > shade && 1 == colorized_debug) {
-	//	gl_FragColor = vec4 (1, 0, 0, 1);
-	//}
-	//else {
-	//	gl_FragColor = vec4 (sample_color.rgb * shade, sample_color.a);
-	//}
+	vec4 sample_color = texture2D (texture_sampler, fragment_uv);
+
+	float attinuation = LIGHT0_intensity / length (fragment_pointing_to_light0);
+	attinuation = clamp (attinuation, 0.0f, 1.0f);
+
+	float shade = calculate_lighting_value (
+		normalize (fragment_pointing_to_light0),
+		normalize (fragment_normal)
+	);
+	shade = clamp (shade, 0.0f, 1.0f);
+
+	float brightness = attinuation * shade;
+	//float brightness = shade * LIGHT0_intensity;
+	brightness = clamp (brightness, 0.0f, 1.0f);
+
+	if (0.2f > brightness || 1.0f < brightness) {
+		brightness = 0.0f;
+	}
+
+	vec3 diffuse_color = sample_color.rgb * brightness;
+
+	gl_FragColor = vec4 (diffuse_color, sample_color.a);
 }

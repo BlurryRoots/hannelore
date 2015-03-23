@@ -18,7 +18,7 @@ main (void) {
 	vec4 world_normal = m * vec4 (vertex_normal, 1.0f);
 
 	gl_Position = vp * world_position;
-	fragment_pointing_to_light0 = LIGHT0 - world_position.xyz;
+	fragment_pointing_to_light0 = world_position.xyz - LIGHT0;
 
 	fragment_uv = vertex_uv;
 
