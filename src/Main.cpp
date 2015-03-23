@@ -381,10 +381,9 @@ initialize (void) {
 		.link ()
 		;
 
-	game_data.texture_loader.load ("textures/ground.lines.png", "ship", 0);
-	game_data.model = load_model ("models/objs/stanford-dragon.obj", game_data.program);
-	//game_data.model = load_model ("/home/main/Documents/Meshes/Dragon/dragon.obj", game_data.program);
-
+	game_data.texture_loader.load ("textures/grass.png", "ship", 0);
+	//game_data.model = load_model ("models/objs/stanford-dragon.obj", game_data.program);
+	game_data.model = load_model ("models/objs/suzanne.smooth.obj", game_data.program);
 
 	game_data.camera_processor.on_initialize ();
 	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 3));
