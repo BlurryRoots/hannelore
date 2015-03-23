@@ -68,6 +68,11 @@ public:
 			;
 	}
 
+	void
+	reset_translation () {
+		this->translation = glm::mat4 (1);
+	}
+
 	glm::mat4
 	to_rotation (void) const {
 		return glm::mat4 (1)
@@ -75,11 +80,21 @@ public:
 			;
 	}
 
+	void
+	reset_rotation () {
+		this->rotation = glm::mat4 (1);
+	}
+
 	glm::mat4
 	to_scale (void) const {
 		return glm::mat4 (1)
 			* this->scaling
 			;
+	}
+
+	void
+	reset_scale () {
+		this->scaling = glm::mat4 (1);
 	}
 
 	glm::mat4
