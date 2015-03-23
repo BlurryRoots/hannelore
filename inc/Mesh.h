@@ -11,6 +11,8 @@ struct Mesh {
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 
+	GLuint vertex_array_object;
+
 	GLuint vertex_buffer;
 	GLuint index_buffer;
 	GLuint uv_buffer;
@@ -20,6 +22,7 @@ struct Mesh {
 	Mesh ()
 	: shapes ()
 	, materials ()
+	, vertex_array_object (0)
 	, vertex_buffer (0)
 	, index_buffer (0)
 	, uv_buffer (0)
@@ -32,6 +35,7 @@ struct Mesh {
 	)
 	: shapes (shapes)
 	, materials (materials)
+	, vertex_array_object (0)
 	, vertex_buffer (0)
 	, index_buffer (0)
 	, uv_buffer (0)
@@ -41,6 +45,7 @@ struct Mesh {
 	Mesh (const Mesh &other)
 	: shapes (other.shapes)
 	, materials (other.materials)
+	, vertex_array_object (other.vertex_array_object)
 	, vertex_buffer (other.vertex_buffer)
 	, index_buffer (other.index_buffer)
 	, uv_buffer (other.uv_buffer)
