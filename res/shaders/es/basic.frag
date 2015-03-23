@@ -38,7 +38,7 @@ main (void) {
 	//float brightness = shade * LIGHT0_intensity;
 	brightness = clamp (brightness, 0.0f, 1.0f);
 
-	if (0.2f > brightness || 1.0f < brightness) {
+	if (0.1f > brightness) {
 		brightness = 0.0f;
 	}
 
