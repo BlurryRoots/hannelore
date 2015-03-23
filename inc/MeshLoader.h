@@ -6,6 +6,8 @@ namespace blurryroots { namespace model {
 #include <unordered_map>
 #include <functional>
 
+#include <tiny_obj_loader.h>
+
 #include <MeshLoader.h>
 #include <Util.h>
 
@@ -160,10 +162,25 @@ public:
 	~MeshLoader (void) {}
 
 	void
-	load (const std::string &key, Mesh *mesh, ShaderProgram &program) {
+	load (const std::string &path, const std::string &key, ShaderProgram &program) {
 		THROW_IF (0 < this->meshes.count (key),
 			"Key with name ", key, " is already used!"
 		);
+
+		Mesh *mesh = new Mesh (); {
+			std::string err = tinyobj::LoadObj (
+				mesh->shapes, mesh->materials,
+				path.c_str ()
+			);
+
+			if (! err.empty ()) {
+				delete mesh;
+
+				THROW_IF (true,
+					err
+				);
+			}
+		}
 
 		this->generate_buffers (mesh);
 
