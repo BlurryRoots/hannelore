@@ -38,8 +38,6 @@ struct CameraData {
 
 	glm::mat4 rotation;
 	glm::mat4 translation;
-
-	Transform light0;
 };
 
 class CameraProcessor {
@@ -72,8 +70,6 @@ public:
 		this->data.near = 0.1f;
 		this->data.far = 100.0f;
 		this->data.aspect_ratio = 4.0f / 3.0f;
-
-		this->data.light0.translate (glm::vec3 (0, 3, 3));
 	}
 
 	void
@@ -145,10 +141,6 @@ public:
 	on_render (ShaderProgram &program) {
 		program.set_uniform_mat4 ("v", this->data.view);
 		program.set_uniform_mat4 ("p", this->data.projection);
-		program.set_uniform_vec3 ("LIGHT0",
-			Transform::to_position (this->data.light0.to_translation ())
-		);
-		program.set_uniform_f ("LIGHT0_intensity", 1.0f);
 	}
 
 	void

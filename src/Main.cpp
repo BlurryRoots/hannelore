@@ -32,8 +32,10 @@
 //
 #include <Mesh.h>
 #include <MeshLoader.h>
+#include <MeshRenderer.h>
 
 #define TITLE "Hans die Wurst"
+#define PI_OVER_2 1.57079632679f
 
 struct GameData {
 
@@ -52,6 +54,7 @@ struct GameData {
 
 	TextureLoader texture_loader;
 	blurryroots::model::MeshLoader mesh_loader;
+	blurryroots::model::MeshRenderer mesh_renderer;
 
 	struct {
 		glm::mat4 model;
@@ -59,7 +62,9 @@ struct GameData {
 		glm::mat4 projection;
 	} matrices;
 
-	Transform model;
+	Transform models[4];
+
+	Transform lights[4];
 
 	CameraProcessor camera_processor;
 
@@ -251,6 +256,9 @@ initialize (void) {
 	game_data.program = ShaderProgramBuilder ()
 		.add_shader (VertexShader (FileReader ("shaders/es/basic.vert").to_string ()))
 		.add_shader (FragmentShader (FileReader ("shaders/es/basic.frag").to_string ()))
+		.bind_attribute ("vertex_position", 0)
+		.bind_attribute ("vertex_uv", 1)
+		.bind_attribute ("vertex_normal", 2)
 		.link ()
 		;
 
@@ -260,11 +268,23 @@ initialize (void) {
 		"suzanne",
 		game_data.program
 	);
-	//game_data.model = load_model ("models/objs/suzanne.smooth.obj", game_data.program);
-	//game_data.model = load_model ("models/objs/suzanne.smooth.obj", game_data.program);
 
 	game_data.camera_processor.on_initialize ();
-	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 3));
+	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 0));
+
+	game_data.models[0].translate (glm::vec3 ( 0, 0,-3));
+
+	game_data.models[1].translate (glm::vec3 ( 3, 0, 0));
+	game_data.models[1].rotate (-PI_OVER_2 * 1.0f, Transform::UP);
+
+	game_data.models[2].translate (glm::vec3 ( 0, 0, 3));
+	game_data.models[2].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
+
+	game_data.models[3].translate (glm::vec3 (-3, 0, 0));
+	game_data.models[3].rotate (-PI_OVER_2 * 3.0f, Transform::UP);
+
+	game_data.lights[0].translate (glm::vec3 (0, 0.5, -2.5));
+
 }
 
 void
@@ -277,71 +297,42 @@ on_update (double dt) {
 }
 
 void
-render_model (
-	ShaderProgram &program,
-	TextureLoader &texture_loader,
-	const std::string &texture_key,
-	blurryroots::model::MeshLoader &mesh_loader,
-	const std::string &mesh_key,
-	Transform &transform
-) {
-	program.use ();
-	texture_loader.bind (texture_key);
-
-	auto model = game_data.mesh_loader.get (mesh_key);
-
-	program.set_uniform_mat4 ("m", transform.to_matrix ());
-
-	GLint vertex_position =
-		program.get_attribute_location ("vertex_position");
-	glEnableVertexAttribArray (vertex_position);
-
-	GLint vertex_uv =
-		program.get_attribute_location ("vertex_uv");
-	glEnableVertexAttribArray (vertex_uv);
-
-	GLint vertex_normal =
-		program.get_attribute_location ("vertex_normal");
-	glEnableVertexAttribArray (vertex_normal);
-
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, model->index_buffer); {
-		int size; glGetBufferParameteriv (
-			GL_ELEMENT_ARRAY_BUFFER,
-			GL_BUFFER_SIZE,
-			&size
-		);
-
-		glDrawElements (GL_TRIANGLES,
-			size / sizeof (unsigned int),
-			GL_UNSIGNED_INT,
-			0
-		);
-	}
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glDisableVertexAttribArray (vertex_normal);
-	glDisableVertexAttribArray (vertex_uv);
-	glDisableVertexAttribArray (vertex_position);
-
-	texture_loader.unbind ();
-	program.deactivate ();
-}
-
-void
 on_render () {
-	glClearColor (0.01f, 0.01f, 0.01f, 1.0f);
+	glClearColor (0.1f, 0.1f, 0.1f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	game_data.program.use ();
-	game_data.camera_processor.on_render (game_data.program);
-	game_data.program.deactivate ();
+	game_data.program.use (); {
+		game_data.camera_processor.on_render (game_data.program);
 
-	render_model (
-		game_data.program,
-		game_data.texture_loader, "ship",
-		game_data.mesh_loader, "suzanne",
-		game_data.model
-	);
+		//glm::vec4 lights[4];
+		//for (auto i = 0; i < 4; ++i) {
+		//	lights[i] = glm::vec4 (
+		//		Transform::to_position (game_data.lights[i].to_translation ()),
+		//		1.0f
+		//	);
+		//}
+		//game_data.program.set_uniform_vec4_array ("point_lights",
+		//	lights, 4
+		//);
+		game_data.program.set_uniform_vec4 ("point_light",
+			glm::vec4 (
+				Transform::to_position (game_data.lights[0].to_translation ()),
+				1.0f
+			)
+		);
+
+		game_data.texture_loader.bind ("ship");
+		game_data.mesh_renderer.bind (
+			game_data.mesh_loader.get ("suzanne"),
+			game_data.program
+		);
+
+		for (auto i = 0; i < 4; ++i) {
+			game_data.mesh_renderer.render (game_data.program, &(game_data.models[i]));
+		}
+
+		game_data.mesh_renderer.unbind (game_data.program);
+	} game_data.program.deactivate ();
 }
 
 void

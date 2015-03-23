@@ -135,6 +135,81 @@ public:
 	}
 
 	void
+	set_uniform_vec4 (const std::string &name, const glm::vec4 &vec) {
+		std::size_t c = this->uniforms.count (name);
+		if (0 == c) {
+			GLint loc = glGetUniformLocation (this->handle,
+				name.c_str ()
+			);
+			THROW_IF (0 > loc,
+				"Could not find ", name, " ", std::to_string (c)
+			);
+
+			this->uniforms.emplace (name, loc);
+		}
+
+		THROW_IF (! this->in_use,
+			"Unable to set uniform without activating program!"
+		);
+
+		glUniform4fv (
+			this->uniforms.at (name),
+			1,
+			glm::value_ptr (vec)
+		);
+	}
+
+	void
+	set_uniform_vec3_array (const std::string &name, const glm::vec3 *vec_arr, std::size_t count) {
+		std::size_t c = this->uniforms.count (name);
+		if (0 == c) {
+			GLint loc = glGetUniformLocation (this->handle,
+				name.c_str ()
+			);
+			THROW_IF (0 > loc,
+				"Could not find ", name, " ", std::to_string (c)
+			);
+
+			this->uniforms.emplace (name, loc);
+		}
+
+		THROW_IF (! this->in_use,
+			"Unable to set uniform without activating program!"
+		);
+
+		glUniform3fv (
+			this->uniforms.at (name),
+			count,
+			glm::value_ptr (vec_arr[0])
+		);
+	}
+
+	void
+	set_uniform_vec4_array (const std::string &name, const glm::vec4 *vec_arr, std::size_t count) {
+		std::size_t c = this->uniforms.count (name);
+		if (0 == c) {
+			GLint loc = glGetUniformLocation (this->handle,
+				name.c_str ()
+			);
+			THROW_IF (0 > loc,
+				"Could not find ", name, " ", std::to_string (c)
+			);
+
+			this->uniforms.emplace (name, loc);
+		}
+
+		THROW_IF (! this->in_use,
+			"Unable to set uniform without activating program!"
+		);
+
+		glUniform4fv (
+			this->uniforms.at (name),
+			count,
+			glm::value_ptr (vec_arr[0])
+		);
+	}
+
+	void
 	set_uniform_f (const std::string &name, float value) {
 		THROW_IF (0 == this->uniforms.count (name),
 			"Could not find ", name
@@ -321,7 +396,7 @@ public:
 		this->program.handle = glCreateProgram ();
 		bool invalid = GL_FALSE == glIsProgram (this->program.handle);
 		THROW_IF (invalid,
-			SOURCE_LOCATION, " Program handle creation failed!"
+			"Program handle creation failed!"
 		);
 	}
 
@@ -345,24 +420,31 @@ public:
 		return *this;
 	}
 
+	ShaderProgramBuilder &
+	bind_attribute (const std::string &name, GLuint location) {
+		glBindAttribLocation (this->program.handle, location, name.c_str ());
+
+		return *this;
+	}
+
 	ShaderProgram
 	link (void) {
 		THROW_IF (! this->has_vert,
-			SOURCE_LOCATION, "ShaderProgram has no vertex shader attached!"
+			"ShaderProgram has no vertex shader attached!"
 		);
 
 		THROW_IF (! this->has_frag,
-			SOURCE_LOCATION, "ShaderProgram has no fragment shader attached!"
+			"ShaderProgram has no fragment shader attached!"
 		);
 
 		glLinkProgram (this->program.handle);
 		THROW_IF (! this->is_linked (this->program),
-			SOURCE_LOCATION, "Error linking program: ", this->get_info_log (this->program)
+			"Error linking program: ", this->get_info_log (this->program)
 		);
 
 		glValidateProgram (this->program.handle);
 		THROW_IF (! this->is_validated (this->program),
-			SOURCE_LOCATION, "Error validating program: ", this->get_info_log (this->program)
+			"Error validating program: ", this->get_info_log (this->program)
 		);
 
 

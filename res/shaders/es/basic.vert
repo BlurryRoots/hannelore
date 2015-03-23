@@ -6,10 +6,12 @@ attribute vec3 vertex_normal;
 
 varying vec2 fragment_uv;
 varying vec3 fragment_normal;
-varying vec3 fragment_pointing_to_light0;
+//varying vec3 fragment_pointing_to_lights[4];
+varying vec3 point_light_direction;
 
 uniform mat4 m, v, p;
-uniform vec3 LIGHT0;
+//uniform vec4 point_lights[4];
+uniform vec4 point_light;
 
 void
 main (void) {
@@ -18,7 +20,11 @@ main (void) {
 	vec4 world_normal = m * vec4 (vertex_normal, 1.0f);
 
 	gl_Position = vp * world_position;
-	fragment_pointing_to_light0 = world_position.xyz - LIGHT0;
+
+	//for (int i = 0; i < 4; ++i) {
+	//	fragment_pointing_to_lights[i] = world_position.xyz - point_lights[i].xyz;
+	//}
+	point_light_direction = world_position.xyz - point_light.xyz;
 
 	fragment_uv = vertex_uv;
 
