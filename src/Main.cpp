@@ -212,7 +212,7 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	glfwWindowHint (GLFW_VISIBLE, GL_FALSE);
 
 	glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 2);
+	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
 
 	// Create a window and its OpenGL context
 	ctx.window = glfwCreateWindow (
@@ -441,12 +441,7 @@ initialize (void) {
 		.link ()
 		;
 
-	game_data.texture_loader.load ("textures/wool.png", "ship", 0);
-	//game_data.mesh_loader.load (
-	//	"models/objs/suzanne.smooth.obj",
-	//	"suzanne",
-	//	game_data.program
-	//);
+	game_data.texture_loader.load ("textures/grass.png", "ship", 0);
 	game_data.suzanne = create_mesh ("models/objs/suzanne.smooth.obj", game_data.program);
 
 	game_data.camera_processor.on_initialize ();
@@ -478,23 +473,10 @@ on_update (double dt) {
 
 void
 on_render () {
-	glClearColor (0.1f, 0.2f, 0.1f, 1.0f);
+	glClearColor (0.01f, 0.01f, 0.01f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	game_data.program.use ();
-
-	//game_data.texture_loader.bind ("ship");
-	auto info = game_data.texture_loader.get_info ("ship");
-	THROW_IF (nullptr == info,
-		"NE NE!"
-	);
-	auto sampler_location = glGetUniformLocation (game_data.program.get_handle (), "texture_sampler");
-	THROW_IF (0 >= sampler_location,
-		"FUUUUUUCK!"
-	);
-	glActiveTexture (GL_TEXTURE0);
-	glBindTexture (GL_TEXTURE_2D, info->handle);
-	//glUniform1i (sampler_location, 0);
 
 	game_data.camera_processor.on_render (game_data.program);
 
@@ -511,6 +493,8 @@ on_render () {
 	);
 
 	auto &mesh = game_data.suzanne;
+
+	game_data.texture_loader.bind ("ship");
 
 	glBindVertexArray (mesh.vertex_array_object);
 	//glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mesh.index_buffer);

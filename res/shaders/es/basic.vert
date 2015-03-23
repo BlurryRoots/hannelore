@@ -1,22 +1,24 @@
 //#version 120
 
 // first define version of opengl es 1.0 and update to opengl es 2.0 (WTF?)
-#version 100
-#define GLES2
+//#version 100
+//#define GLES2
 
-//#version 300
+#version 300 es
 
-attribute highp vec3 vertex_position;
-attribute highp vec2 vertex_uv;
-attribute highp vec3 vertex_normal;
+in highp vec3 vertex_position;
+in highp vec2 vertex_uv;
+in highp vec3 vertex_normal;
 
-varying highp vec2 fragment_uv;
-varying highp vec3 fragment_normal;
-varying highp vec3 point_light_directions[4];
-varying highp vec4 points[4];
+out highp vec2 fragment_uv;
+out highp vec3 fragment_normal;
+out highp vec3 point_light_directions[4];
+out highp vec4 points[4];
 
 uniform mat4 m, v, p;
 uniform highp vec4 point_light;
+
+//out highp vec4 fragment_position;
 
 void
 main (void) {
