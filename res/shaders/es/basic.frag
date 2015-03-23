@@ -40,28 +40,19 @@ highp float
 calculate_brightness (highp vec4 light, highp vec3 distance) {
 	highp float d = clamp (length (distance), 0.0, 1.0);
 	highp float attinuation = light.w * (1.0 - d);
-	//attinuation = clamp (attinuation, 0.0, 1.0);
 
 	highp float shade = calculate_lighting_value (
 		distance,
 		normalize (fragment_normal)
 	);
-	//shade = clamp (shade, 0.0, 1.0);
 
 	highp float brightness = attinuation * shade;
-	//float brightness = shade * LIGHT0_intensity;
-	//brightness = clamp (brightness, 0.0, 1.0);
-
-	//if (0.01 > brightness) {
-	//	brightness = 0.0;
-	//}
 
 	return brightness;
 }
 
 void
 main (void) {
-	//highp vec4 sample_color = texture2D (texture_sampler, fragment_uv);
 	highp vec4 sample_color = texture2D (texture_sampler, fragment_uv);
 
 	highp float brightness = 0;
@@ -71,12 +62,6 @@ main (void) {
 		), 0.0, 1.0);
 	}
 
-	//brightness = clamp (brightness, 0.0, 1.0);
-
-	//if (0.01f > brightness) {
-	//	brightness = 0.0f;
-	//}
-
 	highp vec3 ambient_color = sample_color.rgb * ambient_light;
 	highp vec3 diffuse_color = sample_color.rgb * brightness;
 
@@ -84,11 +69,6 @@ main (void) {
 	if (0.1 < l) {
 		diffuse_color.r = 1;
 	}
-
-	//diffuse_color.r += sample_color.r;
-	//diffuse_color.g += sample_color.g;
-	//diffuse_color.b += sample_color.b;
-	ambient_color *= 0.001;
 
 	gl_FragColor = vec4 (diffuse_color + ambient_color, 1.0);
 }
