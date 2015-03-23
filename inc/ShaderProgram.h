@@ -111,56 +111,18 @@ public:
 
 	void
 	set_uniform_vec3 (const std::string &name, const glm::vec3 &vec) {
-		std::size_t c = this->uniforms.count (name);
-		if (0 == c) {
-			GLint loc = glGetUniformLocation (this->handle,
-				name.c_str ()
-			);
-			THROW_IF (0 > loc,
-				"Could not find ", name, " ", std::to_string (c)
-			);
-
-			this->uniforms.emplace (name, loc);
-		}
-
-		THROW_IF (! this->in_use,
-			"Unable to set uniform without activating program!"
-		);
-
-		glUniform3fv (
-			this->uniforms.at (name),
-			1,
-			glm::value_ptr (vec)
-		);
-	}
-
-	void
-	set_uniform_vec4 (const std::string &name, const glm::vec4 &vec) {
-		std::size_t c = this->uniforms.count (name);
-		if (0 == c) {
-			GLint loc = glGetUniformLocation (this->handle,
-				name.c_str ()
-			);
-			THROW_IF (0 > loc,
-				"Could not find ", name, " ", std::to_string (c)
-			);
-
-			this->uniforms.emplace (name, loc);
-		}
-
-		THROW_IF (! this->in_use,
-			"Unable to set uniform without activating program!"
-		);
-
-		glUniform4fv (
-			this->uniforms.at (name),
-			1,
-			glm::value_ptr (vec)
-		);
+		this->set_uniform_vec3_array (name, &vec, 1);
 	}
 
 	void
 	set_uniform_vec3_array (const std::string &name, const glm::vec3 *vec_arr, std::size_t count) {
+		THROW_IF (nullptr == vec_arr,
+			"Array pointer null!"
+		);
+		THROW_IF (0 == count,
+			"Count is zero!"
+		);
+
 		std::size_t c = this->uniforms.count (name);
 		if (0 == c) {
 			GLint loc = glGetUniformLocation (this->handle,
@@ -185,7 +147,19 @@ public:
 	}
 
 	void
+	set_uniform_vec4 (const std::string &name, const glm::vec4 &vec) {
+		this->set_uniform_vec4_array (name, &vec, 1);
+	}
+
+	void
 	set_uniform_vec4_array (const std::string &name, const glm::vec4 *vec_arr, std::size_t count) {
+		THROW_IF (nullptr == vec_arr,
+			"Array pointer null!"
+		);
+		THROW_IF (0 == count,
+			"Count is zero!"
+		);
+
 		std::size_t c = this->uniforms.count (name);
 		if (0 == c) {
 			GLint loc = glGetUniformLocation (this->handle,

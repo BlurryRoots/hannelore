@@ -3,8 +3,9 @@
 
 varying vec2 fragment_uv;
 varying vec3 fragment_normal;
-//varying vec3 fragment_pointing_to_lights[4];
-varying vec3 point_light_direction;
+//varying vec3 point_light_direction;
+varying vec3 point_light_directions[4];
+varying vec4 points[4];
 
 // make transformations available
 uniform mat4 m, v, p;
@@ -13,7 +14,6 @@ uniform mat4 m, v, p;
 uniform int colorized_debug;
 
 uniform sampler2D texture_sampler;
-//uniform vec4 point_lights[4];
 uniform vec4 point_light;
 
 // Calculate lighting value via lampert reflectance
@@ -49,14 +49,13 @@ void
 main (void) {
 	vec4 sample_color = texture2D (texture_sampler, fragment_uv);
 
-	float brightness;
-	//for (int i = 0; i < 4; ++i) {
-	//	brightness+= clamp (calculate_brightness (
-	//		point_lights[i], fragment_pointing_to_lights[i]
-	//	), 1.0f, 1.0f);
-	//}
+	float brightness = 0;
+	for (int i = 0; i < 4; ++i) {
+		brightness+= clamp (calculate_brightness (
+			points[i], point_light_directions[i]
+		), 0.0f, 1.0f);
+	}
 
-	brightness = calculate_brightness (point_light, point_light_direction);
 	brightness = clamp (brightness, 0.0f, 1.0f);
 
 	if (0.01f > brightness) {
@@ -64,7 +63,6 @@ main (void) {
 	}
 
 	vec3 diffuse_color = sample_color.rgb * brightness;
-	//vec3 diffuse_color = sample_color.rgb;
 
 	gl_FragColor = vec4 (diffuse_color, sample_color.a);
 }

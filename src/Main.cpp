@@ -283,7 +283,7 @@ initialize (void) {
 	game_data.models[3].translate (glm::vec3 (-3, 0, 0));
 	game_data.models[3].rotate (-PI_OVER_2 * 3.0f, Transform::UP);
 
-	game_data.lights[0].translate (glm::vec3 (0, 0.5, -2.5));
+	game_data.lights[0].translate (glm::vec3 (0, 0, -2.5));
 
 }
 
@@ -298,7 +298,7 @@ on_update (double dt) {
 
 void
 on_render () {
-	glClearColor (0.1f, 0.1f, 0.1f, 1.0f);
+	glClearColor (0.01f, 0.01f, 0.01f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	game_data.program.use (); {
