@@ -39,7 +39,7 @@ struct CameraData {
 	glm::mat4 rotation;
 	glm::mat4 translation;
 
-	glm::vec3 light0;
+	Transform light0;
 };
 
 class CameraProcessor {
@@ -71,10 +71,10 @@ public:
 	on_initialize (void) {
 		this->data.field_of_view = 70.0f;
 		this->data.near = 0.1f;
-		this->data.far = 10.0f;
+		this->data.far = 100.0f;
 		this->data.aspect_ratio = 4.0f / 3.0f;
 
-		this->data.light0 = glm::vec3 (0, 0, 1);
+		this->data.light0.translate (glm::vec3 (0, 3, 0));
 	}
 
 	void
@@ -137,10 +137,6 @@ public:
 			}
 		}
 
-		this->data.light0 = Transform::to_position (
-			glm::inverse (this->transform.to_translation ())
-		);
-
 		this->data.view = this->transform.to_rotation ()
 			* glm::inverse (this->transform.to_translation ())
 			;
@@ -150,7 +146,9 @@ public:
 	on_render (ShaderProgram &program) {
 		program.set_uniform_mat4 ("v", this->data.view);
 		program.set_uniform_mat4 ("p", this->data.projection);
-		program.set_uniform_vec3 ("LIGHT0", this->data.light0);
+		program.set_uniform_vec3 ("LIGHT0",
+			Transform::to_position (this->data.light0.to_translation ())
+		);
 		program.set_uniform_f ("LIGHT0_intensity", 1.0f);
 	}
 
@@ -271,7 +269,8 @@ public:
 
 		if (GLFW_KEY_ENTER == key) {
 			if (GLFW_RELEASE == action) {
-				this->data.rotation = glm::mat4 (1);
+				this->transform.reset_translation ();
+				this->transform.reset_rotation ();
 			}
 		}
 	}
