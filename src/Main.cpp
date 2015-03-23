@@ -31,6 +31,7 @@
 //
 #include <tiny_obj_loader.h>
 #include <Mesh.h>
+#include <MeshLoader.h>
 
 #define TITLE "Hans die Wurst"
 
@@ -381,9 +382,9 @@ initialize (void) {
 		.link ()
 		;
 
-	game_data.texture_loader.load ("textures/grass.png", "ship", 0);
-	//game_data.model = load_model ("models/objs/stanford-dragon.obj", game_data.program);
+	game_data.texture_loader.load ("textures/wool.png", "ship", 0);
 	game_data.model = load_model ("models/objs/suzanne.smooth.obj", game_data.program);
+	//game_data.model = load_model ("models/objs/suzanne.smooth.obj", game_data.program);
 
 	game_data.camera_processor.on_initialize ();
 	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 3));
@@ -391,8 +392,6 @@ initialize (void) {
 
 void
 on_update (double dt) {
-	float fdt = static_cast<float> (dt);
-
 	game_data.is_running = game_data.is_running
 		&& ! glfwWindowShouldClose (game_data.window)
 		;
@@ -402,7 +401,7 @@ on_update (double dt) {
 
 void
 on_render () {
-	glClearColor (0.05f, 0.05f, 0.0f, 1.0f);
+	glClearColor (0.01f, 0.01f, 0.01f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	game_data.program.use ();

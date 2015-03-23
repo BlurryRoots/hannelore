@@ -52,10 +52,9 @@ public:
 	CameraData data;
 
 	CameraProcessor ()
-	: transform ()
-	, data ()
-	, is_running (true) {
-	}
+	: is_running (true)
+	, transform ()
+	, data () {}
 
 	void
 	activate () {
@@ -74,7 +73,7 @@ public:
 		this->data.far = 100.0f;
 		this->data.aspect_ratio = 4.0f / 3.0f;
 
-		this->data.light0.translate (glm::vec3 (0, 3, 0));
+		this->data.light0.translate (glm::vec3 (0, 3, 3));
 	}
 
 	void
@@ -88,7 +87,7 @@ public:
 		{
 			glm::mat4 inv_rotation = glm::inverse (this->transform.to_rotation ());
 			glm::vec3 right   = Transform::to_right (inv_rotation);
-			glm::vec3 up      = Transform::to_up (inv_rotation);
+			//glm::vec3 up      = Transform::to_up (inv_rotation);
 
 			if (0 != this->data.yaw) {
 				// Use the world up vector to create a obsever like camera look.
@@ -112,7 +111,7 @@ public:
 			float speed = 1.618f;
 			glm::mat4 inv_rotation = glm::inverse (this->transform.to_rotation ());
 			glm::vec3 right   = Transform::to_right (inv_rotation);
-			glm::vec3 up      = Transform::to_up (inv_rotation);
+			//glm::vec3 up      = Transform::to_up (inv_rotation);
 			glm::vec3 forward = Transform::to_forward (inv_rotation);
 
 			auto zero_movement =

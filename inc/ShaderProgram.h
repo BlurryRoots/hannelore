@@ -380,7 +380,8 @@ public:
 		std::cout << "Found " << number_uniforms << " uniforms" << std::endl;
 		#endif
 
-		for (GLuint index = 0; index < number_uniforms; ++index) {
+		GLuint n = static_cast<GLuint> (number_uniforms);
+		for (GLuint index = 0; index < n; ++index) {
 			char name_buffer[100];
 			GLsizei name_buffer_size = sizeof (name_buffer);
 			GLint uniform_type_size;
