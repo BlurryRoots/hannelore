@@ -442,12 +442,13 @@ initialize (void) {
 		;
 
 	game_data.texture_loader.load ("textures/grass.png", "ship", 0);
-	game_data.suzanne = create_mesh ("models/objs/suzanne.smooth.obj", game_data.program);
+	game_data.suzanne = create_mesh ("models/objs/stanford-dragon.obj", game_data.program);
 
 	game_data.camera_processor.on_initialize ();
 	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 0));
 
-	game_data.models[0].translate (glm::vec3 ( 0, 0,-3));
+	game_data.models[0].translate (glm::vec3 ( 0, 0,-2.5));
+	game_data.models[0].scale (glm::vec3 (0.15, 0.15, 0.15));
 
 	game_data.models[1].translate (glm::vec3 ( 3, 0, 0));
 	game_data.models[1].rotate (-PI_OVER_2 * 1.0f, Transform::UP);
