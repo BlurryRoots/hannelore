@@ -66,9 +66,9 @@ private:
 	read_texture (const std::string &path) {
 		auto info = new TextureInformation ();
 
-    	info->texels = stbi_load (path.c_str (),
-    		&(info->width), &(info->height), &(info->components),
-    		4
+		info->texels = stbi_load (path.c_str (),
+			&(info->width), &(info->height), &(info->components),
+			4
 		);
 		if (nullptr == info->texels) {
 			dispose_info (info);
@@ -79,6 +79,8 @@ private:
 
 		info->internalFormat = GL_RGBA;
 		info->format = GL_RGBA;
+
+		return info;
 	}
 
 	static void
