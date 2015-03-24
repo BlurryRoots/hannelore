@@ -289,16 +289,17 @@ initialize (void) {
 		.link ()
 		;
 
-	game_data.texture_loader.load ("textures/suzanne.uv.png", "suzanne.uv", 0);
-	game_data.texture_loader.load ("textures/grass.png", "grass", 0);
+	game_data.texture_loader.load ("textures/burned.jpg", "suzanne", 0);
+	game_data.texture_loader.load ("textures/honeycomb.jpg", "dragon", 0);
 
 	game_data.dragon = game_data.mesh_loader.create_mesh ("models/objs/stanford-dragon.obj", game_data.program);
-	game_data.models[0].translate (glm::vec3 ( 0, 1, 0));
-	game_data.models[0].scale (glm::vec3 (0.15, 0.15, 0.15));
+	game_data.models[0].translate (glm::vec3 ( 0, -1.8, -2.0));
+	game_data.models[0].scale (glm::vec3 (0.3, 0.3, 0.3));
+	game_data.models[0].rotate (-PI_OVER_2 * 1.0f, Transform::UP);
 
 	game_data.suzanne = game_data.mesh_loader.create_mesh ("models/objs/suzanne.smooth.obj", game_data.program);
-	game_data.models[1].translate (glm::vec3 ( 0, -1, 0));
-	game_data.models[1].rotate (-PI_OVER_2 * 1.0f, Transform::UP);
+	game_data.models[1].translate (glm::vec3 ( 0, 0, 2));
+	game_data.models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
 #if 0
 	game_data.models[2].translate (glm::vec3 ( 0, 0, 3));
@@ -311,7 +312,8 @@ initialize (void) {
 	game_data.lights[0].translate (glm::vec3 (0, 0, 0));
 
 	game_data.camera_processor.on_initialize ();
-	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 0));
+	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 4));
+	//game_data.camera_processor.transform.rotate (-PI_OVER_2 * 1.0f, Transform::UP);
 
 }
 
@@ -388,7 +390,7 @@ on_render () {
 	render_model (
 		game_data.dragon,
 		game_data.models[0],
-		"grass",
+		"dragon",
 		game_data.texture_loader,
 		game_data.program
 	);
@@ -396,16 +398,19 @@ on_render () {
 	render_model (
 		game_data.suzanne,
 		game_data.models[1],
-		"suzanne.uv",
+		"suzanne",
 		game_data.texture_loader,
 		game_data.program
 	);
+
+	game_data.program.deactivate ();
 }
 
 void
 dispose () {
 	game_data.program.dispose ();
 	game_data.texture_loader.dispose ();
+	game_data.mesh_loader.dispose_mesh (game_data.dragon);
 	game_data.mesh_loader.dispose_mesh (game_data.suzanne);
 
 	glfwTerminate ();
