@@ -1,226 +1,189 @@
 #ifndef __MESHLOADER_H__
 #define __MESHLOADER_H__
 
-namespace blurryroots { namespace model {
-
 #include <unordered_map>
 #include <functional>
 
 #include <tiny_obj_loader.h>
 
+#include <IDisposable.h>
 #include <MeshLoader.h>
 #include <Util.h>
 
-class MeshLoader {
+namespace blurryroots { namespace model {
 
-typedef
-	std::function<void (void)>
-	with_callback
-	;
+struct MeshLoadingData {
+	GLvoid *payload;
+	std::size_t size;
+	GLenum payload_type;
+	GLuint buffer;
+	GLint attribute;
+	std::size_t components;
+	GLenum buffer_type;
+	GLenum buffer_strategy;
+
+	MeshLoadingData ()
+	: payload (nullptr)
+	, size (0)
+	, payload_type (GL_FLOAT)
+	, buffer (0)
+	, attribute (-1)
+	, components (0)
+	, buffer_type (GL_ARRAY_BUFFER)
+	, buffer_strategy (GL_STATIC_DRAW) {}
+
+	MeshLoadingData (
+		GLvoid *payload,
+		std::size_t size,
+		GLenum payload_type,
+		GLuint buffer,
+		GLint attribute,
+		std::size_t components,
+		GLenum buffer_type,
+		GLenum buffer_strategy
+	)
+	: payload (payload)
+	, size (size)
+	, payload_type (payload_type)
+	, buffer (buffer)
+	, attribute (attribute)
+	, components (components)
+	, buffer_type (buffer_type)
+	, buffer_strategy (buffer_strategy) {}
+
+	MeshLoadingData (const MeshLoadingData &other)
+	: payload (other.payload)
+	, size (other.size)
+	, payload_type (other.payload_type)
+	, buffer (other.buffer)
+	, attribute (other.attribute)
+	, components (other.components)
+	, buffer_type (other.buffer_type)
+	, buffer_strategy (other.buffer_strategy) {}
+};
+
+class MeshLoader
+: IDisposable {
 
 private:
-	std::unordered_map<std::string, Mesh*> meshes;
-
 	void
-	generate_buffers (Mesh *mesh) {
-		glGenBuffers (1, &(mesh->vertex_buffer));
-		glGenBuffers (1, &(mesh->index_buffer));
-		glGenBuffers (1, &(mesh->uv_buffer));
-		glGenBuffers (1, &(mesh->normal_buffer));
-		glGenBuffers (1, &(mesh->color_buffer));
-	}
-
-	void
-	with_buffer (GLenum type, GLuint id, with_callback callback) {
-		glBindBuffer (type, id);
-	}
-
-	void
-	upload (Mesh *mesh, ShaderProgram &program) {
-		{
-			GLint vaa = program.get_attribute_location ("vertex_position");
-
-			glBindBuffer (GL_ARRAY_BUFFER, mesh->vertex_buffer);
-			glEnableVertexAttribArray (vaa);
-			glVertexAttribPointer (
-				vaa,
-				3,
-				GL_FLOAT,
-				GL_FALSE,
-				0,
-				// array buffer offset
-				0
+	load_attributed_buffer_data (const MeshLoadingData &data) {
+		glBindBuffer (data.buffer_type, data.buffer);
+		if (0 < data.components) {
+			THROW_IF (0 > data.attribute,
+				"Attribute handle is invalid (handle: ", std::to_string (data.attribute), ")"
 			);
-			glBufferData (GL_ARRAY_BUFFER,
-				mesh->shapes[0].mesh.positions.size ()
-					* sizeof (float),
-				reinterpret_cast<void*> (
-					mesh->shapes[0].mesh.positions.data ()
-				),
-				GL_STATIC_DRAW
+			glEnableVertexAttribArray (data.attribute);
+			glVertexAttribPointer (data.attribute,
+				data.components, data.payload_type, GL_FALSE, 0, 0
 			);
-			glDisableVertexAttribArray (vaa);
-			glBindBuffer (GL_ARRAY_BUFFER, 0);
 		}
-
-		// Normal directions
-		auto nnormals = mesh->shapes[0].mesh.normals.size ();
-		THROW_IF (0 == nnormals,
-			"No normals :/"
+		glBufferData (data.buffer_type,
+			data.size, data.payload, GL_STATIC_DRAW
 		);
-		std::cout << "#normals: " << nnormals << std::endl;;
-		{
-			GLint vaa = program.get_attribute_location ("vertex_normal");
-
-			glBindBuffer (GL_ARRAY_BUFFER, mesh->normal_buffer);
-			glEnableVertexAttribArray (vaa);
-			glVertexAttribPointer (
-				vaa,
-				3,
-				GL_FLOAT,
-				GL_FALSE,
-				0,
-				// array buffer offset
-				0
-			);
-			glBufferData (GL_ARRAY_BUFFER,
-				mesh->shapes[0].mesh.normals.size ()
-					* sizeof (float),
-				reinterpret_cast<void*> (
-					mesh->shapes[0].mesh.normals.data ()
-				),
-				GL_STATIC_DRAW
-			);
-			glDisableVertexAttribArray (vaa);
-			glBindBuffer (GL_ARRAY_BUFFER, 0);
-		}
-
-		// UV Coordinates
-		{
-			GLint vaa = program.get_attribute_location ("vertex_uv");
-
-			glBindBuffer (GL_ARRAY_BUFFER, mesh->uv_buffer);
-			glEnableVertexAttribArray (vaa);
-			glVertexAttribPointer (
-				vaa,
-				2,
-				GL_FLOAT,
-				GL_FALSE,
-				0,
-				// array buffer offset
-				0
-			);
-			glBufferData (GL_ARRAY_BUFFER,
-				mesh->shapes[0].mesh.texcoords.size ()
-					* sizeof (float),
-				reinterpret_cast<void*> (
-					mesh->shapes[0].mesh.texcoords.data ()
-				),
-				GL_STATIC_DRAW
-			);
-			glDisableVertexAttribArray (vaa);
-			glBindBuffer (GL_ARRAY_BUFFER, 0);
-		}
-
-		// Organize vertices into triangles
-		{
-			glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mesh->index_buffer);
-			// DATA
-			glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-				mesh->shapes[0].mesh.indices.size ()
-					* sizeof (unsigned int),
-				reinterpret_cast<void*> (
-					mesh->shapes[0].mesh.indices.data ()
-				),
-				GL_STATIC_DRAW
-			);
-			glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
-		}
-	}
-
-	void
-	store (const std::string &key, Mesh *mesh) {
-		auto r = this->meshes.emplace (key, mesh);
-		THROW_IF (! r.second,
-			"Replacing ", key, ". This should not happen!"
-		);
-	}
-
-	void
-	dispose_buffers (Mesh *mesh) {
-		glDeleteBuffers (1, &(mesh->vertex_buffer));
-		glDeleteBuffers (1, &(mesh->index_buffer));
-		glDeleteBuffers (1, &(mesh->uv_buffer));
-		glDeleteBuffers (1, &(mesh->normal_buffer));
-		glDeleteBuffers (1, &(mesh->color_buffer));
 	}
 
 public:
 	MeshLoader (void) {}
-
-	virtual
-	~MeshLoader (void) {}
+	MeshLoader (const MeshLoader &other) {}
 
 	void
-	load (const std::string &path, const std::string &key, ShaderProgram &program) {
-		THROW_IF (0 < this->meshes.count (key),
-			"Key with name ", key, " is already used!"
-		);
+	dispose (void) {
 
-		Mesh *mesh = new Mesh (); {
+	}
+
+	Mesh
+	create_mesh (const std::string &path, ShaderProgram &program) {
+		Mesh mesh; {
 			std::string err = tinyobj::LoadObj (
-				mesh->shapes, mesh->materials,
+				mesh.shapes, mesh.materials,
 				path.c_str ()
 			);
-
-			if (! err.empty ()) {
-				delete mesh;
-
-				THROW_IF (true,
-					err
-				);
-			}
+			THROW_IF (! err.empty (),
+				err
+			);
 		}
 
-		this->generate_buffers (mesh);
+		// cheffe
+		glGenVertexArrays (1, &(mesh.vertex_array_object));
+		glBindVertexArray (mesh.vertex_array_object);
 
-		this->upload (mesh, program);
+		glGenBuffers (1, &(mesh.color_buffer));
 
-		this->store (key, mesh);
-	}
+		static constexpr std::size_t buffer_count = 4;
+		MeshLoadingData loading_data[buffer_count];
+		{
+			auto &indices = mesh.shapes[0].mesh.indices;
+			glGenBuffers (1, &(mesh.index_buffer));
+			loading_data[0] = MeshLoadingData (
+				reinterpret_cast<GLvoid*> (indices.data ()),
+				sizeof (indices.at (0)) * indices.size (),
+				GL_UNSIGNED_INT,
+				mesh.index_buffer,
+				-1,
+				0,
+				GL_ELEMENT_ARRAY_BUFFER,
+				GL_STATIC_DRAW
+			);
 
-	Mesh*
-	get (const std::string &key) {
-		THROW_IF (0 == this->meshes.count (key),
-			"No key with name ", key
-		);
+			auto &vertices = mesh.shapes[0].mesh.positions;
+			glGenBuffers (1, &(mesh.vertex_buffer));
+			loading_data[1] = MeshLoadingData (
+				reinterpret_cast<GLvoid*> (vertices.data ()),
+				sizeof (vertices.at (0)) * vertices.size (),
+				GL_FLOAT,
+				mesh.vertex_buffer,
+				program.get_attribute_location ("vertex_position"),
+				3,
+				GL_ARRAY_BUFFER,
+				GL_STATIC_DRAW
+			);
 
-		return this->meshes.at (key);
+			auto &uvs = mesh.shapes[0].mesh.texcoords;
+			glGenBuffers (1, &(mesh.uv_buffer));
+			loading_data[2] = MeshLoadingData (
+				reinterpret_cast<GLvoid*> (uvs.data ()),
+				sizeof (uvs.at (0)) * uvs.size (),
+				GL_FLOAT,
+				mesh.uv_buffer,
+				program.get_attribute_location ("vertex_uv"),
+				2,
+				GL_ARRAY_BUFFER,
+				GL_STATIC_DRAW
+			);
+
+			auto &normals = mesh.shapes[0].mesh.normals;
+			glGenBuffers (1, &(mesh.normal_buffer));
+			loading_data[3] = MeshLoadingData (
+				reinterpret_cast<GLvoid*> (normals.data ()),
+				sizeof (normals.at (0)) * normals.size (),
+				GL_FLOAT,
+				mesh.normal_buffer,
+				program.get_attribute_location ("vertex_normal"),
+				3,
+				GL_ARRAY_BUFFER,
+				GL_STATIC_DRAW
+			);
+		}
+
+		for (std::size_t i = 0; i < buffer_count; ++i) {
+			load_attributed_buffer_data (loading_data[i]);
+		}
+
+		glBindVertexArray (0);
+
+		return mesh;
 	}
 
 	void
-	unload (const std::string &key) {
-		THROW_IF (0 == this->meshes.count (key),
-			"No key with name ", key
-		);
+	dispose_mesh (Mesh &mesh) {
+		glDeleteBuffers (1, &(mesh.vertex_buffer));
+		glDeleteBuffers (1, &(mesh.index_buffer));
+		glDeleteBuffers (1, &(mesh.uv_buffer));
+		glDeleteBuffers (1, &(mesh.normal_buffer));
+		glDeleteBuffers (1, &(mesh.color_buffer));
 
-		auto mesh = this->meshes.at (key);
-		this->meshes.erase (key);
-
-		this->dispose_buffers (mesh);
-		delete mesh;
-	}
-
-	void
-	dispose () {
-		for (auto &entry : this->meshes) {
-			auto mesh = entry.second;
-
-			this->dispose_buffers (mesh);
-			delete mesh;
-		}
-
-		this->meshes.clear ();
+		glDeleteVertexArrays (1, &(mesh.vertex_array_object));
 	}
 
 };
