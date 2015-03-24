@@ -39,16 +39,17 @@ calculate_lighting_value (highp vec3 light_direction, highp vec3 normal) {
 highp float
 calculate_brightness (highp vec4 light, highp vec3 distance) {
 	highp float d = clamp (length (distance), 0.0, 1.0);
-	highp float attinuation = light.w * (1.0 - d);
+	highp float attinuation = d * d;
 	attinuation = clamp (attinuation, 0.0, 1.0);
 
+	highp float intensity = light.w;
 	highp float shade = calculate_lighting_value (
 		distance,
 		normalize (fragment_normal)
 	);
 	shade = clamp (shade, 0.0, 1.0);
 
-	highp float brightness = attinuation * shade;
+	highp float brightness = (shade * intensity) / attinuation;
 	brightness = clamp (brightness, 0.0, 1.0);
 
 	return brightness;
