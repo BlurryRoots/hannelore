@@ -67,19 +67,75 @@ class MeshLoader
 
 private:
 	void
-	load_attributed_buffer_data (const MeshLoadingData &data) {
-		glBindBuffer (data.buffer_type, data.buffer);
-		if (0 < data.components) {
-			THROW_IF (0 > data.attribute,
-				"Attribute handle is invalid (handle: ", std::to_string (data.attribute), ")"
+	load_attributed_buffer_data (
+		const GLvoid *data_ptr,
+		std::size_t byte_size,
+		GLenum data_type,
+		GLuint target_buffer_id,
+		GLint target_attribute_id,
+		std::size_t components,
+		GLenum buffer_type,
+		GLenum buffer_strategy
+	) {
+		THROW_IF (nullptr == data_ptr,
+			"Nooooo!"
+		);
+
+		glBindBuffer (buffer_type, target_buffer_id);
+		if (0 < components) {
+			THROW_IF (0 > target_attribute_id,
+				"Attribute handle is invalid (handle: ",
+				std::to_string (target_attribute_id), ")"
 			);
-			glEnableVertexAttribArray (data.attribute);
-			glVertexAttribPointer (data.attribute,
-				data.components, data.payload_type, GL_FALSE, 0, 0
+			glEnableVertexAttribArray (target_attribute_id);
+			glVertexAttribPointer (target_attribute_id,
+				components, data_type, GL_FALSE, 0, 0
 			);
 		}
-		glBufferData (data.buffer_type,
-			data.size, data.payload, GL_STATIC_DRAW
+		glBufferData (buffer_type,
+			byte_size, data_ptr, buffer_strategy
+		);
+	}
+
+	void
+	load_attributed_buffer_data_from (
+		const std::vector<float> &data_vector,
+		GLuint target_buffer_id,
+		GLint target_attribute_id,
+		std::size_t components,
+		GLenum buffer_type,
+		GLenum buffer_strategy
+	) {
+		load_attributed_buffer_data (
+			reinterpret_cast<const GLvoid*> (data_vector.data ()),
+			sizeof (float) * data_vector.size (),
+			GL_FLOAT,
+			target_buffer_id,
+			target_attribute_id,
+			components,
+			buffer_type,
+			buffer_strategy
+		);
+	}
+
+	void
+	load_attributed_buffer_data_from (
+		const std::vector<unsigned int> &data_vector,
+		GLuint target_buffer_id,
+		GLint target_attribute_id,
+		std::size_t components,
+		GLenum buffer_type,
+		GLenum buffer_strategy
+	) {
+		load_attributed_buffer_data (
+			reinterpret_cast<const GLvoid*> (data_vector.data ()),
+			sizeof (unsigned int) * data_vector.size (),
+			GL_UNSIGNED_INT,
+			target_buffer_id,
+			target_attribute_id,
+			components,
+			buffer_type,
+			buffer_strategy
 		);
 	}
 
@@ -104,71 +160,55 @@ public:
 			);
 		}
 
+		THROW_IF (0 == mesh.shapes.size (),
+			"No shapes found!"
+		);
+
+		THROW_IF (1 < mesh.shapes.size (),
+			"Currently only loading 1 shape is supported!"
+		);
+
 		// cheffe
 		glGenVertexArrays (1, &(mesh.vertex_array_object));
 		glBindVertexArray (mesh.vertex_array_object);
 
 		glGenBuffers (1, &(mesh.color_buffer));
 
-		static constexpr std::size_t buffer_count = 4;
-		MeshLoadingData loading_data[buffer_count];
-		{
-			auto &indices = mesh.shapes[0].mesh.indices;
-			glGenBuffers (1, &(mesh.index_buffer));
-			loading_data[0] = MeshLoadingData (
-				reinterpret_cast<GLvoid*> (indices.data ()),
-				sizeof (indices.at (0)) * indices.size (),
-				GL_UNSIGNED_INT,
-				mesh.index_buffer,
-				-1,
-				0,
-				GL_ELEMENT_ARRAY_BUFFER,
-				GL_STATIC_DRAW
-			);
+		glGenBuffers (1, &(mesh.index_buffer));
+		load_attributed_buffer_data_from (mesh.shapes[0].mesh.indices,
+			mesh.index_buffer,
+			-1,
+			0,
+			GL_ELEMENT_ARRAY_BUFFER,
+			GL_STATIC_DRAW
+		);
 
-			auto &vertices = mesh.shapes[0].mesh.positions;
-			glGenBuffers (1, &(mesh.vertex_buffer));
-			loading_data[1] = MeshLoadingData (
-				reinterpret_cast<GLvoid*> (vertices.data ()),
-				sizeof (vertices.at (0)) * vertices.size (),
-				GL_FLOAT,
-				mesh.vertex_buffer,
-				program.get_attribute_location ("vertex_position"),
-				3,
-				GL_ARRAY_BUFFER,
-				GL_STATIC_DRAW
-			);
+		glGenBuffers (1, &(mesh.vertex_buffer));
+		load_attributed_buffer_data_from (mesh.shapes[0].mesh.positions,
+			mesh.vertex_buffer,
+			program.get_attribute_location ("vertex_position"),
+			3,
+			GL_ARRAY_BUFFER,
+			GL_STATIC_DRAW
+		);
 
-			auto &uvs = mesh.shapes[0].mesh.texcoords;
-			glGenBuffers (1, &(mesh.uv_buffer));
-			loading_data[2] = MeshLoadingData (
-				reinterpret_cast<GLvoid*> (uvs.data ()),
-				sizeof (uvs.at (0)) * uvs.size (),
-				GL_FLOAT,
-				mesh.uv_buffer,
-				program.get_attribute_location ("vertex_uv"),
-				2,
-				GL_ARRAY_BUFFER,
-				GL_STATIC_DRAW
-			);
+		glGenBuffers (1, &(mesh.uv_buffer));
+		load_attributed_buffer_data_from (mesh.shapes[0].mesh.texcoords,
+			mesh.uv_buffer,
+			program.get_attribute_location ("vertex_uv"),
+			2,
+			GL_ARRAY_BUFFER,
+			GL_STATIC_DRAW
+		);
 
-			auto &normals = mesh.shapes[0].mesh.normals;
-			glGenBuffers (1, &(mesh.normal_buffer));
-			loading_data[3] = MeshLoadingData (
-				reinterpret_cast<GLvoid*> (normals.data ()),
-				sizeof (normals.at (0)) * normals.size (),
-				GL_FLOAT,
-				mesh.normal_buffer,
-				program.get_attribute_location ("vertex_normal"),
-				3,
-				GL_ARRAY_BUFFER,
-				GL_STATIC_DRAW
-			);
-		}
-
-		for (std::size_t i = 0; i < buffer_count; ++i) {
-			load_attributed_buffer_data (loading_data[i]);
-		}
+		glGenBuffers (1, &(mesh.normal_buffer));
+		load_attributed_buffer_data_from (mesh.shapes[0].mesh.normals,
+			mesh.normal_buffer,
+			program.get_attribute_location ("vertex_normal"),
+			3,
+			GL_ARRAY_BUFFER,
+			GL_STATIC_DRAW
+		);
 
 		glBindVertexArray (0);
 

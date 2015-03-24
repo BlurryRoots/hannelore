@@ -80,6 +80,7 @@ struct GameData {
 	} matrices;
 
 	blurryroots::model::Mesh suzanne;
+	blurryroots::model::Mesh dragon;
 
 	Transform models[4];
 
@@ -288,25 +289,29 @@ initialize (void) {
 		.link ()
 		;
 
-	game_data.texture_loader.load ("textures/grass.png", "ship", 0);
-	game_data.suzanne = game_data.mesh_loader.create_mesh ("models/objs/stanford-dragon.obj", game_data.program);
+	game_data.texture_loader.load ("textures/suzanne.uv.png", "suzanne.uv", 0);
+	game_data.texture_loader.load ("textures/grass.png", "grass", 0);
 
-	game_data.camera_processor.on_initialize ();
-	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 0));
-
-	game_data.models[0].translate (glm::vec3 ( 0, 0,-2.5));
+	game_data.dragon = game_data.mesh_loader.create_mesh ("models/objs/stanford-dragon.obj", game_data.program);
+	game_data.models[0].translate (glm::vec3 ( 0, 1, 0));
 	game_data.models[0].scale (glm::vec3 (0.15, 0.15, 0.15));
 
-	game_data.models[1].translate (glm::vec3 ( 3, 0, 0));
+	game_data.suzanne = game_data.mesh_loader.create_mesh ("models/objs/suzanne.smooth.obj", game_data.program);
+	game_data.models[1].translate (glm::vec3 ( 0, -1, 0));
 	game_data.models[1].rotate (-PI_OVER_2 * 1.0f, Transform::UP);
 
+#if 0
 	game_data.models[2].translate (glm::vec3 ( 0, 0, 3));
 	game_data.models[2].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
 	game_data.models[3].translate (glm::vec3 (-3, 0, 0));
 	game_data.models[3].rotate (-PI_OVER_2 * 3.0f, Transform::UP);
+#endif
 
-	game_data.lights[0].translate (glm::vec3 (0, 0, -2.5));
+	game_data.lights[0].translate (glm::vec3 (0, 0, 0));
+
+	game_data.camera_processor.on_initialize ();
+	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 0));
 
 }
 
@@ -319,6 +324,44 @@ on_update (double dt) {
 	game_data.camera_processor.on_update (dt);
 
 	std::cout << "FPS: "<< std::to_string (1 / dt) << std::endl;
+}
+
+void
+render_model (
+	const blurryroots::model::Mesh &mesh,
+	const Transform &transform,
+	const std::string &texture_key,
+	TextureLoader &texture_loader,
+	ShaderProgram &program
+) {
+	texture_loader.bind (texture_key);
+	glBindVertexArray (mesh.vertex_array_object);
+
+	// calculate and forward mesh transform
+	program.set_uniform_mat4 ("m",
+		transform.to_matrix ()
+	);
+
+	int size;
+	glGetBufferParameteriv (
+		GL_ELEMENT_ARRAY_BUFFER,
+		GL_BUFFER_SIZE,
+		&size
+	);
+	THROW_IF (0 >= size,
+		"Invalid element buffer!"
+	);
+
+	// draw all the triangles!
+	int element_count = size / sizeof (mesh.shapes[0].mesh.indices.at (0));
+	int real_element_count = mesh.shapes[0].mesh.indices.size ();
+	THROW_IF (element_count != real_element_count,
+		"Unequal element_count ", std::to_string (element_count), " vs ", std::to_string (real_element_count)
+	);
+	glDrawElements (GL_TRIANGLES, element_count, GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray (0);
+	texture_loader.unbind ();
 }
 
 void
@@ -342,34 +385,21 @@ on_render () {
 		)
 	);
 
-	auto &mesh = game_data.suzanne;
-
-	game_data.texture_loader.bind ("ship");
-
-	glBindVertexArray (mesh.vertex_array_object);
-
-	// calculate and forward mesh transform
-	game_data.program.set_uniform_mat4 ("m",
-		game_data.models[0].to_matrix ()
+	render_model (
+		game_data.dragon,
+		game_data.models[0],
+		"grass",
+		game_data.texture_loader,
+		game_data.program
 	);
 
-	int size;
-	glGetBufferParameteriv (
-		GL_ELEMENT_ARRAY_BUFFER,
-		GL_BUFFER_SIZE,
-		&size
+	render_model (
+		game_data.suzanne,
+		game_data.models[1],
+		"suzanne.uv",
+		game_data.texture_loader,
+		game_data.program
 	);
-	THROW_IF (0 >= size,
-		"Invalid element buffer!"
-	);
-
-	// draw all the triangles!
-	int element_count = size / sizeof (mesh.shapes[0].mesh.indices.at (0));
-	int real_element_count = mesh.shapes[0].mesh.indices.size ();
-	THROW_IF (element_count != real_element_count,
-		"Unequal element_count ", std::to_string (element_count), " vs ", std::to_string (real_element_count)
-	);
-	glDrawElements (GL_TRIANGLES, element_count, GL_UNSIGNED_INT, 0);
 }
 
 void
