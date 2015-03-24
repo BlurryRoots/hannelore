@@ -211,7 +211,7 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	glfwWindowHint (GLFW_REFRESH_RATE, mode->refreshRate);
 	glfwWindowHint (GLFW_VISIBLE, GL_FALSE);
 
-	glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+	//glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
 
 	// Create a window and its OpenGL context
@@ -278,6 +278,8 @@ struct MeshLoadingData {
 	GLuint buffer;
 	GLint attribute;
 	std::size_t components;
+	GLenum buffer_type;
+	GLenum buffer_strategy;
 
 	MeshLoadingData ()
 	: payload (nullptr)
@@ -285,7 +287,9 @@ struct MeshLoadingData {
 	, payload_type (GL_FLOAT)
 	, buffer (0)
 	, attribute (-1)
-	, components (0) {}
+	, components (0)
+	, buffer_type (GL_ARRAY_BUFFER)
+	, buffer_strategy (GL_STATIC_DRAW) {}
 
 	MeshLoadingData (
 		GLvoid *payload,
@@ -293,14 +297,18 @@ struct MeshLoadingData {
 		GLenum payload_type,
 		GLuint buffer,
 		GLint attribute,
-		std::size_t components
+		std::size_t components,
+		GLenum buffer_type,
+		GLenum buffer_strategy
 	)
 	: payload (payload)
 	, size (size)
 	, payload_type (payload_type)
 	, buffer (buffer)
 	, attribute (attribute)
-	, components (components) {}
+	, components (components)
+	, buffer_type (buffer_type)
+	, buffer_strategy (buffer_strategy) {}
 
 	MeshLoadingData (const MeshLoadingData &other)
 	: payload (other.payload)
@@ -308,8 +316,27 @@ struct MeshLoadingData {
 	, payload_type (other.payload_type)
 	, buffer (other.buffer)
 	, attribute (other.attribute)
-	, components (other.components) {}
+	, components (other.components)
+	, buffer_type (other.buffer_type)
+	, buffer_strategy (other.buffer_strategy) {}
 };
+
+void
+load_attributed_buffer_data (const MeshLoadingData &data) {
+	glBindBuffer (data.buffer_type, data.buffer);
+	if (0 < data.components) {
+		THROW_IF (0 > data.attribute,
+			"Attribute handle is invalid (handle: ", std::to_string (data.attribute), ")"
+		);
+		glEnableVertexAttribArray (data.attribute);
+		glVertexAttribPointer (data.attribute,
+			data.components, data.payload_type, GL_FALSE, 0, 0
+		);
+	}
+	glBufferData (data.buffer_type,
+		data.size, data.payload, GL_STATIC_DRAW
+	);
+}
 
 blurryroots::model::Mesh
 create_mesh (const std::string &path, ShaderProgram &program) {
@@ -329,7 +356,8 @@ create_mesh (const std::string &path, ShaderProgram &program) {
 
 	glGenBuffers (1, &(mesh.color_buffer));
 
-	MeshLoadingData loading_data[4];
+	static constexpr std::size_t buffer_count = 4;
+	MeshLoadingData loading_data[buffer_count];
 	{
 		auto &indices = mesh.shapes[0].mesh.indices;
 		glGenBuffers (1, &(mesh.index_buffer));
@@ -339,7 +367,9 @@ create_mesh (const std::string &path, ShaderProgram &program) {
 			GL_UNSIGNED_INT,
 			mesh.index_buffer,
 			-1,
-			0
+			0,
+			GL_ELEMENT_ARRAY_BUFFER,
+			GL_STATIC_DRAW
 		);
 
 		auto &vertices = mesh.shapes[0].mesh.positions;
@@ -350,7 +380,9 @@ create_mesh (const std::string &path, ShaderProgram &program) {
 			GL_FLOAT,
 			mesh.vertex_buffer,
 			program.get_attribute_location ("vertex_position"),
-			3
+			3,
+			GL_ARRAY_BUFFER,
+			GL_STATIC_DRAW
 		);
 
 		auto &uvs = mesh.shapes[0].mesh.texcoords;
@@ -361,7 +393,9 @@ create_mesh (const std::string &path, ShaderProgram &program) {
 			GL_FLOAT,
 			mesh.uv_buffer,
 			program.get_attribute_location ("vertex_uv"),
-			2
+			2,
+			GL_ARRAY_BUFFER,
+			GL_STATIC_DRAW
 		);
 
 		auto &normals = mesh.shapes[0].mesh.normals;
@@ -372,41 +406,15 @@ create_mesh (const std::string &path, ShaderProgram &program) {
 			GL_FLOAT,
 			mesh.normal_buffer,
 			program.get_attribute_location ("vertex_normal"),
-			3
+			3,
+			GL_ARRAY_BUFFER,
+			GL_STATIC_DRAW
 		);
 	}
 
-	glBindBuffer (GL_ARRAY_BUFFER, loading_data[1].buffer);
-	glEnableVertexAttribArray (loading_data[1].attribute);
-	glVertexAttribPointer (loading_data[1].attribute,
-		loading_data[1].components, loading_data[1].payload_type, GL_FALSE, 0, 0
-	);
-	glBufferData (GL_ARRAY_BUFFER,
-		loading_data[1].size, loading_data[1].payload, GL_STATIC_DRAW
-	);
-
-	glBindBuffer (GL_ARRAY_BUFFER, loading_data[2].buffer);
-	glEnableVertexAttribArray (loading_data[2].attribute);
-	glVertexAttribPointer (loading_data[2].attribute,
-		loading_data[2].components, loading_data[2].payload_type, GL_FALSE, 0, 0
-	);
-	glBufferData (GL_ARRAY_BUFFER,
-		loading_data[2].size, loading_data[2].payload, GL_STATIC_DRAW
-	);
-
-	glBindBuffer (GL_ARRAY_BUFFER, loading_data[3].buffer);
-	glEnableVertexAttribArray (loading_data[3].attribute);
-	glVertexAttribPointer (loading_data[3].attribute,
-		loading_data[3].components, loading_data[3].payload_type, GL_FALSE, 0, 0
-	);
-	glBufferData (GL_ARRAY_BUFFER,
-		loading_data[3].size, loading_data[3].payload, GL_STATIC_DRAW
-	);
-
-	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, loading_data[0].buffer);
-	glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-		loading_data[0].size, loading_data[0].payload, GL_STATIC_DRAW
-	);
+	for (std::size_t i = 0; i < buffer_count; ++i) {
+		load_attributed_buffer_data (loading_data[i]);
+	}
 
 	glBindVertexArray (0);
 
@@ -470,6 +478,8 @@ on_update (double dt) {
 		;
 
 	game_data.camera_processor.on_update (dt);
+
+	std::cout << "FPS: "<< std::to_string (1 / dt) << std::endl;
 }
 
 void
@@ -498,7 +508,6 @@ on_render () {
 	game_data.texture_loader.bind ("ship");
 
 	glBindVertexArray (mesh.vertex_array_object);
-	//glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mesh.index_buffer);
 
 	// calculate and forward mesh transform
 	game_data.program.set_uniform_mat4 ("m",
