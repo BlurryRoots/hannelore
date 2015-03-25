@@ -81,9 +81,13 @@ struct GameData {
 
 	blurryroots::model::Mesh suzanne;
 	blurryroots::model::Mesh dragon;
+
 	blurryroots::model::Mesh light;
 	float light_radius;
 	float light_intensity;
+	glm::vec3 light_color;
+	float light_color_factor;
+	float light_color_base;
 
 	Transform models[4];
 
@@ -318,6 +322,8 @@ initialize (void) {
 
 game_data.light_radius = 1.0f;
 game_data.light_intensity = 1.0f;
+game_data.light_color_factor = 0.1f;
+game_data.light_color_base = 1.0f;
 
 }
 
@@ -337,6 +343,20 @@ on_update (double dt) {
 
 	float speed = suzanne_speed * dt;
 	game_data.models[1].translate (glm::vec3 (0, 0, speed));
+
+	//if (1.0 < game_data.light_color_base || 0.0 > game_data.light_color_base) {
+	//	game_data.light_color_factor *= -1.0;
+	//}
+
+	game_data.light_color_base += game_data.light_color_factor * dt;
+	game_data.light_color.r = cos (game_data.light_color_base);
+	game_data.light_color.r = glm::clamp (game_data.light_color.r, 0.0f, 1.0f);
+
+	game_data.light_color.g = sin (game_data.light_color_base);
+	game_data.light_color.g = glm::clamp (game_data.light_color.g, 0.0f, 1.0f);
+
+	game_data.light_color.b = cos (sin (game_data.light_color_base));
+	game_data.light_color.b = glm::clamp (game_data.light_color.b, 0.0f, 1.0f);
 }
 
 void
@@ -393,7 +413,7 @@ on_render () {
 
 	// point light
 	game_data.program.set_uniform_vec4 ("point_light_color",
-		glm::vec4 (1.0f, 1.0f, 1.0f, game_data.light_intensity)
+		glm::vec4 (game_data.light_color, game_data.light_intensity)
 	);
 	game_data.program.set_uniform_vec4 ("point_light",
 		glm::vec4 (
