@@ -81,10 +81,11 @@ struct GameData {
 
 	blurryroots::model::Mesh suzanne;
 	blurryroots::model::Mesh dragon;
+	blurryroots::model::Mesh light;
+	float light_radius;
+	float light_intensity;
 
 	Transform models[4];
-
-	Transform lights[4];
 
 	CameraProcessor camera_processor;
 
@@ -289,34 +290,38 @@ initialize (void) {
 		.link ()
 		;
 
-	game_data.texture_loader.load ("textures/burned.jpg", "suzanne", 0);
 	game_data.texture_loader.load ("textures/honeycomb.jpg", "dragon", 0);
-
 	game_data.dragon = game_data.mesh_loader.create_mesh ("models/objs/stanford-dragon.obj", game_data.program);
-	game_data.models[0].translate (glm::vec3 ( 0, -1.8, -2.0));
+	game_data.models[0].translate (glm::vec3 ( 0, -3, 0));
 	game_data.models[0].scale (glm::vec3 (0.3, 0.3, 0.3));
 	game_data.models[0].rotate (-PI_OVER_2 * 1.0f, Transform::UP);
 
+	game_data.texture_loader.load ("textures/grass.png", "suzanne", 0);
 	game_data.suzanne = game_data.mesh_loader.create_mesh ("models/objs/suzanne.smooth.obj", game_data.program);
 	game_data.models[1].translate (glm::vec3 ( 0, 0, 2));
+	game_data.models[1].scale (glm::vec3 (0.2, 0.2, 0.2));
 	game_data.models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
-#if 0
-	game_data.models[2].translate (glm::vec3 ( 0, 0, 3));
-	game_data.models[2].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
+	game_data.texture_loader.load ("textures/light.jpg", "light", 0);
+	game_data.light = game_data.mesh_loader.create_mesh ("models/objs/light_sphere.obj", game_data.program);
+	game_data.models[2].translate (glm::vec3 ( 0, 0.5, 1));
+	game_data.models[2].scale (glm::vec3 (0.03, 0.03, 0.03));
 
+#if 0
 	game_data.models[3].translate (glm::vec3 (-3, 0, 0));
 	game_data.models[3].rotate (-PI_OVER_2 * 3.0f, Transform::UP);
 #endif
 
-	game_data.lights[0].translate (glm::vec3 (0, 0, 0));
-
 	game_data.camera_processor.on_initialize ();
-	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 4));
+	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 0));
 	//game_data.camera_processor.transform.rotate (-PI_OVER_2 * 1.0f, Transform::UP);
+
+game_data.light_radius = 1.0f;
+game_data.light_intensity = 1.0f;
 
 }
 
+float suzanne_speed = 0.1f;
 void
 on_update (double dt) {
 	game_data.is_running = game_data.is_running
@@ -325,7 +330,13 @@ on_update (double dt) {
 
 	game_data.camera_processor.on_update (dt);
 
-	std::cout << "FPS: "<< std::to_string (1 / dt) << std::endl;
+	glm::vec3 pos = Transform::to_position (game_data.models[1].to_translation ());
+	if (0 > pos.z || 2 < pos.z) {
+		suzanne_speed *= -1;
+	}
+
+	float speed = suzanne_speed * dt;
+	game_data.models[1].translate (glm::vec3 (0, 0, speed));
 }
 
 void
@@ -368,7 +379,7 @@ render_model (
 
 void
 on_render () {
-	glClearColor (0.01f, 0.01f, 0.01f, 1.0f);
+	glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	game_data.program.use ();
@@ -377,14 +388,25 @@ on_render () {
 
 	// ambient light
 	game_data.program.set_uniform_vec3 ("ambient_light",
-		glm::vec3 (0.06f, 0.06f, 0.1f)
+		glm::vec3 (0.01f, 0.0f, 0.0f)
 	);
+
 	// point light
+	game_data.program.set_uniform_vec4 ("point_light_color",
+		glm::vec4 (1.0f, 1.0f, 1.0f, game_data.light_intensity)
+	);
 	game_data.program.set_uniform_vec4 ("point_light",
 		glm::vec4 (
-			Transform::to_position (game_data.lights[0].to_translation ()),
-			1.0f
+			Transform::to_position (game_data.models[2].to_translation ()),
+			game_data.light_radius
 		)
+	);
+	render_model (
+		game_data.light,
+		game_data.models[2],
+		"light",
+		game_data.texture_loader,
+		game_data.program
 	);
 
 	render_model (
@@ -416,6 +438,7 @@ dispose () {
 	glfwTerminate ();
 }
 
+bool change_intensity = false;
 // Callbacks
 void
 on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -424,6 +447,20 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 	}
 
 	game_data.camera_processor.on_key (key, scancode, action, mods);
+
+	if (GLFW_KEY_SPACE == key) {
+		if (GLFW_RELEASE == action) {
+			std::cout
+				<< "Light radius @ "
+				<< game_data.light_radius
+				<< std::endl;
+		}
+	}
+
+	if (mods & GLFW_MOD_CONTROL) {
+		std::cout << "intensity toggle" << std::endl;
+		change_intensity = ! change_intensity;
+	}
 }
 
 void
@@ -467,5 +504,14 @@ on_mouse_button (GLFWwindow *window, int button, int action, int mods) {
 void
 on_scroll (GLFWwindow *window, double xoffset, double yoffset) {
 	//
-	std::cout << "scrolling ?" << xoffset << ":" << yoffset << std::endl;
+	if (change_intensity) {
+		game_data.light_intensity += (float)yoffset / 10.f;
+		game_data.light_intensity = game_data.light_intensity < 0 ? 0 : game_data.light_intensity;
+		std::cout << "intensity @ " << game_data.light_intensity << std::endl;
+	}
+	else {
+		game_data.light_radius += (float)yoffset / 10.f;
+		game_data.light_radius = game_data.light_radius < 0 ? 0 : game_data.light_radius;
+		std::cout << "light_radius @ " << game_data.light_radius << std::endl;
+	}
 }
