@@ -30,7 +30,7 @@ calculate_attenuation (highp float intensity, highp float radius, highp float di
 	//highp float quadratic = (1.0 / (radius * radius)) * (distance * distance);
 	//highp float attenuation = intensity / (1.0 + linear + quadratic);
 
-	highp float coefficient = ((distance / radius) + 1);
+	highp float coefficient = ((distance / radius) + 1.0);
 	highp float attenuation = intensity / (coefficient * coefficient);
 
 	// scale and bias attenuation such that:
