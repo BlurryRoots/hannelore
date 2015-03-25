@@ -15,6 +15,7 @@ cmake . && make
 To start the program execute ```make run```.
 
 Current controls:
+
 Input | Action
 --- | ---
 Q | Increase altitude
