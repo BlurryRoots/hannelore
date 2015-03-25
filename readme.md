@@ -16,6 +16,7 @@ To start the program execute ```make run```.
 
 Current controls:
 Input | Action
+--- | ---
 Q | Increase altitude
 E | Decrease altitude
 W | Move forward
