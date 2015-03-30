@@ -73,7 +73,7 @@ private:
 		if (nullptr == info->texels) {
 			dispose_info (info);
 			THROW_IF (true,
-				"Error loading texels!"
+				"Error loading texture from ", path, "!"
 			);
 		}
 

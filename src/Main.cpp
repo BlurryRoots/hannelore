@@ -449,6 +449,8 @@ dispose () {
 	game_data.texture_loader.dispose ();
 	game_data.mesh_loader.dispose_mesh (game_data.dragon);
 	game_data.mesh_loader.dispose_mesh (game_data.suzanne);
+	game_data.mesh_loader.dispose_mesh (game_data.skysphere);
+	game_data.mesh_loader.dispose_mesh (game_data.light);
 
 	glfwTerminate ();
 }
