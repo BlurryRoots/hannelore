@@ -20,7 +20,7 @@ main (void) {
 
 	point_light_direction = point_light.xyz - world_position.xyz;
 
-	fragment_uv = vertex_uv;
+	fragment_uv = vec2 (vertex_uv.x, 1.0 - vertex_uv.y);
 	fragment_normal = (m * vec4 (vertex_normal, 0.0)).xyz;
 
 	gl_Position = vp * world_position;

@@ -6,6 +6,10 @@
 
 #include <tiny_obj_loader.h>
 
+// GLM
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp> // glm::vec3
+
 #include <IDisposable.h>
 #include <MeshLoader.h>
 #include <Util.h>
@@ -167,6 +171,24 @@ public:
 		THROW_IF (1 < mesh.shapes.size (),
 			"Currently only loading 1 shape is supported!"
 		);
+
+		glm::vec3 maxima (0);
+		glm::vec3 current (0);
+		int component_counter = 0;
+		for (auto &v : mesh.shapes[0].mesh.positions) {
+			if (component_counter == 3) {
+				component_counter = 0;
+
+				maxima.x = glm::max (current.x, maxima.x);
+				maxima.y = glm::max (current.y, maxima.y);
+				maxima.z = glm::max (current.z, maxima.z);
+			}
+			else {
+				current[component_counter] = v;
+				++component_counter;
+			}
+		}
+		mesh.dimensions.push_back (maxima);
 
 		// cheffe
 		glGenVertexArrays (1, &(mesh.vertex_array_object));

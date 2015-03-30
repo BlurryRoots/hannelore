@@ -53,6 +53,8 @@ calculate_brightness (highp vec4 light, highp vec3 distance_vector) {
 	return angle_of_incidence;
 }
 
+highp float EPSI = 0.000001;
+
 void
 main (void) {
 	highp vec4 sample_color = texture (texture_sampler, fragment_uv);
@@ -61,20 +63,20 @@ main (void) {
 		point_light, point_light_direction
 	);
 
-	brightness *= calculate_attenuation (
+	highp float attenuation = calculate_attenuation (
 		point_light_color.a, // intensity
 		point_light.w, // radius
 		length (point_light_direction),
-		0.005 // cutoff
+		0.08 // cutoff
 	);
 
-	if (length (point_light_direction) > point_light.w) {
+	if (EPSI > attenuation) {
 		brightness = 0.0;
 	}
 
 	highp vec3 ambient_color = sample_color.rgb * ambient_light;
 	highp vec3 diffuse_color =
-		brightness * point_light_color.rgb * sample_color.rgb;
+		brightness * attenuation * point_light_color.rgb * sample_color.rgb;
 
 	pixel_color = vec4 (diffuse_color + ambient_color, 1.0);
 }

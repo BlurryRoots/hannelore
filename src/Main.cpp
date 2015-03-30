@@ -81,6 +81,7 @@ struct GameData {
 
 	blurryroots::model::Mesh suzanne;
 	blurryroots::model::Mesh dragon;
+	blurryroots::model::Mesh skysphere;
 
 	blurryroots::model::Mesh light;
 	float light_radius;
@@ -294,40 +295,36 @@ initialize (void) {
 		.link ()
 		;
 
-	game_data.texture_loader.load ("textures/honeycomb.jpg", "dragon", 0);
-	game_data.dragon = game_data.mesh_loader.create_mesh ("models/objs/stanford-dragon.obj", game_data.program);
-	game_data.models[0].translate (glm::vec3 ( 0, -3, 0));
-	game_data.models[0].scale (glm::vec3 (0.3, 0.3, 0.3));
-	game_data.models[0].rotate (-PI_OVER_2 * 1.0f, Transform::UP);
+	game_data.texture_loader.load ("textures/ground.lines.png", "dragon", 0);
+	game_data.dragon = game_data.mesh_loader.create_mesh ("models/objs/ground.obj", game_data.program);
 
 	game_data.texture_loader.load ("textures/grass.png", "suzanne", 0);
 	game_data.suzanne = game_data.mesh_loader.create_mesh ("models/objs/suzanne.smooth.obj", game_data.program);
-	game_data.models[1].translate (glm::vec3 ( 0, 0, 2));
-	game_data.models[1].scale (glm::vec3 (0.2, 0.2, 0.2));
+	game_data.models[1].translate (glm::vec3 ( 0, 0.5, 1));
 	game_data.models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
-	game_data.texture_loader.load ("textures/light.jpg", "light", 0);
+	game_data.texture_loader.load ("textures/light.uv.png", "light", 0);
 	game_data.light = game_data.mesh_loader.create_mesh ("models/objs/light_sphere.obj", game_data.program);
-	game_data.models[2].translate (glm::vec3 ( 0, 0.5, 1));
-	game_data.models[2].scale (glm::vec3 (0.03, 0.03, 0.03));
+	game_data.models[2].translate (glm::vec3 ( 0, 2, -2));
 
-#if 0
-	game_data.models[3].translate (glm::vec3 (-3, 0, 0));
-	game_data.models[3].rotate (-PI_OVER_2 * 3.0f, Transform::UP);
-#endif
+	game_data.texture_loader.load ("textures/sky.jpg", "sky", 0);
+	game_data.skysphere = game_data.mesh_loader.create_mesh ("models/objs/skysphere.obj", game_data.program);
+	game_data.models[3].translate (glm::vec3 ( 0, 0, 0));
+	float max_ground_dim = game_data.dragon.dimensions[0].x;
+	max_ground_dim = glm::max (game_data.dragon.dimensions[0].y, max_ground_dim);
+	max_ground_dim = glm::max (game_data.dragon.dimensions[0].z, max_ground_dim);
+	game_data.models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
 
 	game_data.camera_processor.on_initialize ();
-	game_data.camera_processor.transform.translate (glm::vec3 (0, 0, 0));
-	//game_data.camera_processor.transform.rotate (-PI_OVER_2 * 1.0f, Transform::UP);
+	game_data.camera_processor.transform.translate (glm::vec3 (0, 2, -6));
+	game_data.camera_processor.transform.rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
-game_data.light_radius = 1.0f;
-game_data.light_intensity = 1.0f;
-game_data.light_color_factor = 0.1f;
-game_data.light_color_base = 1.0f;
-
+	game_data.light_radius = 1.0f;
+	game_data.light_intensity = 1.0f;
+	game_data.light_color = glm::vec3 (1.0, 1.0, 1.0);
 }
 
-float suzanne_speed = 0.1f;
+float suzanne_speed = 0.8f;
 void
 on_update (double dt) {
 	game_data.is_running = game_data.is_running
@@ -337,26 +334,16 @@ on_update (double dt) {
 	game_data.camera_processor.on_update (dt);
 
 	glm::vec3 pos = Transform::to_position (game_data.models[1].to_translation ());
-	if (0 > pos.z || 2 < pos.z) {
+	if (-6 > pos.z || 2 < pos.z) {
 		suzanne_speed *= -1;
 	}
 
 	float speed = suzanne_speed * dt;
 	game_data.models[1].translate (glm::vec3 (0, 0, speed));
 
-	//if (1.0 < game_data.light_color_base || 0.0 > game_data.light_color_base) {
-	//	game_data.light_color_factor *= -1.0;
-	//}
-
-	game_data.light_color_base += game_data.light_color_factor * dt;
-	game_data.light_color.r = cos (game_data.light_color_base);
-	game_data.light_color.r = glm::clamp (game_data.light_color.r, 0.0f, 1.0f);
-
-	game_data.light_color.g = sin (game_data.light_color_base);
-	game_data.light_color.g = glm::clamp (game_data.light_color.g, 0.0f, 1.0f);
-
-	game_data.light_color.b = cos (sin (game_data.light_color_base));
-	game_data.light_color.b = glm::clamp (game_data.light_color.b, 0.0f, 1.0f);
+	// light size according to radius
+	game_data.models[2].reset_scale ();
+	game_data.models[2].scale (glm::vec3 (game_data.light_radius));
 }
 
 void
@@ -408,7 +395,7 @@ on_render () {
 
 	// ambient light
 	game_data.program.set_uniform_vec3 ("ambient_light",
-		glm::vec3 (0.01f, 0.0f, 0.0f)
+		glm::vec3 (0.2, 0.2, 0.2)
 	);
 
 	// point light
@@ -441,6 +428,14 @@ on_render () {
 		game_data.suzanne,
 		game_data.models[1],
 		"suzanne",
+		game_data.texture_loader,
+		game_data.program
+	);
+
+	render_model (
+		game_data.skysphere,
+		game_data.models[3],
+		"sky",
 		game_data.texture_loader,
 		game_data.program
 	);
