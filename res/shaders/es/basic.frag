@@ -108,8 +108,15 @@ main (void) {
 	}
 
 	highp vec3 ambient_color = sample_color.rgb * ambient_light;
-	highp vec3 diffuse_color =
-		brightness * attenuation * point_light_color.rgb * sample_color.rgb;
+	highp vec3 diffuse_color = vec3 (1)
+		* brightness * attenuation
+		* point_light_color.rgb
+		* sample_color.rgb
+		;
+	highp vec3 resulting_color = diffuse_color + ambient_color;
+	resulting_color.r = clamp (resulting_color.r, 0.0, 1.0);
+	resulting_color.g = clamp (resulting_color.g, 0.0, 1.0);
+	resulting_color.b = clamp (resulting_color.b, 0.0, 1.0);
 
-	pixel_color = vec4 (diffuse_color + ambient_color, 1.0);
+	pixel_color = vec4 (resulting_color, 1.0);
 }

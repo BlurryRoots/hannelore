@@ -322,7 +322,7 @@ initialize (void) {
 
 	game_data.light_radius = 1.0f;
 	game_data.light_intensity = 2.0f;
-	game_data.light_color = glm::vec3 (1.0, 1.0, 1.0);
+	game_data.light_color = glm::vec3 (1.0, 0.8, 0.8);
 	game_data.complex_attenuation = true;
 }
 
@@ -402,7 +402,7 @@ on_render () {
 
 	// ambient light
 	game_data.program.set_uniform_vec3 ("ambient_light",
-		glm::vec3 (0.08, 0.08, 0.15)
+		glm::vec3 (0.08, 0.08, 0.2)
 	);
 
 	// point light
@@ -415,18 +415,11 @@ on_render () {
 			game_data.light_radius
 		)
 	);
-	render_model (
-		game_data.light,
-		game_data.models[2],
-		"light",
-		game_data.texture_loader,
-		game_data.program
-	);
 
 	render_model (
 		game_data.dragon,
 		game_data.models[0],
-		"dragon",
+		"suzanne",
 		game_data.texture_loader,
 		game_data.program
 	);
@@ -435,6 +428,14 @@ on_render () {
 		game_data.suzanne,
 		game_data.models[1],
 		"suzanne",
+		game_data.texture_loader,
+		game_data.program
+	);
+
+	render_model (
+		game_data.light,
+		game_data.models[2],
+		"light",
 		game_data.texture_loader,
 		game_data.program
 	);
