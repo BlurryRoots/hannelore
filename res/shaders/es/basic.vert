@@ -11,8 +11,6 @@ out highp vec3 point_light_direction;
 uniform mat4 m, v, p;
 uniform highp vec4 point_light;
 
-//out highp vec4 fragment_position;
-
 void
 main (void) {
 	mat4 vp = p * v;

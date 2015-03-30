@@ -213,6 +213,22 @@ public:
 		return value;
 	}
 
+	void
+	set_uniform_i (const std::string &name, int value) {
+		THROW_IF (0 == this->uniforms.count (name),
+			"Could not find ", name
+		);
+
+		THROW_IF (! this->in_use,
+			"Unable to set uniform without activating program!"
+		);
+
+		glUniform1i (
+			this->uniforms.at (name),
+			value
+		);
+	}
+
 	GLint
 	get_uniform_i (const std::string &name) const {
 		int uid = glGetUniformLocation (this->handle, name.c_str ());
