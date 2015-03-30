@@ -89,6 +89,7 @@ struct GameData {
 	glm::vec3 light_color;
 	float light_color_factor;
 	float light_color_base;
+	bool complex_attenuation;
 
 	Transform models[4];
 
@@ -320,8 +321,9 @@ initialize (void) {
 	game_data.camera_processor.transform.rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
 	game_data.light_radius = 1.0f;
-	game_data.light_intensity = 1.0f;
+	game_data.light_intensity = 2.0f;
 	game_data.light_color = glm::vec3 (1.0, 1.0, 1.0);
+	game_data.complex_attenuation = true;
 }
 
 float suzanne_speed = 0.8f;
@@ -394,8 +396,13 @@ on_render () {
 	game_data.camera_processor.on_render (game_data.program);
 
 	// ambient light
+	game_data.program.set_uniform_i ("complex_attenuation",
+		static_cast<int> (game_data.complex_attenuation)
+	);
+
+	// ambient light
 	game_data.program.set_uniform_vec3 ("ambient_light",
-		glm::vec3 (0.2, 0.2, 0.2)
+		glm::vec3 (0.08, 0.08, 0.15)
 	);
 
 	// point light
@@ -475,6 +482,11 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 	if (mods & GLFW_MOD_CONTROL) {
 		std::cout << "intensity toggle" << std::endl;
 		change_intensity = ! change_intensity;
+	}
+
+	if (mods & GLFW_MOD_ALT) {
+		std::cout << "attenuation toggle" << std::endl;
+		game_data.complex_attenuation = ! game_data.complex_attenuation;
 	}
 }
 
