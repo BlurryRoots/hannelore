@@ -30,11 +30,16 @@ gl_PointCoord		mediump		vec2
 
 // GLM
 #include <glm/glm.hpp>
-#include <glm/vec3.hpp> // glm::vec3
-#include <glm/vec4.hpp> // glm::vec4, glm::ivec4
-#include <glm/mat4x4.hpp> // glm::mat4
-#include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
-#include <glm/gtc/type_ptr.hpp> // glm::value_ptr
+// glm::vec3
+#include <glm/vec3.hpp>
+// glm::vec4, glm::ivec4
+#include <glm/vec4.hpp>
+// glm::mat4
+#include <glm/mat4x4.hpp>
+// glm::translate, glm::rotate, glm::scale, glm::perspective
+#include <glm/gtc/matrix_transform.hpp>
+// glm::value_ptr
+#include <glm/gtc/type_ptr.hpp>
 
 //
 #include <FileReader.h>
@@ -287,9 +292,13 @@ initialize (void) {
 	// setup game stuff
 	game_data.is_running = true;
 
+	auto vs =
+		VertexShader (FileReader ("shaders/es/basic.vert").to_string ());
+	auto fs =
+		FragmentShader (FileReader ("shaders/es/basic.frag").to_string ());
 	game_data.program = ShaderProgramBuilder ()
-		.add_shader (VertexShader (FileReader ("shaders/es/basic.vert").to_string ()))
-		.add_shader (FragmentShader (FileReader ("shaders/es/basic.frag").to_string ()))
+		.add_shader (vs)
+		.add_shader (fs)
 		.bind_attribute ("vertex_position", 0)
 		.bind_attribute ("vertex_uv", 1)
 		.bind_attribute ("vertex_normal", 2)
@@ -297,28 +306,42 @@ initialize (void) {
 		;
 
 	game_data.texture_loader.load ("textures/ground.lines.png", "ground", 0);
-	game_data.dragon = game_data.mesh_loader.create_mesh ("models/objs/ground.obj", game_data.program);
+	game_data.dragon = game_data.mesh_loader.create_mesh (
+		"models/objs/ground.obj", game_data.program
+	);
 
 	game_data.texture_loader.load ("textures/grass.png", "suzanne", 0);
-	game_data.suzanne = game_data.mesh_loader.create_mesh ("models/objs/suzanne.smooth.obj", game_data.program);
+	game_data.suzanne = game_data.mesh_loader.create_mesh (
+		"models/objs/suzanne.smooth.obj", game_data.program
+	);
 	game_data.models[1].translate (glm::vec3 ( 0, 0.5, 1));
 	game_data.models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
 	game_data.texture_loader.load ("textures/light.uv.png", "light", 0);
-	game_data.light = game_data.mesh_loader.create_mesh ("models/objs/light_sphere.obj", game_data.program);
+	game_data.light = game_data.mesh_loader.create_mesh (
+		"models/objs/light_sphere.obj", game_data.program
+	);
 	game_data.models[2].translate (glm::vec3 ( 0, 2, -2));
 
 	game_data.texture_loader.load ("textures/sky.jpg", "sky", 0);
-	game_data.skysphere = game_data.mesh_loader.create_mesh ("models/objs/skysphere.obj", game_data.program);
+	game_data.skysphere = game_data.mesh_loader.create_mesh (
+		"models/objs/skysphere.obj", game_data.program
+	);
 	game_data.models[3].translate (glm::vec3 ( 0, 0, 0));
 	float max_ground_dim = game_data.dragon.dimensions[0].x;
-	max_ground_dim = glm::max (game_data.dragon.dimensions[0].y, max_ground_dim);
-	max_ground_dim = glm::max (game_data.dragon.dimensions[0].z, max_ground_dim);
+	max_ground_dim = glm::max (game_data.dragon.dimensions[0].y,
+		max_ground_dim
+	);
+	max_ground_dim = glm::max (game_data.dragon.dimensions[0].z,
+		max_ground_dim
+	);
 	game_data.models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
 
 	game_data.camera_processor.on_initialize ();
 	game_data.camera_processor.transform.translate (glm::vec3 (0, 6, -6));
-	game_data.camera_processor.transform.rotate (-PI_OVER_2 * 1.5f, Transform::UP);
+	game_data.camera_processor.transform.rotate (
+		-PI_OVER_2 * 1.5f, Transform::UP
+	);
 	glm::mat4 inv_rotation = glm::inverse (
 		game_data.camera_processor.transform.to_rotation ()
 	);
@@ -340,7 +363,9 @@ on_update (double dt) {
 
 	game_data.camera_processor.on_update (dt);
 
-	glm::vec3 pos = Transform::to_position (game_data.models[1].to_translation ());
+	glm::vec3 pos = Transform::to_position (
+		game_data.models[1].to_translation ()
+	);
 	if (-6 > pos.z || 2 < pos.z) {
 		suzanne_speed *= -1;
 	}
@@ -383,7 +408,8 @@ render_model (
 	int element_count = size / sizeof (mesh.shapes[0].mesh.indices.at (0));
 	int real_element_count = mesh.shapes[0].mesh.indices.size ();
 	THROW_IF (element_count != real_element_count,
-		"Unequal element_count ", std::to_string (element_count), " vs ", std::to_string (real_element_count)
+		"Unequal element_count ", std::to_string (element_count),
+		" vs ", std::to_string (real_element_count)
 	);
 	glDrawElements (GL_TRIANGLES, element_count, GL_UNSIGNED_INT, 0);
 
@@ -541,12 +567,18 @@ on_scroll (GLFWwindow *window, double xoffset, double yoffset) {
 	//
 	if (change_intensity) {
 		game_data.light_intensity += (float)yoffset / 10.f;
-		game_data.light_intensity = game_data.light_intensity < 0 ? 0 : game_data.light_intensity;
+		game_data.light_intensity = game_data.light_intensity < 0
+			? 0
+			: game_data.light_intensity
+			;
 		std::cout << "intensity @ " << game_data.light_intensity << std::endl;
 	}
 	else {
 		game_data.light_radius += (float)yoffset / 10.f;
-		game_data.light_radius = game_data.light_radius < 0 ? 0 : game_data.light_radius;
+		game_data.light_radius = game_data.light_radius < 0
+			? 0
+			: game_data.light_radius
+			;
 		std::cout << "light_radius @ " << game_data.light_radius << std::endl;
 	}
 }
