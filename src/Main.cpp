@@ -296,7 +296,7 @@ initialize (void) {
 		.link ()
 		;
 
-	game_data.texture_loader.load ("textures/ground.lines.png", "dragon", 0);
+	game_data.texture_loader.load ("textures/ground.lines.png", "ground", 0);
 	game_data.dragon = game_data.mesh_loader.create_mesh ("models/objs/ground.obj", game_data.program);
 
 	game_data.texture_loader.load ("textures/grass.png", "suzanne", 0);
@@ -317,8 +317,13 @@ initialize (void) {
 	game_data.models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
 
 	game_data.camera_processor.on_initialize ();
-	game_data.camera_processor.transform.translate (glm::vec3 (0, 2, -6));
-	game_data.camera_processor.transform.rotate (-PI_OVER_2 * 2.0f, Transform::UP);
+	game_data.camera_processor.transform.translate (glm::vec3 (0, 6, -6));
+	game_data.camera_processor.transform.rotate (-PI_OVER_2 * 1.5f, Transform::UP);
+	glm::mat4 inv_rotation = glm::inverse (
+		game_data.camera_processor.transform.to_rotation ()
+	);
+	glm::vec3 right   = Transform::to_right (inv_rotation);
+	game_data.camera_processor.transform.rotate ( PI_OVER_2 * 0.5f, right);
 
 	game_data.light_radius = 1.0f;
 	game_data.light_intensity = 2.0f;
@@ -419,7 +424,7 @@ on_render () {
 	render_model (
 		game_data.dragon,
 		game_data.models[0],
-		"suzanne",
+		"ground",
 		game_data.texture_loader,
 		game_data.program
 	);
