@@ -305,28 +305,30 @@ initialize (void) {
 		.link ()
 		;
 
+	std::map<std::string, blurryroots::model::Mesh> meshes;
+
 	game_data.texture_loader.load ("textures/ground.lines.png", "ground", 0);
-	game_data.dragon = game_data.mesh_loader.create_mesh (
+	meshes.emplace ("ground", game_data.mesh_loader.create_mesh (
 		"models/objs/ground.obj", game_data.program
-	);
+	));
 
 	game_data.texture_loader.load ("textures/grass.png", "suzanne", 0);
-	game_data.suzanne = game_data.mesh_loader.create_mesh (
+	meshes.emplace ("suzanne", game_data.mesh_loader.create_mesh (
 		"models/objs/suzanne.smooth.obj", game_data.program
-	);
+	));
 	game_data.models[1].translate (glm::vec3 ( 0, 0.5, 1));
 	game_data.models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
 	game_data.texture_loader.load ("textures/light.uv.png", "light", 0);
-	game_data.light = game_data.mesh_loader.create_mesh (
+	meshes.emplace ("light", game_data.mesh_loader.create_mesh (
 		"models/objs/light_sphere.obj", game_data.program
-	);
+	));
 	game_data.models[2].translate (glm::vec3 ( 0, 2, -2));
 
 	game_data.texture_loader.load ("textures/sky.jpg", "sky", 0);
-	game_data.skysphere = game_data.mesh_loader.create_mesh (
+	meshes.emplace ("skybox", game_data.mesh_loader.create_mesh (
 		"models/objs/skysphere.obj", game_data.program
-	);
+	));
 	game_data.models[3].translate (glm::vec3 ( 0, 0, 0));
 	float max_ground_dim = game_data.dragon.dimensions[0].x;
 	max_ground_dim = glm::max (game_data.dragon.dimensions[0].y,

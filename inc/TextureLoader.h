@@ -161,34 +161,6 @@ public:
 	}
 
 	void
-	bind (const std::string &key) {
-		assert (0 < this->textures.count (key));
-
-		auto info = this->get_info (key);
-		assert (info);
-		assert (0 < info->handle);
-
-		glActiveTexture (GL_TEXTURE0 + info->texture_unit);
-		glBindTexture (GL_TEXTURE_2D, info->handle);
-
-		this->currently_bound_texture = key;
-	}
-
-	void
-	unbind () {
-		if (this->currently_bound_texture.empty ()) {
-			return;
-		}
-
-		auto info = this->get_info (this->currently_bound_texture);
-
-		glActiveTexture (GL_TEXTURE0 + info->texture_unit);
-		glBindTexture (GL_TEXTURE_2D, 0);
-
-		this->currently_bound_texture.clear ();
-	}
-
-	void
 	unload (const std::string &key) {
 		assert (0 < this->textures.count (key));
 
