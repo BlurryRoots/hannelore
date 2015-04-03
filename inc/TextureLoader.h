@@ -8,44 +8,9 @@
 #include <stb_image.h>
 
 #include <IDisposable.h>
+#include <Util.h>
 
-struct TextureInformation {
-
-	GLubyte *texels;
-
-	GLuint handle;
-
-	GLint width;
-	GLint height;
-
-	GLint components;
-
-	GLenum format;
-	GLint internalFormat;
-
-	std::string path;
-	std::string key;
-
-	GLuint texture_unit;
-
-	TextureInformation ()
-	: texels (nullptr)
-	, handle (0) {}
-
-	friend std::ostream&
-	operator << (std::ostream &s, const TextureInformation &info) {
-		s 	<< "handle: " << info.handle
-			<< "\nw/h: " << info.width << "/" << info.height
-			<< "\ncomponents: " << info.components
-			<< "\nformat: " << info.format
-			<< "\ninternal format: " << info.internalFormat
-			<< "\ntexture_unit: " << info.texture_unit
-			<< std::endl;
-
-		return s;
-	}
-
-};
+#include <TextureInformation.h>
 
 class TextureLoader
 : IDisposable {
@@ -70,8 +35,14 @@ public:
 
 	void
 	load (std::string path, std::string key, GLuint texture_unit) {
-		assert (0 == this->textures.count (key));
-		assert (texture_unit < GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+		THROW_IF (0 != this->textures.count (key),
+			"Key is already used!"
+		);
+		THROW_IF (texture_unit >= GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS,
+			"Texture unit exceeds maxium of ",
+			std::to_string (GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+			" units!"
+		);
 
 		//auto info = new TextureInformation ();
 		//auto info = this->ReadPNGFromFile (path.c_str ());
@@ -91,9 +62,6 @@ public:
 		//glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		//std::cout << "Stored aligment to restore later" << std::endl;
 
-		// TODO: find library
-		//unsigned char *data = nullptr;
-		assert (info->texels);
 		glTexImage2D (
 			GL_TEXTURE_2D, 0, info->internalFormat,
 			info->width, info->height,
