@@ -5,6 +5,7 @@ project (hannelore)
 
 # put the executable into the bin directory
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+set (ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
 # find every source file
 file (GLOB_RECURSE source_files ${PROJECT_SOURCE_DIR}/src/*)
@@ -72,7 +73,7 @@ add_executable (main ${source_files})
 target_link_libraries (main ${GLFW} ${GLEW} ${TINYOBJ_LIB} ${SYSTEM_LIBS})
 
 # build test executable
-add_executable (test-all ${test_files})
+add_executable (test-runner ${test_files})
 
 ## custom commands and targets
 
@@ -89,9 +90,9 @@ add_custom_target (run
 		WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
 )
 
-# 'make run' execute main into the bin directory
+# 'make test'
 add_custom_target (test
-	COMMAND ${EXECUTABLE_OUTPUT_PATH}/test-all -s
-		DEPENDS test-all
+	COMMAND ${EXECUTABLE_OUTPUT_PATH}/test-runner -s
+		DEPENDS test-runner
 		WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
 )

@@ -1,4 +1,5 @@
 bin/
+*.a
 lib/*.a
 CMakeCache.txt
 Makefile
