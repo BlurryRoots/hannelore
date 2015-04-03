@@ -40,8 +40,11 @@ include_directories (lib/yanecos/inc)
 include_directories (lib/json/src)
 
 # obj loader
-add_subdirectory (lib/tinyobjloader)
 include_directories (lib/tinyobjloader)
+add_library (tinyobjloader STATIC
+	lib/tinyobjloader/tiny_obj_loader.h
+	lib/tinyobjloader/tiny_obj_loader.cc
+)
 set (TINYOBJ_LIB tinyobjloader)
 
 # catch test framework (single include file)
