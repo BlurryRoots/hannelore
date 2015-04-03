@@ -25,7 +25,7 @@ add_executable (test-all ${test_files})
 
 # 'make run' execute main into the bin directory
 add_custom_target (test
-    COMMAND ${EXECUTABLE_OUTPUT_PATH}/test-all -s
-    	DEPENDS test-all
-    	WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+	COMMAND ${EXECUTABLE_OUTPUT_PATH}/test-all -s
+		DEPENDS test-all
+		WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
 )
