@@ -2,7 +2,6 @@
 #define MESHRENDERER_H
 
 #include <memory>
-#include <cassert>
 #include <stdexcept>
 
 #include <MeshData.h>

@@ -414,7 +414,7 @@ render_model (
 	glDrawElements (GL_TRIANGLES, element_count, GL_UNSIGNED_INT, 0);
 
 	glBindVertexArray (0);
-	texture_loader.unbind ();
+	texture_loader.unbind (texture_key);
 }
 
 void

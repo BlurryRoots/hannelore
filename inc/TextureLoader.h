@@ -17,8 +17,7 @@ class TextureLoader
 
 public:
 	TextureLoader (void)
-	: textures ()
-	, currently_bound_texture () {};
+	: textures () {};
 
 	virtual
 	~TextureLoader (void) {
@@ -35,7 +34,7 @@ public:
 
 	void
 	load (std::string path, std::string key, GLuint texture_unit) {
-		THROW_IF (0 != this->textures.count (key),
+		THROW_IF (0 < this->textures.count (key),
 			"Key is already used!"
 		);
 		THROW_IF (texture_unit >= GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS,
@@ -44,8 +43,6 @@ public:
 			" units!"
 		);
 
-		//auto info = new TextureInformation ();
-		//auto info = this->ReadPNGFromFile (path.c_str ());
 		auto info = this->read_texture (path.c_str ());
 		info->path = path;
 		info->key = key;
@@ -84,37 +81,27 @@ public:
 
 	void
 	bind (const std::string &key) {
-		assert (0 < this->textures.count (key));
 
 		auto info = this->get_info (key);
-		assert (info);
-		assert (0 < info->handle);
+		THROW_IF (0 == info->handle,
+			"Texture cannot be bound! Unvalid handle for key: ", key
+		);
 
 		glActiveTexture (GL_TEXTURE0 + info->texture_unit);
 		glBindTexture (GL_TEXTURE_2D, info->handle);
-
-		this->currently_bound_texture = key;
 	}
 
 	void
-	unbind (void) {
-		if (this->currently_bound_texture.empty ()) {
-			return;
-		}
-
-		auto info = this->get_info (this->currently_bound_texture);
+	unbind (const std::string &key) {
+		auto info = this->get_info (key);
 
 		glActiveTexture (GL_TEXTURE0 + info->texture_unit);
 		glBindTexture (GL_TEXTURE_2D, 0);
-
-		this->currently_bound_texture.clear ();
 	}
 
 	void
 	unload (const std::string &key) {
-		assert (0 < this->textures.count (key));
-
-		auto info = this->textures.at (key);
+		auto info = this->get_info (key);
 
 		if (0 < info->handle) {
 			glDeleteTextures (1, &(info->handle));
@@ -131,9 +118,16 @@ public:
 
 	TextureInformation*
 	get_info (const std::string &key) const {
-		assert (0 < this->textures.count (key));
+		THROW_IF (0 == this->textures.count (key),
+			"Unkown key! (key: ", key, ")"
+		);
 
-		return this->textures.at (key);
+		auto info = this->textures.at (key);
+		THROW_IF (nullptr == info,
+			"Got nullpointer while retrieving info for ", key, "!"
+		);
+
+		return info;
 	}
 
 	GLuint
