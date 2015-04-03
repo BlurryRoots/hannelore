@@ -13,6 +13,7 @@
 #include <type_traits>
 
 #include <yanecos/IData.h>
+#include <yanecos/Data.h>
 
 #include <json.hpp>
 

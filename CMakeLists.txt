@@ -1,11 +1,18 @@
 cmake_minimum_required (VERSION 2.8)
 project (hannelore)
 
+## basic setup
+
 # put the executable into the bin directory
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 # find every source file
 file (GLOB_RECURSE source_files ${PROJECT_SOURCE_DIR}/src/*)
+
+# find every test file
+file (GLOB_RECURSE test_files ${PROJECT_SOURCE_DIR}/test/*)
+
+## dependencies
 
 # glfw
 set (GLFW_BUILD_EXAMPLES OFF CACHE STRING "" FORCE)
@@ -37,6 +44,9 @@ add_subdirectory (lib/tinyobjloader)
 include_directories (lib/tinyobjloader)
 set (TINYOBJ_LIB tinyobjloader)
 
+# catch test framework (single include file)
+include_directories (lib/catch/single_include)
+
 # app specific includes
 include_directories (inc)
 
@@ -52,9 +62,16 @@ set (SYSTEM_LIBS)
 list (APPEND SYSTEM_LIBS z)
 list (APPEND SYSTEM_LIBS pthread)
 
-# executables
+## executables
+
+# build main executable
 add_executable (main ${source_files})
 target_link_libraries (main ${GLFW} ${GLEW} ${TINYOBJ_LIB} ${SYSTEM_LIBS})
+
+# build test executable
+add_executable (test-all ${test_files})
+
+## custom commands and targets
 
 # command to copy resources when using default target
 add_custom_target (assets
@@ -66,5 +83,12 @@ add_custom_target (assets
 add_custom_target (run
 	COMMAND ${EXECUTABLE_OUTPUT_PATH}/main
 		DEPENDS assets
+		WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+)
+
+# 'make run' execute main into the bin directory
+add_custom_target (test
+	COMMAND ${EXECUTABLE_OUTPUT_PATH}/test-all -s
+		DEPENDS test-all
 		WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
 )
