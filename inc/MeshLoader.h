@@ -20,80 +20,6 @@ namespace blurryroots { namespace model {
 class MeshLoader
 : IDisposable {
 
-private:
-	void
-	load_attributed_buffer_data (
-		const GLvoid *data_ptr,
-		std::size_t byte_size,
-		GLenum data_type,
-		GLuint target_buffer_id,
-		GLint target_attribute_id,
-		std::size_t components,
-		GLenum buffer_type,
-		GLenum buffer_strategy
-	) {
-		THROW_IF (nullptr == data_ptr,
-			"Nooooo!"
-		);
-
-		glBindBuffer (buffer_type, target_buffer_id);
-		if (0 < components) {
-			THROW_IF (0 > target_attribute_id,
-				"Attribute handle is invalid (handle: ",
-				std::to_string (target_attribute_id), ")"
-			);
-			glEnableVertexAttribArray (target_attribute_id);
-			glVertexAttribPointer (target_attribute_id,
-				components, data_type, GL_FALSE, 0, 0
-			);
-		}
-		glBufferData (buffer_type,
-			byte_size, data_ptr, buffer_strategy
-		);
-	}
-
-	void
-	load_attributed_buffer_data_from (
-		const std::vector<float> &data_vector,
-		GLuint target_buffer_id,
-		GLint target_attribute_id,
-		std::size_t components,
-		GLenum buffer_type,
-		GLenum buffer_strategy
-	) {
-		load_attributed_buffer_data (
-			reinterpret_cast<const GLvoid*> (data_vector.data ()),
-			sizeof (float) * data_vector.size (),
-			GL_FLOAT,
-			target_buffer_id,
-			target_attribute_id,
-			components,
-			buffer_type,
-			buffer_strategy
-		);
-	}
-
-	void
-	load_attributed_buffer_data_from (
-		const std::vector<unsigned int> &data_vector,
-		GLuint target_buffer_id,
-		GLint target_attribute_id,
-		std::size_t components,
-		GLenum buffer_type,
-		GLenum buffer_strategy
-	) {
-		load_attributed_buffer_data (
-			reinterpret_cast<const GLvoid*> (data_vector.data ()),
-			sizeof (unsigned int) * data_vector.size (),
-			GL_UNSIGNED_INT,
-			target_buffer_id,
-			target_attribute_id,
-			components,
-			buffer_type,
-			buffer_strategy
-		);
-	}
-
 public:
 	MeshLoader (void) {}
 	MeshLoader (const MeshLoader &other) {}
@@ -101,6 +27,30 @@ public:
 	void
 	dispose (void) {
 
+	}
+
+	void
+	load (
+		const std::string &path,
+		ShaderProgram &program,
+		const std::string &key
+	) {
+		THROW_IF (0 < this->meshes.count (key),
+			"Key is already used! (Key: ", key, ")"
+		);
+
+		this->meshes.emplace (key,
+			new Mesh (this->create_mesh (path, program))
+		);
+	}
+
+	Mesh*
+	get (const std::string &key) {
+		THROW_IF (0 == this->meshes.count (key),
+			"No mesh loaded with given key! (Key: ", key, ")"
+		);
+
+		return this->meshes.at (key);
 	}
 
 	Mesh
@@ -197,6 +147,82 @@ public:
 		glDeleteBuffers (1, &(mesh.color_buffer));
 
 		glDeleteVertexArrays (1, &(mesh.vertex_array_object));
+	}
+
+private:
+	std::unordered_map<std::string, Mesh*> meshes;
+
+	void
+	load_attributed_buffer_data (
+		const GLvoid *data_ptr,
+		std::size_t byte_size,
+		GLenum data_type,
+		GLuint target_buffer_id,
+		GLint target_attribute_id,
+		std::size_t components,
+		GLenum buffer_type,
+		GLenum buffer_strategy
+	) {
+		THROW_IF (nullptr == data_ptr,
+			"Nooooo!"
+		);
+
+		glBindBuffer (buffer_type, target_buffer_id);
+		if (0 < components) {
+			THROW_IF (0 > target_attribute_id,
+				"Attribute handle is invalid (handle: ",
+				std::to_string (target_attribute_id), ")"
+			);
+			glEnableVertexAttribArray (target_attribute_id);
+			glVertexAttribPointer (target_attribute_id,
+				components, data_type, GL_FALSE, 0, 0
+			);
+		}
+		glBufferData (buffer_type,
+			byte_size, data_ptr, buffer_strategy
+		);
+	}
+
+	void
+	load_attributed_buffer_data_from (
+		const std::vector<float> &data_vector,
+		GLuint target_buffer_id,
+		GLint target_attribute_id,
+		std::size_t components,
+		GLenum buffer_type,
+		GLenum buffer_strategy
+	) {
+		load_attributed_buffer_data (
+			reinterpret_cast<const GLvoid*> (data_vector.data ()),
+			sizeof (float) * data_vector.size (),
+			GL_FLOAT,
+			target_buffer_id,
+			target_attribute_id,
+			components,
+			buffer_type,
+			buffer_strategy
+		);
+	}
+
+	void
+	load_attributed_buffer_data_from (
+		const std::vector<unsigned int> &data_vector,
+		GLuint target_buffer_id,
+		GLint target_attribute_id,
+		std::size_t components,
+		GLenum buffer_type,
+		GLenum buffer_strategy
+	) {
+		load_attributed_buffer_data (
+			reinterpret_cast<const GLvoid*> (data_vector.data ()),
+			sizeof (unsigned int) * data_vector.size (),
+			GL_UNSIGNED_INT,
+			target_buffer_id,
+			target_attribute_id,
+			components,
+			buffer_type,
+			buffer_strategy
+		);
 	}
 
 };

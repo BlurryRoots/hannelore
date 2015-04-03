@@ -137,7 +137,6 @@ public:
 
 private:
 	std::unordered_map<std::string, TextureInformation*> textures;
-	std::string currently_bound_texture;
 
 	static TextureInformation*
 	read_texture (const std::string &path) {
