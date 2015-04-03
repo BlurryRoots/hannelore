@@ -5,18 +5,9 @@
 
 #include <stdexcept>
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include <stb_image.h>
 
-/* Microsoft Visual C++ */
-#ifdef _MSC_VER
-#pragma comment (lib, "libpng.lib")
-#pragma comment (lib, "zlib.lib")
-#pragma comment (linker, "/nodefaultlib:libc")
-#endif  /* _MSC_VER */
+#include <IDisposable.h>
 
 struct TextureInformation {
 
@@ -56,57 +47,20 @@ struct TextureInformation {
 
 };
 
-class TextureLoader {
-
-private:
-	std::unordered_map<std::string, TextureInformation*> textures;
-	std::string currently_bound_texture;
-
-	static TextureInformation*
-	read_texture (const std::string &path) {
-		auto info = new TextureInformation ();
-
-		info->texels = stbi_load (path.c_str (),
-			&(info->width), &(info->height), &(info->components),
-			4
-		);
-		if (nullptr == info->texels) {
-			dispose_info (info);
-			THROW_IF (true,
-				"Error loading texture from ", path, "!"
-			);
-		}
-
-		info->internalFormat = GL_RGBA;
-		info->format = GL_RGBA;
-
-		return info;
-	}
-
-	static void
-	dispose_info (TextureInformation *info) {
-		if (0 < info->handle) {
-			glDeleteTextures (1, &(info->handle));
-		}
-
-		if (nullptr != info->texels) {
-			free (info->texels);
-		}
-
-		delete info;
-	}
+class TextureLoader
+: IDisposable {
 
 public:
-	TextureLoader ()
+	TextureLoader (void)
 	: textures ()
 	, currently_bound_texture () {};
 
 	virtual
-	~TextureLoader () {
+	~TextureLoader (void) {
 	}
 
 	void
-	dispose () {
+	dispose (void) {
 		for (auto entry : this->textures) {
 			auto info = entry.second;
 
@@ -175,7 +129,7 @@ public:
 	}
 
 	void
-	unbind () {
+	unbind (void) {
 		if (this->currently_bound_texture.empty ()) {
 			return;
 		}
@@ -218,6 +172,45 @@ public:
 	get_handle (std::string key) const {
 		return this->get_info (key)->handle;
 	}
+
+private:
+	std::unordered_map<std::string, TextureInformation*> textures;
+	std::string currently_bound_texture;
+
+	static TextureInformation*
+	read_texture (const std::string &path) {
+		auto info = new TextureInformation ();
+
+		info->texels = stbi_load (path.c_str (),
+			&(info->width), &(info->height), &(info->components),
+			4
+		);
+		if (nullptr == info->texels) {
+			dispose_info (info);
+			THROW_IF (true,
+				"Error loading texture from ", path, "!"
+			);
+		}
+
+		info->internalFormat = GL_RGBA;
+		info->format = GL_RGBA;
+
+		return info;
+	}
+
+	static void
+	dispose_info (TextureInformation *info) {
+		if (0 < info->handle) {
+			glDeleteTextures (1, &(info->handle));
+		}
+
+		if (nullptr != info->texels) {
+			free (info->texels);
+		}
+
+		delete info;
+	}
+
 };
 
 #endif

@@ -8,63 +8,14 @@
 
 // GLM
 #include <glm/glm.hpp>
-#include <glm/vec3.hpp> // glm::vec3
+ // glm::vec3
+#include <glm/vec3.hpp>
 
 #include <IDisposable.h>
 #include <MeshLoader.h>
 #include <Util.h>
 
 namespace blurryroots { namespace model {
-
-struct MeshLoadingData {
-	GLvoid *payload;
-	std::size_t size;
-	GLenum payload_type;
-	GLuint buffer;
-	GLint attribute;
-	std::size_t components;
-	GLenum buffer_type;
-	GLenum buffer_strategy;
-
-	MeshLoadingData ()
-	: payload (nullptr)
-	, size (0)
-	, payload_type (GL_FLOAT)
-	, buffer (0)
-	, attribute (-1)
-	, components (0)
-	, buffer_type (GL_ARRAY_BUFFER)
-	, buffer_strategy (GL_STATIC_DRAW) {}
-
-	MeshLoadingData (
-		GLvoid *payload,
-		std::size_t size,
-		GLenum payload_type,
-		GLuint buffer,
-		GLint attribute,
-		std::size_t components,
-		GLenum buffer_type,
-		GLenum buffer_strategy
-	)
-	: payload (payload)
-	, size (size)
-	, payload_type (payload_type)
-	, buffer (buffer)
-	, attribute (attribute)
-	, components (components)
-	, buffer_type (buffer_type)
-	, buffer_strategy (buffer_strategy) {}
-
-	MeshLoadingData (const MeshLoadingData &other)
-	: payload (other.payload)
-	, size (other.size)
-	, payload_type (other.payload_type)
-	, buffer (other.buffer)
-	, attribute (other.attribute)
-	, components (other.components)
-	, buffer_type (other.buffer_type)
-	, buffer_strategy (other.buffer_strategy) {}
-};
 
 class MeshLoader
 : IDisposable {
