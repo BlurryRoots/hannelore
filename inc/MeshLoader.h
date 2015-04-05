@@ -26,7 +26,29 @@ public:
 
 	void
 	dispose (void) {
+		for (auto &entry : this->meshes) {
+			auto *mesh = entry.second;
+			this->dispose (mesh);
 
+			delete mesh;
+		}
+
+		this->meshes.clear ();
+	}
+
+	void
+	dispose (Mesh *mesh) {
+		THROW_IF (nullptr == mesh,
+			"Trying to dispose unvalid mesh pointer!"
+		);
+
+		glDeleteBuffers (1, &(mesh->vertex_buffer));
+		glDeleteBuffers (1, &(mesh->index_buffer));
+		glDeleteBuffers (1, &(mesh->uv_buffer));
+		glDeleteBuffers (1, &(mesh->normal_buffer));
+		glDeleteBuffers (1, &(mesh->color_buffer));
+
+		glDeleteVertexArrays (1, &(mesh->vertex_array_object));
 	}
 
 	void
@@ -136,17 +158,6 @@ public:
 		glBindVertexArray (0);
 
 		return mesh;
-	}
-
-	void
-	dispose_mesh (Mesh &mesh) {
-		glDeleteBuffers (1, &(mesh.vertex_buffer));
-		glDeleteBuffers (1, &(mesh.index_buffer));
-		glDeleteBuffers (1, &(mesh.uv_buffer));
-		glDeleteBuffers (1, &(mesh.normal_buffer));
-		glDeleteBuffers (1, &(mesh.color_buffer));
-
-		glDeleteVertexArrays (1, &(mesh.vertex_array_object));
 	}
 
 private:

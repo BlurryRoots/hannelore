@@ -84,11 +84,6 @@ struct GameData {
 		glm::mat4 projection;
 	} matrices;
 
-	blurryroots::model::Mesh suzanne;
-	blurryroots::model::Mesh dragon;
-	blurryroots::model::Mesh skysphere;
-
-	blurryroots::model::Mesh light;
 	float light_radius;
 	float light_intensity;
 	glm::vec3 light_color;
@@ -306,36 +301,40 @@ initialize (void) {
 		;
 
 	game_data.texture_loader.load ("textures/ground.lines.png", "ground", 0);
-	game_data.dragon = game_data.mesh_loader.create_mesh (
-		"models/objs/ground.obj", game_data.program
+	game_data.mesh_loader.load (
+		"models/objs/ground.obj", game_data.program, "ground"
 	);
 
 	game_data.texture_loader.load ("textures/grass.png", "suzanne", 0);
-	game_data.suzanne = game_data.mesh_loader.create_mesh (
-		"models/objs/suzanne.smooth.obj", game_data.program
+	game_data.mesh_loader.load (
+		"models/objs/suzanne.smooth.obj", game_data.program, "suzanne"
 	);
 	game_data.models[1].translate (glm::vec3 ( 0, 0.5, 1));
 	game_data.models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
 	game_data.texture_loader.load ("textures/light.uv.png", "light", 0);
-	game_data.light = game_data.mesh_loader.create_mesh (
-		"models/objs/light_sphere.obj", game_data.program
+	game_data.mesh_loader.load (
+		"models/objs/light_sphere.obj", game_data.program, "light_sphere"
 	);
 	game_data.models[2].translate (glm::vec3 ( 0, 2, -2));
 
+	//
 	game_data.texture_loader.load ("textures/sky.jpg", "sky", 0);
-	game_data.skysphere = game_data.mesh_loader.create_mesh (
-		"models/objs/skysphere.obj", game_data.program
+	game_data.mesh_loader.load (
+		"models/objs/skysphere.obj", game_data.program, "sky_sphere"
 	);
 	game_data.models[3].translate (glm::vec3 ( 0, 0, 0));
-	float max_ground_dim = game_data.dragon.dimensions[0].x;
-	max_ground_dim = glm::max (game_data.dragon.dimensions[0].y,
-		max_ground_dim
-	);
-	max_ground_dim = glm::max (game_data.dragon.dimensions[0].z,
-		max_ground_dim
-	);
-	game_data.models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
+	{
+		auto *ground = game_data.mesh_loader.get ("ground");
+		float max_ground_dim = ground->dimensions[0].x;
+		max_ground_dim = glm::max (ground->dimensions[0].y,
+			max_ground_dim
+		);
+		max_ground_dim = glm::max (ground->dimensions[0].z,
+			max_ground_dim
+		);
+		game_data.models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
+	}
 
 	game_data.camera_processor.on_initialize ();
 	game_data.camera_processor.transform.translate (glm::vec3 (0, 6, -6));
@@ -380,14 +379,14 @@ on_update (double dt) {
 
 void
 render_model (
-	const blurryroots::model::Mesh &mesh,
+	const blurryroots::model::Mesh *mesh,
 	const Transform &transform,
 	const std::string &texture_key,
 	TextureLoader &texture_loader,
 	ShaderProgram &program
 ) {
 	texture_loader.bind (texture_key);
-	glBindVertexArray (mesh.vertex_array_object);
+	glBindVertexArray (mesh->vertex_array_object);
 
 	// calculate and forward mesh transform
 	program.set_uniform_mat4 ("m",
@@ -405,8 +404,8 @@ render_model (
 	);
 
 	// draw all the triangles!
-	int element_count = size / sizeof (mesh.shapes[0].mesh.indices.at (0));
-	int real_element_count = mesh.shapes[0].mesh.indices.size ();
+	int element_count = size / sizeof (mesh->shapes[0].mesh.indices.at (0));
+	int real_element_count = mesh->shapes[0].mesh.indices.size ();
 	THROW_IF (element_count != real_element_count,
 		"Unequal element_count ", std::to_string (element_count),
 		" vs ", std::to_string (real_element_count)
@@ -448,7 +447,7 @@ on_render () {
 	);
 
 	render_model (
-		game_data.dragon,
+		game_data.mesh_loader.get ("ground"),
 		game_data.models[0],
 		"ground",
 		game_data.texture_loader,
@@ -456,7 +455,7 @@ on_render () {
 	);
 
 	render_model (
-		game_data.suzanne,
+		game_data.mesh_loader.get ("suzanne"),
 		game_data.models[1],
 		"suzanne",
 		game_data.texture_loader,
@@ -464,7 +463,7 @@ on_render () {
 	);
 
 	render_model (
-		game_data.light,
+		game_data.mesh_loader.get ("light_sphere"),
 		game_data.models[2],
 		"light",
 		game_data.texture_loader,
@@ -472,7 +471,7 @@ on_render () {
 	);
 
 	render_model (
-		game_data.skysphere,
+		game_data.mesh_loader.get ("sky_sphere"),
 		game_data.models[3],
 		"sky",
 		game_data.texture_loader,
@@ -485,11 +484,10 @@ on_render () {
 void
 dispose () {
 	game_data.program.dispose ();
+
 	game_data.texture_loader.dispose ();
-	game_data.mesh_loader.dispose_mesh (game_data.dragon);
-	game_data.mesh_loader.dispose_mesh (game_data.suzanne);
-	game_data.mesh_loader.dispose_mesh (game_data.skysphere);
-	game_data.mesh_loader.dispose_mesh (game_data.light);
+
+	game_data.mesh_loader.dispose ();
 
 	glfwTerminate ();
 }
