@@ -91,7 +91,7 @@ add_custom_target (run
 )
 
 # 'make test'
-add_custom_target (test
+add_custom_target (tests
 	COMMAND ${EXECUTABLE_OUTPUT_PATH}/test-runner -s
 		DEPENDS test-runner
 		WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
