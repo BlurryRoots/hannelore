@@ -1,9 +1,5 @@
 bin/
 *.a
 lib/*.a
-CMakeCache.txt
-Makefile
-cmake_install.cmake
-CMakeFiles
-
 log/
+tmp/
