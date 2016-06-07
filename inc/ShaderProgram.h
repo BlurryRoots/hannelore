@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <vector>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -282,10 +283,15 @@ private:
 		GLint log_length;
 		glGetProgramiv (program.handle, GL_INFO_LOG_LENGTH, &log_length);
 
-		char log_buffer[log_length];
-		glGetProgramInfoLog (program.handle, log_length, NULL, log_buffer);
+		if (0 < log_length) {
+			std::vector<char> log_buffer_vec (log_length);
+			char *log_buffer = log_buffer_vec.data ();
+			glGetProgramInfoLog (program.handle, log_length, NULL, log_buffer);
 
-		return std::string (log_buffer);
+			return std::string (log_buffer);
+		}
+
+		return "";
 	}
 
 	bool

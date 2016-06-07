@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <map>
+#include <vector>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -28,10 +29,11 @@ private:
 		if (GL_FALSE == compiled) {
 			GLint logSize;
 			glGetShaderiv (this->handle, GL_INFO_LOG_LENGTH, &logSize);
-
-			{ char logMessage[logSize];
+			{ 
+				std::vector<char> messageVector (logSize);
+				char *logMessage = messageVector.data ();
 				glGetShaderInfoLog (this->handle, logSize, NULL, logMessage);
-				error_message = (logMessage);
+				error_message = std::string (logMessage);
 			}
 
 			status = true;
