@@ -55,6 +55,7 @@ gl_PointCoord		mediump		vec2
 #include <Mesh.h>
 #include <MeshLoader.h>
 #include <MeshRenderer.h>
+#include <PathUtil.h>
 
 #define TITLE "Hans die Wurst"
 #define PI_OVER_2 1.57079632679f
@@ -287,10 +288,25 @@ initialize (void) {
 	// setup game stuff
 	game_data.is_running = true;
 
-	auto vs =
-		VertexShader (FileReader ("shaders/es/basic.vert").to_string ());
-	auto fs =
-		FragmentShader (FileReader ("shaders/es/basic.frag").to_string ());
+	//std::string basePath = "C:/Users/klabusterbeere/Workspace/Remote/hannelore/bin/Debug/";
+	std::string basePath = get_executable_path ();
+
+	const std::string from = "\\";
+	const std::string to = "/";
+	size_t start_pos = 0;
+	while ((start_pos = basePath.find (from, start_pos)) != std::string::npos) {
+		basePath.replace (start_pos, from.length (), to);
+		// In case 'to' contains 'from', like replacing 'x' with 'yx'
+		start_pos += to.length ();
+	}
+	basePath += "/";
+
+	auto vertText = FileReader {basePath + "shaders/es/basic.vert"}.to_string ();
+	auto vs = VertexShader (vertText);
+
+	auto fragText = FileReader {basePath + "shaders/es/basic.frag"}.to_string ();
+	auto fs = FragmentShader (fragText);
+
 	game_data.program = ShaderProgramBuilder ()
 		.add_shader (vs)
 		.add_shader (fs)
@@ -300,28 +316,28 @@ initialize (void) {
 		.link ()
 		;
 
-	game_data.texture_loader.load ("textures/ground.lines.png", "ground", 0);
+	game_data.texture_loader.load (basePath + "textures/ground.lines.png", "ground", 0);
 	game_data.mesh_loader.load (
-		"models/objs/ground.obj", game_data.program, "ground"
+		basePath + "models/objs/ground.obj", game_data.program, "ground"
 	);
 
-	game_data.texture_loader.load ("textures/grass.png", "suzanne", 0);
+	game_data.texture_loader.load (basePath + "textures/grass.png", "suzanne", 0);
 	game_data.mesh_loader.load (
-		"models/objs/suzanne.smooth.obj", game_data.program, "suzanne"
+		basePath + "models/objs/suzanne.smooth.obj", game_data.program, "suzanne"
 	);
 	game_data.models[1].translate (glm::vec3 ( 0, 0.5, 1));
 	game_data.models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
-	game_data.texture_loader.load ("textures/light.uv.png", "light", 0);
+	game_data.texture_loader.load (basePath + "textures/light.uv.png", "light", 0);
 	game_data.mesh_loader.load (
-		"models/objs/light_sphere.obj", game_data.program, "light_sphere"
+		basePath + "models/objs/light_sphere.obj", game_data.program, "light_sphere"
 	);
 	game_data.models[2].translate (glm::vec3 ( 0, 2, -2));
 
 	//
-	game_data.texture_loader.load ("textures/sky.jpg", "sky", 0);
+	game_data.texture_loader.load (basePath + "textures/sky.jpg", "sky", 0);
 	game_data.mesh_loader.load (
-		"models/objs/skysphere.obj", game_data.program, "sky_sphere"
+		basePath + "models/objs/skysphere.obj", game_data.program, "sky_sphere"
 	);
 	game_data.models[3].translate (glm::vec3 ( 0, 0, 0));
 	{
