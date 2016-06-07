@@ -63,10 +63,10 @@ add_definitions (-Wall)
 
 # system libraries
 set (SYSTEM_LIBS)
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	list (APPEND SYSTEM_LIBS z)
 	list (APPEND SYSTEM_LIBS pthread)
-ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+endif ()
 
 ## executables
 
