@@ -20,9 +20,9 @@ public:
 	, contents ()
 	, input_stream () {
 		//prepare f to throw if failbit gets set
-		std::ios_base::iostate exceptionMask =
+		/*std::ios_base::iostate exceptionMask =
 			this->input_stream.exceptions () | std::ios::failbit;
-		this->input_stream.exceptions (exceptionMask);
+		this->input_stream.exceptions (exceptionMask);*/
 
 		this->input_stream.open (this->path, this->mode); {
 			std::string line;
