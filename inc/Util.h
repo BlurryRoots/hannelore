@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <stdio.h>
+
 // allows for super class referencing without
 // having to care about the type name.
 #define DECLARE_SUPER_CLASS(super_class) \
@@ -13,10 +15,38 @@
 
 // for convenient and verbose output of throw_if
 // exeption messages.
+#ifndef YOLO
 #define SOURCE_LOCATION \
 	__FILE__, "@", std::to_string (__LINE__), ": "
 #define THROW_IF(premise, ...) \
 	blurryroots::util::throw_if (premise, SOURCE_LOCATION, ##__VA_ARGS__)
+#else
+#define TROW_IF(premise, ...) \
+	if (false) {}
+#endif
+
+// for logging debug and warning messages
+#ifdef DEBUG
+#define DEBUG_SOURCE_LOCATION \
+	std::string (__FILE__) + "@" + std::to_string (__LINE__)
+
+#define LOG_PREFIX "LOG"
+#define DEBUG_LOG(msg) \
+	blurryroots::util::log (LOG_PREFIX, DEBUG_SOURCE_LOCATION, "%s", msg)
+#define DEBUG_LOG(msg, ...) \
+	blurryroots::util::log (LOG_PREFIX, DEBUG_SOURCE_LOCATION, msg, ##__VA_ARGS__)
+
+#define WARNING_PREFIX "WARNING: "
+#define DEBUG_WARN(msg) \
+	blurryroots::util::log (WARNING_PREFIX, DEBUG_SOURCE_LOCATION, "%s", msg)
+#define DEBUG_WARN(msg, ...) \
+	blurryroots::util::log (WARNING_PREFIX, DEBUG_SOURCE_LOCATION, msg, ##__VA_ARGS__)
+#else
+#define LOG(msg) \
+	if (false) {}
+#define LOG(msg, ...) \
+	if (false) {}
+#endif
 
 namespace blurryroots { namespace util {
 
@@ -42,6 +72,15 @@ throw_if (bool premise, TArgs... args) {
 
 	// throw runtime error, with collected string as msg.
 	throw std::runtime_error (ss.str ());
+}
+
+// logging
+template<class... TArgs> static void
+log (std::string prefix, std::string location, std::string msg, TArgs... args) {
+	msg = prefix + " (" + location + "): " + msg;
+
+	const char *fmt = msg.c_str ();
+	printf (fmt, args...);
 }
 
 }}
