@@ -1,5 +1,5 @@
-#ifndef __IRESOURCE_H__
-#define __IRESOURCE_H__
+#ifndef IResource_H
+#define IResource_H
 
 class IResource {
 
@@ -7,6 +7,9 @@ class IResource {
 // allocated resouces and their disposal (and any lack thereof)
 
 public:
+	virtual void
+	dispose (void) = 0;
+
 	virtual
 	~IResource (void) {}
 
