@@ -451,7 +451,7 @@ public:
 			&number_uniforms
 		);
 		THROW_IF (0 == number_uniforms,
-			SOURCE_LOCATION, "No uniforms found!"
+			"No uniforms found!"
 		);
 
 		#ifdef DEBUG_MESSAGE
