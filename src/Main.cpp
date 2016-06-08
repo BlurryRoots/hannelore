@@ -14,6 +14,8 @@ gl_FragCoord		mediump		vec4
 gl_PointCoord		mediump		vec2
 */
 
+#define DEBUG
+
 
 // std shit
 #include <iostream>
@@ -140,6 +142,7 @@ main (void) {
 	try {
 		// stuff to setup
 		initialize ();
+		DEBUG_LOG ("Finished initialization.");
 
 		// Loop until the user closes the window
 		double lastTime = glfwGetTime ();
@@ -169,6 +172,7 @@ main (void) {
 	}
 
 	dispose ();
+	DEBUG_WARN ("Finished disposing.");
 
 	return 0;
 }
