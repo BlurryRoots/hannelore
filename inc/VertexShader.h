@@ -5,11 +5,9 @@
 
 class VertexShader : public Shader {
 
-private:
-protected:
 public:
 	VertexShader (std::string souce_code)
-	:	Shader (souce_code, GL_VERTEX_SHADER) {
+	: Shader (souce_code, GL_VERTEX_SHADER) {
 	}
 
 };

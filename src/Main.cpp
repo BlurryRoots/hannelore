@@ -212,7 +212,7 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 
 	const GLFWvidmode *mode = glfwGetVideoMode (monitor);
 	THROW_IF (nullptr == mode,
-		"Could get video mode for primary monitor!"
+		"Could not get video mode for primary monitor!"
 	);
 	glfwWindowHint (GLFW_RED_BITS, mode->redBits);
 	glfwWindowHint (GLFW_GREEN_BITS, mode->greenBits);
@@ -220,7 +220,7 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	glfwWindowHint (GLFW_REFRESH_RATE, mode->refreshRate);
 	glfwWindowHint (GLFW_VISIBLE, GL_FALSE);
 
-	//glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+	glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
 
 	// Create a window and its OpenGL context
@@ -301,11 +301,12 @@ initialize (void) {
 	}
 	basePath += "/";
 
-	auto vertText = FileReader {basePath + "shaders/es/basic.vert"}.to_string ();
-	auto vs = VertexShader (vertText);
+	// setup basic shaders
+	FileReader vertFile (basePath + "shaders/es/basic.vert");
+	auto vs = VertexShader (vertFile.to_string ());
 
-	auto fragText = FileReader {basePath + "shaders/es/basic.frag"}.to_string ();
-	auto fs = FragmentShader (fragText);
+	FileReader fragFile (basePath + "shaders/es/basic.frag");
+	auto fs = FragmentShader (fragFile.to_string ());
 
 	game_data.program = ShaderProgramBuilder ()
 		.add_shader (vs)
@@ -325,21 +326,22 @@ initialize (void) {
 	game_data.mesh_loader.load (
 		basePath + "models/objs/suzanne.smooth.obj", game_data.program, "suzanne"
 	);
-	game_data.models[1].translate (glm::vec3 ( 0, 0.5, 1));
+	game_data.models[1].translate (glm::vec3 (0, 0.5, 1));
 	game_data.models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
 	game_data.texture_loader.load (basePath + "textures/light.uv.png", "light", 0);
 	game_data.mesh_loader.load (
 		basePath + "models/objs/light_sphere.obj", game_data.program, "light_sphere"
 	);
-	game_data.models[2].translate (glm::vec3 ( 0, 2, -2));
+	game_data.models[2].translate (glm::vec3 (0, 2, -2));
 
 	//
 	game_data.texture_loader.load (basePath + "textures/sky.jpg", "sky", 0);
 	game_data.mesh_loader.load (
 		basePath + "models/objs/skysphere.obj", game_data.program, "sky_sphere"
 	);
-	game_data.models[3].translate (glm::vec3 ( 0, 0, 0));
+	game_data.models[3].translate (glm::vec3 (0, 0, 0));
+	game_data.models[3].scale (glm::vec3 (4, 4, 4));
 	{
 		auto *ground = game_data.mesh_loader.get ("ground");
 		float max_ground_dim = ground->dimensions[0].x;
@@ -360,8 +362,8 @@ initialize (void) {
 	glm::mat4 inv_rotation = glm::inverse (
 		game_data.camera_processor.transform.to_rotation ()
 	);
-	glm::vec3 right   = Transform::to_right (inv_rotation);
-	game_data.camera_processor.transform.rotate ( PI_OVER_2 * 0.5f, right);
+	glm::vec3 right = Transform::to_right (inv_rotation);
+	game_data.camera_processor.transform.rotate (PI_OVER_2 * 0.5f, right);
 
 	game_data.light_radius = 1.0f;
 	game_data.light_intensity = 2.0f;
