@@ -156,113 +156,101 @@ public:
 	}
 
 	void
-	on_key (int key, int scancode, int action, int mods) {
+	on_key_up (int key, int scancode, int mods) {
 		if (GLFW_KEY_LEFT == key) {
-			if (GLFW_PRESS == action) {
-				this->data.yaw += -1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.yaw += 1;
-			}
+			this->data.yaw += 1;
 		}
 
 		if (GLFW_KEY_RIGHT == key) {
-			if (GLFW_PRESS == action) {
-				this->data.yaw += 1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.yaw += -1;
-			}
+			this->data.yaw -= 1;
 		}
 
 		if (GLFW_KEY_UP == key) {
-			if (GLFW_PRESS == action) {
-				this->data.pitch += -1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.pitch += 1;
-			}
+			this->data.pitch += 1;
 		}
 
 		if (GLFW_KEY_DOWN == key) {
-			if (GLFW_PRESS == action) {
-				this->data.pitch += 1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.pitch += -1;
-			}
+			this->data.pitch -= 1;
 		}
 
 		if (GLFW_KEY_W == key) {
-			if (GLFW_PRESS == action) {
-				this->data.movement.z += -1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.movement.z += 1;
-			}
+			this->data.movement.z += 1;
 		}
 
 		if (GLFW_KEY_S == key) {
-			if (GLFW_PRESS == action) {
-				this->data.movement.z += 1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.movement.z += -1;
-			}
+			this->data.movement.z -= 1;
 		}
 
 		if (GLFW_KEY_A == key) {
-			if (GLFW_PRESS == action) {
-				this->data.movement.x += -1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.movement.x += 1;
-			}
+			this->data.movement.x += 1;
 		}
 
 		if (GLFW_KEY_D == key) {
-			if (GLFW_PRESS == action) {
-				this->data.movement.x += 1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.movement.x += -1;
-			}
+			this->data.movement.x -= 1;
 		}
 
 		if (GLFW_KEY_Q == key) {
-			if (GLFW_PRESS == action) {
-				this->data.movement.y += 1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.movement.y += -1;
-			}
+			this->data.movement.y -= 1;
 		}
 
 		if (GLFW_KEY_E == key) {
-			if (GLFW_PRESS == action) {
-				this->data.movement.y += -1;
-			}
-			if (GLFW_RELEASE == action) {
-				this->data.movement.y += 1;
-			}
+			this->data.movement.y += 1;
 		}
 
 		if (GLFW_KEY_SPACE == key) {
-			if (GLFW_RELEASE == action) {
-				std::cout
-					<< "Camera @ "
-					<< vec3_to_string (Transform::to_position (
-						glm::inverse (this->transform.to_translation ())
+			DEBUG_LOG ("Camera @ %s",
+				vec3_to_string (Transform::to_position (
+					glm::inverse (this->transform.to_translation ())
 					))
-					<< std::endl;
-			}
+				);
 		}
 
 		if (GLFW_KEY_ENTER == key) {
-			if (GLFW_RELEASE == action) {
-				this->transform.reset_translation ();
-				this->transform.reset_rotation ();
-			}
+			this->transform.reset_translation ();
+			this->transform.reset_rotation ();
+		}
+	}
+
+	void
+	on_key_down (int key, int scancode, int mods) {
+		if (GLFW_KEY_LEFT == key) {
+			this->data.yaw -= 1;
+		}
+
+		if (GLFW_KEY_RIGHT == key) {
+			this->data.yaw += 1;
+		}
+
+		if (GLFW_KEY_UP == key) {
+			this->data.pitch -= 1;
+		}
+
+		if (GLFW_KEY_DOWN == key) {
+			this->data.pitch += 1;
+		}
+
+		if (GLFW_KEY_W == key) {
+			this->data.movement.z -= 1;
+		}
+
+		if (GLFW_KEY_S == key) {
+			this->data.movement.z += 1;
+		}
+
+		if (GLFW_KEY_A == key) {
+			this->data.movement.x -= 1;
+		}
+
+		if (GLFW_KEY_D == key) {
+			this->data.movement.x += 1;
+		}
+
+		if (GLFW_KEY_Q == key) {
+			this->data.movement.y += 1;
+		}
+
+		if (GLFW_KEY_E == key) {
+			this->data.movement.y -= 1;
 		}
 	}
 
