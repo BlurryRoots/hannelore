@@ -77,10 +77,13 @@ throw_if (bool premise, TArgs... args) {
 // logging
 template<class... TArgs> static void
 log (std::string prefix, std::string location, std::string msg, TArgs... args) {
-	msg = prefix + " (" + location + "): " + msg;
+	// collect all arguments into a stringstream.
+	std::stringstream ss;
+	ss << prefix << " (" << location << "): " << msg << std::endl;
+	std::string format_string = ss.str ();
 
-	const char *fmt = msg.c_str ();
-	printf (fmt, args...);
+	const char *format_cstring = format_string.c_str ();
+	printf (format_cstring, args...);
 }
 
 }}
