@@ -18,6 +18,7 @@
 #include <glm/gtc/epsilon.hpp> // glm::epsilonEqual
 
 #include <Transform.h>
+#include <KeyCode.h>
 
 #define PI 3.1415f
 #define PI_OVER_4 PI / 4.0f
@@ -156,48 +157,48 @@ public:
 	}
 
 	void
-	on_key_up (int key, int scancode, int mods) {
-		if (GLFW_KEY_LEFT == key) {
+	on_key_up (KeyCode key, KeyModifier mods) {
+		if (KeyCode::left == key) {
 			this->data.yaw += 1;
 		}
 
-		if (GLFW_KEY_RIGHT == key) {
+		if (KeyCode::right == key) {
 			this->data.yaw -= 1;
 		}
 
-		if (GLFW_KEY_UP == key) {
+		if (KeyCode::up == key) {
 			this->data.pitch += 1;
 		}
 
-		if (GLFW_KEY_DOWN == key) {
+		if (KeyCode::down == key) {
 			this->data.pitch -= 1;
 		}
 
-		if (GLFW_KEY_W == key) {
+		if (KeyCode::w == key) {
 			this->data.movement.z += 1;
 		}
 
-		if (GLFW_KEY_S == key) {
+		if (KeyCode::s == key) {
 			this->data.movement.z -= 1;
 		}
 
-		if (GLFW_KEY_A == key) {
+		if (KeyCode::a == key) {
 			this->data.movement.x += 1;
 		}
 
-		if (GLFW_KEY_D == key) {
+		if (KeyCode::d == key) {
 			this->data.movement.x -= 1;
 		}
 
-		if (GLFW_KEY_Q == key) {
+		if (KeyCode::q == key) {
 			this->data.movement.y -= 1;
 		}
 
-		if (GLFW_KEY_E == key) {
+		if (KeyCode::e == key) {
 			this->data.movement.y += 1;
 		}
 
-		if (GLFW_KEY_SPACE == key) {
+		if (KeyCode::space == key) {
 			DEBUG_LOG ("Camera @ %s",
 				vec3_to_string (Transform::to_position (
 					glm::inverse (this->transform.to_translation ())
@@ -205,51 +206,51 @@ public:
 				);
 		}
 
-		if (GLFW_KEY_ENTER == key) {
+		if (KeyCode::escape == key) {
 			this->transform.reset_translation ();
 			this->transform.reset_rotation ();
 		}
 	}
 
 	void
-	on_key_down (int key, int scancode, int mods) {
-		if (GLFW_KEY_LEFT == key) {
+	on_key_down (KeyCode key, KeyModifier mods) {
+		if (KeyCode::left == key) {
 			this->data.yaw -= 1;
 		}
 
-		if (GLFW_KEY_RIGHT == key) {
+		if (KeyCode::right == key) {
 			this->data.yaw += 1;
 		}
 
-		if (GLFW_KEY_UP == key) {
+		if (KeyCode::up == key) {
 			this->data.pitch -= 1;
 		}
 
-		if (GLFW_KEY_DOWN == key) {
+		if (KeyCode::down == key) {
 			this->data.pitch += 1;
 		}
 
-		if (GLFW_KEY_W == key) {
+		if (KeyCode::w == key) {
 			this->data.movement.z -= 1;
 		}
 
-		if (GLFW_KEY_S == key) {
+		if (KeyCode::s == key) {
 			this->data.movement.z += 1;
 		}
 
-		if (GLFW_KEY_A == key) {
+		if (KeyCode::a == key) {
 			this->data.movement.x -= 1;
 		}
 
-		if (GLFW_KEY_D == key) {
+		if (KeyCode::d == key) {
 			this->data.movement.x += 1;
 		}
 
-		if (GLFW_KEY_Q == key) {
+		if (KeyCode::q == key) {
 			this->data.movement.y += 1;
 		}
 
-		if (GLFW_KEY_E == key) {
+		if (KeyCode::e == key) {
 			this->data.movement.y -= 1;
 		}
 	}
