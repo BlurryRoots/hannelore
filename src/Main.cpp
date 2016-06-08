@@ -75,7 +75,8 @@ struct GameData {
 		GLint vertex_color;
 	} attributes;
 
-	int width, height;
+	int window_width, window_height;
+	int framebuffer_width, framebuffer_height;
 
 	TextureLoader texture_loader;
 	blurryroots::model::MeshLoader mesh_loader;
@@ -227,9 +228,11 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
 
+	ctx.window_width = mode->width / 2;
+	ctx.window_height = mode->height / 2;
 	// Create a window and its OpenGL context
 	ctx.window = glfwCreateWindow (
-		mode->width, mode->height,
+		ctx.window_width, ctx.window_height,
 		title.c_str (),
 		fullscreen ? monitor : nullptr,
 		nullptr // OpendGL context sharing
@@ -253,12 +256,18 @@ open_window (GameData &ctx, const std::string &title, bool fullscreen) {
 	std::cout
 		<< "OpenGL Version: " << glGetString (GL_VERSION) << "\n"
 		<< "OpenGL Shader : " << glGetString (GL_SHADING_LANGUAGE_VERSION)
-		<< std::endl;
+		<< std::endl
+		;
 
 	glfwShowWindow (ctx.window); {
-		int width, height;
-		glfwGetFramebufferSize (ctx.window, &width, &height);
-		glViewport (0, 0, width, height);
+		glfwGetFramebufferSize (ctx.window,
+			&(ctx.framebuffer_width), &(ctx.framebuffer_height)
+		);
+		std::cout
+			<< "Inital framebuffer size: "
+			<< ctx.framebuffer_width << " / " << ctx.framebuffer_height
+			;
+		glViewport (0, 0, ctx.framebuffer_width, ctx.framebuffer_height);
 	}
 
 	// callbacks
@@ -307,9 +316,17 @@ initialize (void) {
 
 	// setup basic shaders
 	FileReader vertFile (basePath + "shaders/es/basic.vert");
+	std::string vsText = vertFile.to_string ();
+	THROW_IF (0 == vsText.size (),
+		"Vertex shader is missing or empty!"
+	);
 	auto vs = VertexShader (vertFile.to_string ());
 
 	FileReader fragFile (basePath + "shaders/es/basic.frag");
+	std::string fragText = fragFile.to_string ();
+	THROW_IF(0 == fragText.size (),
+		"Fragment shader is missing or empty!"
+	);
 	auto fs = FragmentShader (fragFile.to_string ());
 
 	game_data.program = ShaderProgramBuilder ()
@@ -368,6 +385,9 @@ initialize (void) {
 	);
 	glm::vec3 right = Transform::to_right (inv_rotation);
 	game_data.camera_processor.transform.rotate (PI_OVER_2 * 0.5f, right);
+	game_data.camera_processor.on_viewport_changed(
+		game_data.framebuffer_width, game_data.framebuffer_height
+	);
 
 	game_data.light_radius = 1.0f;
 	game_data.light_intensity = 2.0f;
@@ -547,16 +567,20 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 void
 on_framebuffer (GLFWwindow *window, int width, int height) {
 	std::cout << "framebuffer changed from"
-		<< "\nw: " << game_data.width << " to " << width
-		<< "\nh: " << game_data.height << " to " << height
+		<< "\nw: " << game_data.window_width << " to " << width
+		<< "\nh: " << game_data.window_height << " to " << height
 		<< "\non window " << window
 		<< std::endl;
 		;
-	game_data.width = width;
-	game_data.height = height;
+	game_data.framebuffer_width = width;
+	game_data.framebuffer_height = height;
 
-	glViewport (0, 0, game_data.width, game_data.height);
-	game_data.camera_processor.on_viewport_changed (width, height);
+	glViewport (0, 0,
+		game_data.framebuffer_width, game_data.framebuffer_height
+	);
+	game_data.camera_processor.on_viewport_changed (
+		game_data.framebuffer_width, game_data.framebuffer_height
+	);
 }
 
 void

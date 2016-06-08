@@ -16,7 +16,8 @@ public:
 	FileReader (std::string file_path)
 	: path (file_path)
 	, contents () {
-		auto input_stream = std::ifstream (this->path, std::ifstream::in); {
+		std::ifstream input_stream;
+		input_stream.open (this->path, std::ifstream::in);  {
 			std::string line;
 			while (std::getline (input_stream, line)) {
 				this->contents += line + "\n";
