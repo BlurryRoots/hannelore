@@ -59,53 +59,12 @@ gl_PointCoord		mediump		vec2
 #include <MeshRenderer.h>
 #include <PathUtil.h>
 #include <KeyCode.h>
+#include <Game.h>
 
 #define TITLE "Hans die Wurst"
 #define PI_OVER_2 1.57079632679f
 
-struct GameData {
-
-	GLFWwindow *window;
-	bool is_running;
-	ShaderProgram program;
-
-	struct {
-		GLint vertex_position;
-		GLint vertex_uv;
-		GLint vertex_normal;
-		GLint vertex_color;
-	} attributes;
-
-	int window_width, window_height;
-	int framebuffer_width, framebuffer_height;
-
-	TextureLoader texture_loader;
-	blurryroots::model::MeshLoader mesh_loader;
-	blurryroots::model::MeshRenderer mesh_renderer;
-
-	struct {
-		glm::mat4 model;
-		glm::mat4 view;
-		glm::mat4 projection;
-	} matrices;
-
-	float light_radius;
-	float light_intensity;
-	glm::vec3 light_color;
-	float light_color_factor;
-	float light_color_base;
-	bool complex_attenuation;
-
-	Transform models[4];
-
-	CameraProcessor camera_processor;
-
-	bool fullscreen;
-
-} game_data;
-
-void
-test_obj_loader (void);
+Game game_data;
 
 //
 void
@@ -148,7 +107,7 @@ main (void) {
 
 		// Loop until the user closes the window
 		double lastTime = glfwGetTime ();
-		while (game_data.is_running) {
+		while (game_data.m_is_running) {
 			// Calculate time spend processing the last frame
 			double deltaTime = glfwGetTime () - lastTime;
 			lastTime = glfwGetTime ();
@@ -180,7 +139,7 @@ main (void) {
 }
 
 void
-open_window (GameData &ctx, const std::string &title, bool fullscreen) {
+open_window (Game &ctx, const std::string &title, bool fullscreen) {
 	// Initialize GLFW
 	THROW_IF (GL_TRUE != glfwInit (),
 		"Could not initialize glfw!"
@@ -300,7 +259,7 @@ initialize (void) {
 	open_window (game_data, TITLE, false);
 
 	// setup game stuff
-	game_data.is_running = true;
+	game_data.m_is_running = true;
 
 	//std::string basePath = "C:/Users/klabusterbeere/Workspace/Remote/hannelore/bin/Debug/";
 	std::string basePath = get_executable_path ();
@@ -399,7 +358,7 @@ initialize (void) {
 float suzanne_speed = 0.8f;
 void
 on_update (double dt) {
-	game_data.is_running = game_data.is_running
+	game_data.m_is_running = game_data.m_is_running
 		&& ! glfwWindowShouldClose (game_data.window)
 		;
 
@@ -526,62 +485,9 @@ on_render () {
 
 void
 dispose () {
-	game_data.program.dispose ();
-
-	game_data.texture_loader.dispose ();
-
-	game_data.mesh_loader.dispose ();
+	game_data.on_dispose ();
 
 	glfwTerminate ();
-}
-
-
-
-bool change_intensity = false;
-void signal_intensity_toggle () {
-	change_intensity = ! change_intensity;
-	DEBUG_LOG ("Toggled intensity to %i",
-		change_intensity
-		);
-}
-
-void toggle_attenuation_complexity () {
-	game_data.complex_attenuation = ! game_data.complex_attenuation;
-	DEBUG_LOG ("Toggled attenuation");
-}
-
-void
-on_key_down (KeyCode key, int scancode, KeyModifier mods) {
-	DEBUG_LOG ("on_key_down ", key);
-
-	game_data.camera_processor.on_key_down (key, mods);
-
-	if (mods & GLFW_MOD_CONTROL) {
-		signal_intensity_toggle ();
-	}
-}
-
-void
-on_key_up (KeyCode key, int scancode, KeyModifier mods) {
-	DEBUG_LOG ("on_key_up ", key);
-
-	game_data.camera_processor.on_key_up (key, mods);
-
-	if (GLFW_KEY_ESCAPE == key) {
-		game_data.is_running = false;
-	}
-
-	if (GLFW_KEY_SPACE == key) {
-		DEBUG_LOG ("Current light radius @ %i", game_data.light_radius);
-	}
-
-	if (mods & KeyModifier::control) {
-		signal_intensity_toggle ();
-	}
-
-	if (mods & KeyModifier::alt) {
-		toggle_attenuation_complexity ();
-	}
 }
 
 void
@@ -590,10 +496,10 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 	KeyModifier key_modifier = static_cast<KeyModifier> (mods);
 
 	if (GLFW_RELEASE == action) {
-		on_key_up (key_code, scancode, key_modifier);
+		game_data.on_key_up (key_code, scancode, key_modifier);
 	}
 	else if (GLFW_PRESS == action) {
-		on_key_down (key_code, scancode, key_modifier);
+		game_data.on_key_down (key_code, scancode, key_modifier);
 	}
 	else if (GLFW_REPEAT == action) {
 		// on_key_repeat
@@ -607,68 +513,32 @@ on_key (GLFWwindow *window, int key, int scancode, int action, int mods) {
 
 void
 on_framebuffer (GLFWwindow *window, int width, int height) {
-	DEBUG_LOG ("Framebuffer changed from \nw: %i to %i\nh: %i to %i",
-		game_data.framebuffer_width, width,
-		game_data.framebuffer_height, height
-	);
-
-	game_data.framebuffer_width = width;
-	game_data.framebuffer_height = height;
-
-	glViewport (0, 0,
-		game_data.framebuffer_width, game_data.framebuffer_height
-	);
-	game_data.camera_processor.on_viewport_changed (
-		game_data.framebuffer_width, game_data.framebuffer_height
-	);
+	game_data.on_framebuffer (width, height);
 }
 
 void
 on_cursor_position (GLFWwindow *window, double xpos, double ypos) {
-	//
-	game_data.camera_processor.on_cursor_position (xpos, ypos);
+	game_data.on_mouse_move (xpos, ypos);
 }
 
 void
 on_cursor_enter (GLFWwindow *window, int entered) {
 	if (entered) {
 		// The cursor entered the client area of the window
-		game_data.camera_processor.activate ();
+		game_data.on_mouse_enter ();
 	}
 	else {
 		// The cursor left the client area of the window
-		game_data.camera_processor.deactivate ();
+		game_data.on_mouse_leave ();
 	}
 }
 
 void
 on_mouse_button (GLFWwindow *window, int button, int action, int mods) {
-	//
+	game_data.on_mouse_button (button, action, mods);
 }
 
 void
 on_scroll (GLFWwindow *window, double xoffset, double yoffset) {
-	//
-	if (change_intensity) {
-		game_data.light_intensity += (float)yoffset / 10.f;
-		game_data.light_intensity = game_data.light_intensity < 0
-			? 0
-			: game_data.light_intensity
-			;
-
-		DEBUG_LOG ("Changed light_intensity to %i",
-			game_data.light_intensity
-		);
-	}
-	else {
-		game_data.light_radius += (float)yoffset / 10.f;
-		game_data.light_radius = game_data.light_radius < 0
-			? 0
-			: game_data.light_radius
-			;
-
-		DEBUG_LOG ("Changed light_radius to %i",
-			game_data.light_radius
-		);
-	}
+	game_data.on_mouse_scroll (xoffset, yoffset);
 }
