@@ -62,22 +62,11 @@ gl_PointCoord		mediump		vec2
 #include <Game.h>
 
 #define TITLE "Hans die Wurst"
-#define PI_OVER_2 1.57079632679f
 
 Game game_data;
 
-//
 void
-initialize (void);
-
-void
-on_update (double dt);
-
-void
-on_render ();
-
-void
-dispose ();
+open_window (Game &ctx, const std::string &title, bool fullscreen);
 
 // Callbacks
 void
@@ -101,8 +90,10 @@ on_scroll (GLFWwindow *window, double xoffset, double yoffset);
 int
 main (void) {
 	try {
+		open_window (game_data, TITLE, false);
+
 		// stuff to setup
-		initialize ();
+		game_data.on_initialize ();
 		DEBUG_LOG ("Finished initialization.");
 
 		// Loop until the user closes the window
@@ -113,10 +104,10 @@ main (void) {
 			lastTime = glfwGetTime ();
 
 			// Do logical updates
-			on_update (deltaTime);
+			game_data.on_update (deltaTime);
 
 			// Draw stuff onto screen
-			on_render ();
+			game_data.on_render ();
 
 			// Swap front and back buffers
 			glfwSwapBuffers (game_data.window);
@@ -124,6 +115,8 @@ main (void) {
 			// Poll for and process events
 			glfwPollEvents ();
 		}
+
+		game_data.on_quit ();
 	}
 	catch (std::exception &ex) {
 		std::cout << "Cought: " << ex.what () << std::endl;
@@ -132,7 +125,9 @@ main (void) {
 		std::cout << "Cought unkown exception :(" << std::endl;
 	}
 
-	dispose ();
+	game_data.on_dispose ();
+
+	glfwTerminate ();
 	DEBUG_WARN ("Finished disposing.");
 
 	return 0;
@@ -251,243 +246,6 @@ open_window (Game &ctx, const std::string &title, bool fullscreen) {
 	glEnable (GL_CULL_FACE);
 	glCullFace (GL_BACK);
 	glFrontFace (GL_CCW);
-}
-
-void
-initialize (void) {
-	//
-	open_window (game_data, TITLE, false);
-
-	// setup game stuff
-	game_data.m_is_running = true;
-
-	//std::string basePath = "C:/Users/klabusterbeere/Workspace/Remote/hannelore/bin/Debug/";
-	std::string basePath = get_executable_path ();
-
-	const std::string from = "\\";
-	const std::string to = "/";
-	size_t start_pos = 0;
-	while ((start_pos = basePath.find (from, start_pos)) != std::string::npos) {
-		basePath.replace (start_pos, from.length (), to);
-		// In case 'to' contains 'from', like replacing 'x' with 'yx'
-		start_pos += to.length ();
-	}
-	basePath += "/";
-
-	// setup basic shaders
-	FileReader vertFile (basePath + "shaders/es/basic.vert");
-	std::string vsText = vertFile.to_string ();
-	THROW_IF (0 == vsText.size (),
-		"Vertex shader is missing or empty!"
-	);
-	auto vs = VertexShader (vertFile.to_string ());
-
-	FileReader fragFile (basePath + "shaders/es/basic.frag");
-	std::string fragText = fragFile.to_string ();
-	THROW_IF(0 == fragText.size (),
-		"Fragment shader is missing or empty!"
-	);
-	auto fs = FragmentShader (fragFile.to_string ());
-
-	game_data.program = ShaderProgramBuilder ()
-		.add_shader (vs)
-		.add_shader (fs)
-		.bind_attribute ("vertex_position", 0)
-		.bind_attribute ("vertex_uv", 1)
-		.bind_attribute ("vertex_normal", 2)
-		.link ()
-		;
-
-	game_data.texture_loader.load (basePath + "textures/ground.lines.png", "ground", 0);
-	game_data.mesh_loader.load (
-		basePath + "models/objs/ground.obj", game_data.program, "ground"
-	);
-
-	game_data.texture_loader.load (basePath + "textures/grass.png", "suzanne", 0);
-	game_data.mesh_loader.load (
-		basePath + "models/objs/suzanne.smooth.obj", game_data.program, "suzanne"
-	);
-	game_data.models[1].translate (glm::vec3 (0, 0.5, 1));
-	game_data.models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
-
-	game_data.texture_loader.load (basePath + "textures/light.uv.png", "light", 0);
-	game_data.mesh_loader.load (
-		basePath + "models/objs/light_sphere.obj", game_data.program, "light_sphere"
-	);
-	game_data.models[2].translate (glm::vec3 (0, 2, -2));
-
-	//
-	game_data.texture_loader.load (basePath + "textures/sky.jpg", "sky", 0);
-	game_data.mesh_loader.load (
-		basePath + "models/objs/skysphere.obj", game_data.program, "sky_sphere"
-	);
-	game_data.models[3].translate (glm::vec3 (0, 0, 0));
-	game_data.models[3].scale (glm::vec3 (4, 4, 4));
-	{
-		auto *ground = game_data.mesh_loader.get ("ground");
-		float max_ground_dim = ground->dimensions[0].x;
-		max_ground_dim = glm::max (ground->dimensions[0].y,
-			max_ground_dim
-		);
-		max_ground_dim = glm::max (ground->dimensions[0].z,
-			max_ground_dim
-		);
-		game_data.models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
-	}
-
-	game_data.camera_processor.on_initialize ();
-	game_data.camera_processor.transform.translate (glm::vec3 (0, 6, -6));
-	game_data.camera_processor.transform.rotate (
-		-PI_OVER_2 * 1.5f, Transform::UP
-	);
-	glm::mat4 inv_rotation = glm::inverse (
-		game_data.camera_processor.transform.to_rotation ()
-	);
-	glm::vec3 right = Transform::to_right (inv_rotation);
-	game_data.camera_processor.transform.rotate (PI_OVER_2 * 0.5f, right);
-	game_data.camera_processor.on_viewport_changed(
-		game_data.framebuffer_width, game_data.framebuffer_height
-	);
-
-	game_data.light_radius = 1.0f;
-	game_data.light_intensity = 2.0f;
-	game_data.light_color = glm::vec3 (1.0, 0.8, 0.8);
-	game_data.complex_attenuation = true;
-}
-
-float suzanne_speed = 0.8f;
-void
-on_update (double dt) {
-	game_data.m_is_running = game_data.m_is_running
-		&& ! glfwWindowShouldClose (game_data.window)
-		;
-
-	game_data.camera_processor.on_update (dt);
-
-	glm::vec3 pos = Transform::to_position (
-		game_data.models[1].to_translation ()
-	);
-	if (-6 > pos.z || 2 < pos.z) {
-		suzanne_speed *= -1;
-	}
-
-	float speed = suzanne_speed * dt;
-	game_data.models[1].translate (glm::vec3 (0, 0, speed));
-
-	// light size according to radius
-	game_data.models[2].reset_scale ();
-	game_data.models[2].scale (glm::vec3 (game_data.light_radius));
-}
-
-void
-render_model (
-	const blurryroots::model::Mesh *mesh,
-	const Transform &transform,
-	const std::string &texture_key,
-	TextureLoader &texture_loader,
-	ShaderProgram &program
-) {
-	texture_loader.bind (texture_key);
-	glBindVertexArray (mesh->vertex_array_object);
-
-	// calculate and forward mesh transform
-	program.set_uniform_mat4 ("m",
-		transform.to_matrix ()
-	);
-
-	int size;
-	glGetBufferParameteriv (
-		GL_ELEMENT_ARRAY_BUFFER,
-		GL_BUFFER_SIZE,
-		&size
-	);
-	THROW_IF (0 >= size,
-		"Invalid element buffer!"
-	);
-
-	// draw all the triangles!
-	int element_count = size / sizeof (mesh->shapes[0].mesh.indices.at (0));
-	int real_element_count = mesh->shapes[0].mesh.indices.size ();
-	THROW_IF (element_count != real_element_count,
-		"Unequal element_count ", std::to_string (element_count),
-		" vs ", std::to_string (real_element_count)
-	);
-	glDrawElements (GL_TRIANGLES, element_count, GL_UNSIGNED_INT, 0);
-
-	glBindVertexArray (0);
-	texture_loader.unbind (texture_key);
-}
-
-void
-on_render () {
-	glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	game_data.program.use ();
-
-	game_data.camera_processor.on_render (game_data.program);
-
-	// ambient light
-	game_data.program.set_uniform_i ("complex_attenuation",
-		static_cast<int> (game_data.complex_attenuation)
-	);
-
-	// ambient light
-	game_data.program.set_uniform_vec3 ("ambient_light",
-		glm::vec3 (0.08, 0.08, 0.2)
-	);
-
-	// point light
-	game_data.program.set_uniform_vec4 ("point_light_color",
-		glm::vec4 (game_data.light_color, game_data.light_intensity)
-	);
-	game_data.program.set_uniform_vec4 ("point_light",
-		glm::vec4 (
-			Transform::to_position (game_data.models[2].to_translation ()),
-			game_data.light_radius
-		)
-	);
-
-	render_model (
-		game_data.mesh_loader.get ("ground"),
-		game_data.models[0],
-		"ground",
-		game_data.texture_loader,
-		game_data.program
-	);
-
-	render_model (
-		game_data.mesh_loader.get ("suzanne"),
-		game_data.models[1],
-		"suzanne",
-		game_data.texture_loader,
-		game_data.program
-	);
-
-	render_model (
-		game_data.mesh_loader.get ("light_sphere"),
-		game_data.models[2],
-		"light",
-		game_data.texture_loader,
-		game_data.program
-	);
-
-	render_model (
-		game_data.mesh_loader.get ("sky_sphere"),
-		game_data.models[3],
-		"sky",
-		game_data.texture_loader,
-		game_data.program
-	);
-
-	game_data.program.deactivate ();
-}
-
-void
-dispose () {
-	game_data.on_dispose ();
-
-	glfwTerminate ();
 }
 
 void
