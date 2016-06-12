@@ -42,9 +42,14 @@
 #define DEBUG_WARN(msg, ...) \
 	blurryroots::util::log (WARNING_PREFIX, DEBUG_SOURCE_LOCATION, msg, ##__VA_ARGS__)
 #else
-#define LOG(msg) \
+#define DEBUG_LOG(msg) \
 	if (false) {}
-#define LOG(msg, ...) \
+#define DEBUG_LOG(msg, ...) \
+	if (false) {}
+
+#define DEBUG_WARN(msg) \
+	if (false) {}
+#define DEBUG_WARN(msg, ...) \
 	if (false) {}
 #endif
 
