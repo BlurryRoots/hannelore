@@ -64,38 +64,39 @@ gl_PointCoord		mediump		vec2
 
 using namespace blurryroots::hannelore;
 
-Game game_data;
+Game game;
 
 int
 main (void) {
 	try {
 		WindowManager::initialize ();
-		WindowManager::register_handler (&game_data);
+		WindowManager::register_handler (&game);
 		Window w = WindowManager::open_window (TITLE, false);
 
 		// Initialize the game
-		game_data.on_initialize ();
+		game.on_initialize ();
 		// Set initialie framebuffer size
-		game_data.on_framebuffer (w.m_framebuffer_width, w.m_framebuffer_height);
+		game.on_framebuffer (w.m_framebuffer_width, w.m_framebuffer_height);
 
 		// Loop until the user closes the window
-		double lastTime = glfwGetTime ();
-		while (game_data.m_is_running) {
+		double last_frame_time = glfwGetTime ();
+		while (game.m_is_running) {
 			// Calculate time spend processing the last frame
-			double deltaTime = glfwGetTime () - lastTime;
-			lastTime = glfwGetTime ();
+			double current_frame_time = glfwGetTime ();
+			double delta_time = current_frame_time - last_frame_time;
+			last_frame_time = current_frame_time;
 
 			// Do logical updates
-			game_data.on_update (deltaTime);
+			game.on_update (delta_time);
 
 			// Draw stuff onto screen
-			game_data.on_render ();
+			game.on_render ();
 
 			// Update all window specific information
 			WindowManager::update ();
 		}
 
-		game_data.on_quit ();
+		game.on_quit ();
 	}
 	catch (std::exception &ex) {
 		std::cout << "Cought: " << ex.what () << std::endl;
@@ -104,7 +105,7 @@ main (void) {
 		std::cout << "Cought unkown exception :(" << std::endl;
 	}
 
-	game_data.on_dispose ();
+	game.on_dispose ();
 	DEBUG_WARN ("Finished disposing.");
 
 	WindowManager::shut_down ();
