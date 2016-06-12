@@ -1,8 +1,5 @@
-#pragma once
 #ifndef Window_h
 #define Window_h
-
-#define DEBUG
 
 #include <IGame.h>
 #include <Util.h>
