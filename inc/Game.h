@@ -4,6 +4,7 @@
 #define PI_OVER_2 1.57079632679f
 
 #include <IGame.h>
+#include <MeshRenderSystem.h>
 
 class Game : public IGame {
 
@@ -12,14 +13,7 @@ public:
 	ShaderProgram program;
 	int framebuffer_width, framebuffer_height;
 
-	struct {
-		GLint vertex_position;
-		GLint vertex_uv;
-		GLint vertex_normal;
-		GLint vertex_color;
-	} attributes;
-
-	TextureLoader texture_loader;
+	TextureLoader m_texture_loader;
 	blurryroots::model::MeshLoader mesh_loader;
 
 	struct {
@@ -85,26 +79,26 @@ public:
 			.link ()
 			;
 
-		texture_loader.load (basePath + "textures/ground.lines.png", "ground", 0);
+		m_texture_loader.load (basePath + "textures/ground.lines.png", "ground", 0);
 		mesh_loader.load (
 			basePath + "models/objs/ground.obj", program, "ground"
 			);
 
-		texture_loader.load (basePath + "textures/grass.png", "suzanne", 0);
+		m_texture_loader.load (basePath + "textures/grass.png", "suzanne", 0);
 		mesh_loader.load (
 			basePath + "models/objs/suzanne.smooth.obj", program, "suzanne"
 			);
 		models[1].translate (glm::vec3 (0, 0.5, 1));
 		models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
-		texture_loader.load (basePath + "textures/light.uv.png", "light", 0);
+		m_texture_loader.load (basePath + "textures/light.uv.png", "light", 0);
 		mesh_loader.load (
 			basePath + "models/objs/light_sphere.obj", program, "light_sphere"
 			);
 		models[2].translate (glm::vec3 (0, 2, -2));
 
 		//
-		texture_loader.load (basePath + "textures/sky.jpg", "sky", 0);
+		m_texture_loader.load (basePath + "textures/sky.jpg", "sky", 0);
 		mesh_loader.load (
 			basePath + "models/objs/skysphere.obj", program, "sky_sphere"
 			);
@@ -215,35 +209,35 @@ public:
 				)
 			);
 
-		render_model (
+		MeshRenderSystem::render_model (
 			mesh_loader.get ("ground"),
 			models[0],
 			"ground",
-			texture_loader,
+			m_texture_loader,
 			program
 			);
 
-		render_model (
+		MeshRenderSystem::render_model (
 			mesh_loader.get ("suzanne"),
 			models[1],
 			"suzanne",
-			texture_loader,
+			m_texture_loader,
 			program
 			);
 
-		render_model (
+		MeshRenderSystem::render_model (
 			mesh_loader.get ("light_sphere"),
 			models[2],
 			"light",
-			texture_loader,
+			m_texture_loader,
 			program
 			);
 
-		render_model (
+		MeshRenderSystem::render_model (
 			mesh_loader.get ("sky_sphere"),
 			models[3],
 			"sky",
-			texture_loader,
+			m_texture_loader,
 			program
 			);
 
@@ -339,7 +333,7 @@ public:
 	on_dispose (void) {
 		program.dispose ();
 
-		texture_loader.dispose ();
+		m_texture_loader.dispose ();
 
 		mesh_loader.dispose ();
 	}
@@ -368,45 +362,6 @@ private:
 		);
 	}
 	float suzanne_speed = 0.8f;
-
-	void
-	render_model (
-		const blurryroots::model::Mesh *mesh,
-		const Transform &transform,
-		const std::string &texture_key,
-		TextureLoader &texture_loader,
-		ShaderProgram &program
-	) {
-		texture_loader.bind (texture_key);
-		glBindVertexArray (mesh->vertex_array_object);
-
-		// calculate and forward mesh transform
-		program.set_uniform_mat4 ("m",
-			transform.to_matrix ()
-			);
-
-		int size;
-		glGetBufferParameteriv (
-			GL_ELEMENT_ARRAY_BUFFER,
-			GL_BUFFER_SIZE,
-			&size
-			);
-		THROW_IF (0 >= size,
-			"Invalid element buffer!"
-			);
-
-		// draw all the triangles!
-		int element_count = size / sizeof (mesh->shapes[0].mesh.indices.at (0));
-		int real_element_count = mesh->shapes[0].mesh.indices.size ();
-		THROW_IF (element_count != real_element_count,
-			"Unequal element_count ", std::to_string (element_count),
-			" vs ", std::to_string (real_element_count)
-			);
-		glDrawElements (GL_TRIANGLES, element_count, GL_UNSIGNED_INT, 0);
-
-		glBindVertexArray (0);
-		texture_loader.unbind (texture_key);
-	}
 
 };
 
