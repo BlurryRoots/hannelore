@@ -26,7 +26,6 @@ gl_PointCoord		mediump		vec2
 
 #include <cmath>
 
-// Rendering shit
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -56,7 +55,6 @@ gl_PointCoord		mediump		vec2
 //
 #include <Mesh.h>
 #include <MeshLoader.h>
-#include <MeshRenderer.h>
 #include <PathUtil.h>
 #include <KeyCode.h>
 #include <Game.h>
@@ -75,10 +73,10 @@ main (void) {
 		WindowManager::register_handler (&game_data);
 		Window w = WindowManager::open_window (TITLE, false);
 
-		// stuff to setup
+		// Initialize the game
 		game_data.on_initialize ();
+		// Set initialie framebuffer size
 		game_data.on_framebuffer (w.m_framebuffer_width, w.m_framebuffer_height);
-		DEBUG_LOG ("Finished initialization.");
 
 		// Loop until the user closes the window
 		double lastTime = glfwGetTime ();
@@ -93,6 +91,7 @@ main (void) {
 			// Draw stuff onto screen
 			game_data.on_render ();
 
+			// Update all window specific information
 			WindowManager::update ();
 		}
 
