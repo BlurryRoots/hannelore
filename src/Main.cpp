@@ -68,6 +68,10 @@ Game game;
 
 int
 main (void) {
+	blurryroots::util::log_level = blurryroots::util::DebugLogLevel::Error
+		| blurryroots::util::DebugLogLevel::Warn
+		;
+
 	try {
 		WindowManager::initialize ();
 		WindowManager::register_handler (&game);
@@ -106,7 +110,6 @@ main (void) {
 	}
 
 	game.on_dispose ();
-	DEBUG_WARN ("Finished disposing.");
 
 	WindowManager::shut_down ();
 

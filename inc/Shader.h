@@ -1,18 +1,18 @@
 #ifndef __SHADER__
 #define __SHADER__
 
-// std shit
+#include <IResource.h>
+#include <FileReader.h>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
 #include <string>
 #include <map>
 #include <vector>
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
-#include <FileReader.h>
 
 class Shader : public IResource {
 

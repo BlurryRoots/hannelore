@@ -1,37 +1,42 @@
 #ifndef FileReader_H
 #define FileReader_H
 
-#include <IResource.h>
+#include <Util.h>
 
-#include <stdexcept>
+#include <fstream>
 
 class FileReader {
 
 public:
 	std::string
 	to_string (void) const {
-		return this->contents;
+		return m_contents;
 	}
 
 	FileReader (std::string file_path)
-	: path (file_path)
-	, contents () {
+	: m_path (file_path)
+	, m_contents () {
 		std::ifstream input_stream;
-		input_stream.open (this->path, std::ifstream::in);  {
+		input_stream.open (m_path, std::ifstream::in); 
+		if (input_stream.is_open ()) {
 			std::string line;
 			while (std::getline (input_stream, line)) {
-				this->contents += line + "\n";
+				m_contents += line + "\n";
 			}
+
+			input_stream.close ();
 		}
-		input_stream.close ();
+		else {
+			DEBUG_ERROR ("Could not open file at %s\n", m_path);
+		}
 	}
 
 	virtual
 	~FileReader (void) {}
 	
 private:
-	std::string path;
-	std::string contents;
+	std::string m_path;
+	std::string m_contents;
 
 };
 
