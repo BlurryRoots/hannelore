@@ -8,9 +8,9 @@
 class Game : public IGame {
 
 public:
-	GLFWwindow *window;
 	bool m_is_running;
 	ShaderProgram program;
+	int framebuffer_width, framebuffer_height;
 
 	struct {
 		GLint vertex_position;
@@ -18,9 +18,6 @@ public:
 		GLint vertex_normal;
 		GLint vertex_color;
 	} attributes;
-
-	int window_width, window_height;
-	int framebuffer_width, framebuffer_height;
 
 	TextureLoader texture_loader;
 	blurryroots::model::MeshLoader mesh_loader;
@@ -135,9 +132,10 @@ public:
 			);
 		glm::vec3 right = Transform::to_right (inv_rotation);
 		camera_processor.transform.rotate (PI_OVER_2 * 0.5f, right);
-		camera_processor.on_viewport_changed (
+		/*camera_processor.on_viewport_changed (
 			framebuffer_width, framebuffer_height
-			);
+			);*/
+		// TODO: figure out a way to change camera view to initial framebuffer size
 
 		light_radius = 1.0f;
 		light_intensity = 2.0f;
@@ -164,11 +162,12 @@ public:
 	}
 
 	void
-	on_update (double dt) {
-		m_is_running = m_is_running
-			&& ! glfwWindowShouldClose (window)
-			;
+	on_window_closing_request (void) {
+		m_is_running = false;
+	}
 
+	void
+	on_update (double dt) {
 		camera_processor.on_update (dt);
 
 		glm::vec3 pos = Transform::to_position (

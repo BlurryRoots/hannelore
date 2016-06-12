@@ -146,6 +146,11 @@ public:
 
 	void
 	on_viewport_changed (int width, int height) {
+		if (0 >= height) {
+			DEBUG_WARN ("height has been %i! (width: %i)\n", height, width);
+			return;
+		}
+
 		this->data.aspect_ratio = width / height;
 
 		this->data.projection = glm::perspective (

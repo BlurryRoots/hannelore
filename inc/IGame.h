@@ -39,6 +39,9 @@ struct IGame {
 	on_mouse_scroll (double xoffset, double yoffset) = 0;
 
 	virtual void
+	on_window_closing_request (void) = 0;
+
+	virtual void
 	on_quit (void) = 0;
 
 	virtual void
