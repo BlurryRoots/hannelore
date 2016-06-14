@@ -25,7 +25,7 @@ public:
 
 	void
 	load (std::string path, std::string key, GLuint texture_unit) {
-		THROW_IF (0 < >m_texture_infos.count (key),
+		THROW_IF (0 < m_texture_infos.count (key),
 			"Key is already used!"
 		);
 		THROW_IF (GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS <= texture_unit,
@@ -71,7 +71,7 @@ public:
 	}
 
 	void
-	bind (const std::string &key) {
+	bind (const std::string& key) {
 		auto info = this->get_info (key);
 		THROW_IF (0 == info->handle,
 			"Texture cannot be bound! Unvalid handle for key: ", key
@@ -82,7 +82,7 @@ public:
 	}
 
 	void
-	unbind (const std::string &key) {
+	unbind (const std::string& key) {
 		auto info = this->get_info (key);
 
 		glActiveTexture (GL_TEXTURE0 + info->texture_unit);
@@ -90,7 +90,7 @@ public:
 	}
 
 	void
-	unload (const std::string &key) {
+	unload (const std::string& key) {
 		auto info = this->get_info (key);
 
 		if (0 < info->handle) {
@@ -100,19 +100,21 @@ public:
 		if (nullptr != info->texels) {
 			free (info->texels);
 		}
+		
+		// remove key from collection
+		m_texture_infos.erase (key);
 
+		// free info memory
 		delete info;
-
-		this->m_texture_infos.erase (key);
 	}
 
 	TextureInformation*
-	get_info (const std::string &key) const {
-		THROW_IF (0 == this->m_texture_infos.count (key),
+	get_info (const std::string& key) const {
+		THROW_IF (0 == m_texture_infos.count (key),
 			"Unkown key! (key: ", key, ")"
 		);
 
-		auto info = this->m_texture_infos.at (key);
+		auto info = m_texture_infos.at (key);
 		THROW_IF (nullptr == info,
 			"Got nullpointer while retrieving info for ", key, "!"
 		);
@@ -122,7 +124,9 @@ public:
 
 	GLuint
 	get_handle (std::string key) const {
-		return this->get_info (key)->handle;
+		auto info = this->get_info (key);
+
+		return info->handle;
 	}
 
 	TextureLoader (void)
@@ -135,7 +139,7 @@ private:
 	std::unordered_map<std::string, TextureInformation*> m_texture_infos;
 
 	static TextureInformation*
-	read_texture (const std::string &path) {
+	read_texture (const std::string& path) {
 		auto info = new TextureInformation ();
 
 		info->texels = stbi_load (path.c_str (),
@@ -156,7 +160,7 @@ private:
 	}
 
 	static void
-	dispose_info (TextureInformation *info) {
+	dispose_info (TextureInformation* info) {
 		if (0 < info->handle) {
 			glDeleteTextures (1, &(info->handle));
 		}
