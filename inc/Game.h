@@ -5,6 +5,7 @@
 
 #include <IGame.h>
 #include <MeshRenderSystem.h>
+#include <ShaderProgramBuilder.h>
 
 class Game : public IGame {
 
