@@ -43,31 +43,21 @@ public:
 		// setup game stuff
 		m_is_running = true;
 
-		//std::string basePath = "C:/Users/klabusterbeere/Workspace/Remote/hannelore/bin/Debug/";
-		std::string base_path = get_executable_path ();
-
-		const std::string from = "\\";
-		const std::string to = "/";
-		size_t start_pos = 0;
-		while ((start_pos = base_path.find (from, start_pos)) != std::string::npos) {
-			base_path.replace (start_pos, from.length (), to);
-			// In case 'to' contains 'from', like replacing 'x' with 'yx'
-			start_pos += to.length ();
-		}
-		base_path += "/";
+		std::string base_path = blurryroots::util::get_executable_path ();
+		base_path = blurryroots::util::normalize_file_path (base_path);
 
 		// setup basic shaders
-		std::string ver_path = base_path + "shaders/es/basic.vert";
-		FileReader vert_file (ver_path);
-		std::string vert_text = vert_file.to_string ();
+		auto ver_path = base_path + "shaders/es/basic.vert";
+		auto vert_file = FileReader (ver_path);
+		auto vert_text = vert_file.to_string ();
 		THROW_IF (0 == vert_text.size (),
 			"Vertex shader is missing or empty!"
 			);
 		auto vs = VertexShader (vert_file.to_string ());
 
-		std::string frag_path = base_path + "shaders/es/basic.frag";
-		FileReader frag_file (frag_path);
-		std::string frag_text = frag_file.to_string ();
+		auto frag_path = base_path + "shaders/es/basic.frag";
+		auto frag_file = FileReader (frag_path);
+		auto frag_text = frag_file.to_string ();
 		THROW_IF (0 == frag_text.size (),
 			"Fragment shader is missing or empty!"
 			);

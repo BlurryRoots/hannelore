@@ -16,17 +16,25 @@ gl_PointCoord		mediump		vec2
 
 #define DEBUG
 
+// hannelore library / engine
+#include <FileReader.h>
+#include <FragmentShader.h>
+#include <ShaderProgram.h>
+#include <VertexShader.h>
+#include <TextureLoader.h>
+#include <CameraProcessor.h>
+#include <Transform.h>
+#include <Util.h>
+#include <Mesh.h>
+#include <MeshLoader.h>
+#include <PathUtil.h>
+#include <KeyCode.h>
+#include <Game.h>
+#include <Window.h>
 
-// std shit
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
-#include <string>
-#include <map>
-
-#include <cmath>
-
+// opengl
 #include <GL/glew.h>
+// window management / opengl context creation
 #include <GLFW/glfw3.h>
 
 // GLM
@@ -42,41 +50,29 @@ gl_PointCoord		mediump		vec2
 // glm::value_ptr
 #include <glm/gtc/type_ptr.hpp>
 
-//
-#include <FileReader.h>
-#include <FragmentShader.h>
-#include <ShaderProgram.h>
-#include <VertexShader.h>
-#include <TextureLoader.h>
-#include <CameraProcessor.h>
-#include <Transform.h>
-#include <Util.h>
-
-//
-#include <Mesh.h>
-#include <MeshLoader.h>
-#include <PathUtil.h>
-#include <KeyCode.h>
-#include <Game.h>
-#include <Window.h>
+#include <iostream>
+#include <fstream>
+#include <stdexcept>
+#include <string>
+#include <map>
+#include <cmath>
 
 #define TITLE "hannelore dev application"
 
-using namespace blurryroots::hannelore;
-
-Game game;
+using namespace blurryroots;
 
 int
 main (void) {
 	// set debug level to only show errors and warnings
-	blurryroots::util::log_level = blurryroots::util::DebugLogLevel::Error
+	util::log_level = util::DebugLogLevel::Error
 		| blurryroots::util::DebugLogLevel::Warn
 		;
 
+	Game game;
 	try {
-		WindowManager::initialize ();
-		WindowManager::register_handler (&game);
-		Window w = WindowManager::open_window (TITLE, false);
+		hannelore::WindowManager::initialize ();
+		hannelore::WindowManager::register_handler (&game);
+		hannelore::Window w = hannelore::WindowManager::open_window (TITLE, false);
 
 		// initialize the game
 		game.on_initialize ();
@@ -98,21 +94,21 @@ main (void) {
 			game.on_render ();
 
 			// update all window specific information
-			WindowManager::update ();
+			hannelore::WindowManager::update ();
 		}
 
 		game.on_quit ();
+
+		game.on_dispose ();
+
+		hannelore::WindowManager::shut_down ();
 	}
-	catch (std::exception &ex) {
+	catch (std::exception& ex) {
 		DEBUG_ERROR ("Cought: %s\n", ex.what ());
 	}
 	catch (...) {
 		DEBUG_ERROR ("Cought unkown exception :(\n")
 	}
-
-	game.on_dispose ();
-
-	WindowManager::shut_down ();
 
 	return 0;
 }
