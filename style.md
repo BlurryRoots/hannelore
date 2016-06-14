@@ -1,3 +1,6 @@
+use snake_case for variable and function names
+use CamelCase for types (structs, enums, etc.)
+use UPPER_SNAKE_CASE for macros and symbols
 curly braces - start in same line
 spaces between function name and paramter list
 return values of function in separate line
@@ -42,3 +45,10 @@ use namespaced or at least classname based guard symbols
 		class MyClass {};
 		}
 		#endif
+use auto where type is resonably clear in the assigment
+	dont use auto when there might be the possiblity of a type/casting mismatch
+	bad:
+		auto result = thing.stuff ();
+	good:
+		auto result = thing.to_string ();
+		auto reader = FileReader (some_path);
