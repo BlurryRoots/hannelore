@@ -244,12 +244,12 @@ private:
 				IGame *handler = m_handlers[i_handler];
 			}
 		}
-#endif
 		else {
 			THROW_IF (true,
 				"THIS IS MADNESS!"
 				);
 		}
+#endif
 	}
 
 	static void
