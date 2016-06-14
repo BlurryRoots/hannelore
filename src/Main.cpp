@@ -60,7 +60,7 @@ gl_PointCoord		mediump		vec2
 #include <Game.h>
 #include <Window.h>
 
-#define TITLE "Hans die Wurst"
+#define TITLE "hannelore dev application"
 
 using namespace blurryroots::hannelore;
 
@@ -68,6 +68,7 @@ Game game;
 
 int
 main (void) {
+	// set debug level to only show errors and warnings
 	blurryroots::util::log_level = blurryroots::util::DebugLogLevel::Error
 		| blurryroots::util::DebugLogLevel::Warn
 		;
@@ -77,36 +78,36 @@ main (void) {
 		WindowManager::register_handler (&game);
 		Window w = WindowManager::open_window (TITLE, false);
 
-		// Initialize the game
+		// initialize the game
 		game.on_initialize ();
-		// Set initialie framebuffer size
+		// set initialie framebuffer size
 		game.on_framebuffer (w.m_framebuffer_width, w.m_framebuffer_height);
 
-		// Loop until the user closes the window
+		// loop until the user closes the window
 		double last_frame_time = glfwGetTime ();
 		while (game.m_is_running) {
-			// Calculate time spend processing the last frame
+			// calculate time spend processing the last frame
 			double current_frame_time = glfwGetTime ();
 			double delta_time = current_frame_time - last_frame_time;
 			last_frame_time = current_frame_time;
 
-			// Do logical updates
+			// do logical updates
 			game.on_update (delta_time);
 
-			// Draw stuff onto screen
+			// draw stuff onto screen
 			game.on_render ();
 
-			// Update all window specific information
+			// update all window specific information
 			WindowManager::update ();
 		}
 
 		game.on_quit ();
 	}
 	catch (std::exception &ex) {
-		std::cout << "Cought: " << ex.what () << std::endl;
+		DEBUG_ERROR ("Cought: %s\n", ex.what ());
 	}
 	catch (...) {
-		std::cout << "Cought unkown exception :(" << std::endl;
+		DEBUG_ERROR ("Cought unkown exception :(\n")
 	}
 
 	game.on_dispose ();

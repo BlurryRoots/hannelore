@@ -58,7 +58,7 @@ public:
 		new_window.m_window_height = mode->height / 2;
 		new_window.m_title = title;
 		new_window.m_is_fullscreen = fullscreen;
-		// Create a window and its OpenGL context
+		// create a window and its OpenGL context
 		new_window.m_window = glfwCreateWindow (
 			new_window.m_window_width, new_window.m_window_height,
 			new_window.m_title.c_str (),
@@ -70,10 +70,10 @@ public:
 			);
 
 		// THIS HAS TO BE CALLED BEFORE GLEW GETS LOADED!
-		// Make the window's context current
+		// make the window's context current
 		glfwMakeContextCurrent (new_window.m_window);
 
-		// Extension wrangler initialising
+		// extension wrangler initialising
 		if (false == m_is_glew_initialized) {
 			glewExperimental = GL_TRUE;
 			GLuint glew_status = glewInit ();
@@ -96,13 +96,14 @@ public:
 			glViewport (0, 0, new_window.m_framebuffer_width, new_window.m_framebuffer_height);
 		}
 
-		// callbacks
+		// register callbacks with glfw
 		glfwSetKeyCallback (new_window.m_window, on_key);
 		glfwSetFramebufferSizeCallback (new_window.m_window, on_framebuffer);
 		glfwSetCursorPosCallback (new_window.m_window, on_cursor_position);
 		glfwSetCursorEnterCallback (new_window.m_window, on_cursor_enter);
 		glfwSetMouseButtonCallback (new_window.m_window, on_mouse_button);
 		glfwSetScrollCallback (new_window.m_window, on_scroll);
+		//glfwSetJoystickCallback (new_window.m_window, on_joystick_connect);
 
 		if (false == m_is_opengl_initialized) {
 			DEBUG_LOG ("OpenGL Version: %s\nOpenGL Shader : %s",
@@ -113,7 +114,7 @@ public:
 			glEnable (GL_ALPHA_TEST);
 			glAlphaFunc (GL_GREATER, 0.0f);
 
-			// Enable alpha
+			// enable alpha
 			glEnable (GL_BLEND);
 			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -137,7 +138,7 @@ public:
 		for (size_t i_window = 0; i_window < m_windows.size (); ++i_window) {
 			Window w = m_windows[i_window];
 
-			// Swap front and back buffers
+			// swap front and back buffers
 			glfwSwapBuffers (w.m_window);
 
 			bool closing_request = glfwWindowShouldClose (w.m_window);
@@ -150,7 +151,7 @@ public:
 			}			
 		}
 
-		// Poll for and process events
+		// poll for and process events
 		glfwPollEvents ();
 	}
 
@@ -225,23 +226,29 @@ private:
 		KeyCode key_code = static_cast<KeyCode> (key);
 		KeyModifier key_modifier = static_cast<KeyModifier> (mods);
 
-		for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
-			IGame *handler = m_handlers[i_handler];
-
-			if (GLFW_RELEASE == action) {
+		if (GLFW_RELEASE == action) {
+			for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
+				IGame *handler = m_handlers[i_handler];
 				handler->on_key_up (key_code, scancode, key_modifier);
 			}
-			else if (GLFW_PRESS == action) {
+		}
+		else if (GLFW_PRESS == action) {
+			for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
+				IGame *handler = m_handlers[i_handler];
 				handler->on_key_down (key_code, scancode, key_modifier);
 			}
-			else if (GLFW_REPEAT == action) {
-				// on_key_repeat
+		}
+#if 0 // not supported atm
+		else if (GLFW_REPEAT == action) {
+			for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
+				IGame *handler = m_handlers[i_handler];
 			}
-			else {
-				THROW_IF (true,
-					"THIS IS MADNESS!"
-					);
-			}
+		}
+#endif
+		else {
+			THROW_IF (true,
+				"THIS IS MADNESS!"
+				);
 		}
 	}
 
@@ -265,15 +272,17 @@ private:
 
 	static void
 	on_cursor_enter (GLFWwindow *window, int entered) {
-		for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
-			IGame *handler = m_handlers[i_handler];
-
-			if (entered) {
-				// The cursor entered the client area of the window
+		if (entered) {
+			for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
+				IGame *handler = m_handlers[i_handler];
+			// The cursor entered the client area of the window
 				handler->on_mouse_enter ();
 			}
-			else {
-				// The cursor left the client area of the window
+		}
+		else {
+			for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
+				IGame *handler = m_handlers[i_handler];
+			// The cursor left the client area of the window
 				handler->on_mouse_leave ();
 			}
 		}
@@ -294,6 +303,27 @@ private:
 			IGame *handler = m_handlers[i_handler];
 
 			handler->on_mouse_scroll (xoffset, yoffset);
+		}
+	}
+
+	static void
+	on_joystick_connect (int joystick_id, int event_type) {
+		if (GLFW_CONNECTED == event_type) {
+			for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
+				IGame *handler = m_handlers[i_handler];
+
+				handler->on_joystick_connection (joystick_id, true);
+			}			
+		}
+		else if (GLFW_DISCONNECTED == event_type) {
+			for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
+				IGame *handler = m_handlers[i_handler];
+
+				handler->on_joystick_connection (joystick_id, false);
+			}
+		}
+		else {
+			DEBUG_WARN ("Joystick event type unknown! (type: %i)", event_type);
 		}
 	}
 

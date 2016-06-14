@@ -39,6 +39,9 @@ struct IGame {
 	on_mouse_scroll (double xoffset, double yoffset) = 0;
 
 	virtual void
+	on_joystick_connection (int joystick_id, bool connected) = 0;
+
+	virtual void
 	on_window_closing_request (void) = 0;
 
 	virtual void

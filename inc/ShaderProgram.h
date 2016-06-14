@@ -23,17 +23,16 @@
 
 #include <Util.h>
 
-#define DEBUG_MESSAGE
-
 class ShaderProgram {
 friend class ShaderProgramBuilder;
 
 private:
-	bool in_use;
-	GLuint handle;
+	bool m_in_use;
+	GLuint m_handle;
+	std::string m_path;
 
-	std::unordered_map<std::string, GLuint> uniforms;
-	std::unordered_map<std::string, GLint> attributes;
+	std::unordered_map<std::string, GLuint> m_uniforms;
+	std::unordered_map<std::string, GLint> m_attributes;
 
 public:
 	ShaderProgram (void) {
@@ -45,30 +44,30 @@ public:
 
 	void
 	use (void) {
-		in_use = true;
-		glUseProgram (this->handle);
+		m_in_use = true;
+		glUseProgram (this->m_handle);
 	}
 
 	void
 	deactivate (void) {
-		in_use = false;
+		m_in_use = false;
 		glUseProgram (0);
 	}
 
 	void
 	dispose (void) {
-		glDeleteProgram (this->handle);
+		glDeleteProgram (this->m_handle);
 	}
 
 	GLuint
 	get_handle (void) const {
-		return this->handle;
+		return this->m_handle;
 	}
 
 	GLint
 	get_attribute_location (const std::string name) {
-		if (0 == this->attributes.count (name)) {
-			GLint location = glGetAttribLocation (this->handle,
+		if (0 == this->m_attributes.count (name)) {
+			GLint location = glGetAttribLocation (this->m_handle,
 				name.c_str ()
 			);
 
@@ -76,33 +75,33 @@ public:
 				"Could not find attribute ", name
 			);
 
-			const auto &r = this->attributes.emplace (name, location);
-			THROW_IF (! r.second, "Trying to override ", name);
+			const auto &r = this->m_attributes.emplace (name, location);
+			THROW_IF (false == r.second, "Trying to override ", name);
 		}
 
-		return this->attributes.at (name);
+		return this->m_attributes.at (name);
 	}
 
 	void
 	set_uniform_mat4 (const std::string &name, const glm::mat4 &matrix) {
-		std::size_t c = this->uniforms.count (name);
+		std::size_t c = this->m_uniforms.count (name);
 		if (0 == c) {
-			GLint loc = glGetUniformLocation (this->handle,
+			GLint loc = glGetUniformLocation (this->m_handle,
 				name.c_str ()
 			);
 			THROW_IF (0 > loc,
 				"Could not find ", name, " ", std::to_string (c)
 			);
 
-			this->uniforms.emplace (name, loc);
+			this->m_uniforms.emplace (name, loc);
 		}
 
-		THROW_IF (! this->in_use,
+		THROW_IF (! this->m_in_use,
 			"Unable to set uniform without activating program!"
 		);
 
 		glUniformMatrix4fv (
-			this->uniforms.at (name),
+			this->m_uniforms.at (name),
 			1,
 			GL_FALSE,
 			//&matrix[0][0]
@@ -124,24 +123,24 @@ public:
 			"Count is zero!"
 		);
 
-		std::size_t c = this->uniforms.count (name);
+		std::size_t c = this->m_uniforms.count (name);
 		if (0 == c) {
-			GLint loc = glGetUniformLocation (this->handle,
+			GLint loc = glGetUniformLocation (this->m_handle,
 				name.c_str ()
 			);
 			THROW_IF (0 > loc,
 				"Could not find ", name, " ", std::to_string (c)
 			);
 
-			this->uniforms.emplace (name, loc);
+			this->m_uniforms.emplace (name, loc);
 		}
 
-		THROW_IF (! this->in_use,
+		THROW_IF (! this->m_in_use,
 			"Unable to set uniform without activating program!"
 		);
 
 		glUniform3fv (
-			this->uniforms.at (name),
+			this->m_uniforms.at (name),
 			count,
 			glm::value_ptr (vec_arr[0])
 		);
@@ -161,24 +160,24 @@ public:
 			"Count is zero!"
 		);
 
-		std::size_t c = this->uniforms.count (name);
+		std::size_t c = this->m_uniforms.count (name);
 		if (0 == c) {
-			GLint loc = glGetUniformLocation (this->handle,
+			GLint loc = glGetUniformLocation (this->m_handle,
 				name.c_str ()
 			);
 			THROW_IF (0 > loc,
 				"Could not find ", name, " ", std::to_string (c)
 			);
 
-			this->uniforms.emplace (name, loc);
+			this->m_uniforms.emplace (name, loc);
 		}
 
-		THROW_IF (! this->in_use,
+		THROW_IF (! this->m_in_use,
 			"Unable to set uniform without activating program!"
 		);
 
 		glUniform4fv (
-			this->uniforms.at (name),
+			this->m_uniforms.at (name),
 			count,
 			glm::value_ptr (vec_arr[0])
 		);
@@ -186,27 +185,27 @@ public:
 
 	void
 	set_uniform_f (const std::string &name, float value) {
-		THROW_IF (0 == this->uniforms.count (name),
+		THROW_IF (0 == this->m_uniforms.count (name),
 			"Could not find ", name
 		);
 
-		THROW_IF (! this->in_use,
+		THROW_IF (! this->m_in_use,
 			"Unable to set uniform without activating program!"
 		);
 
 		glUniform1f (
-			this->uniforms.at (name),
+			this->m_uniforms.at (name),
 			value
 		);
 	}
 
 	GLfloat
 	get_uniform_f (const std::string &name) const {
-		int uid = glGetUniformLocation (this->handle, name.c_str ());
+		int uid = glGetUniformLocation (this->m_handle, name.c_str ());
 
 		GLfloat value;
 		glGetUniformfv (
-			this->handle,
+			this->m_handle,
 			uid,
 			&value
 		);
@@ -216,26 +215,26 @@ public:
 
 	void
 	set_uniform_i (const std::string &name, int value) {
-		THROW_IF (0 == this->uniforms.count (name),
+		THROW_IF (0 == this->m_uniforms.count (name),
 			"Could not find ", name
 		);
 
-		THROW_IF (! this->in_use,
+		THROW_IF (! this->m_in_use,
 			"Unable to set uniform without activating program!"
 		);
 
 		glUniform1i (
-			this->uniforms.at (name),
+			this->m_uniforms.at (name),
 			value
 		);
 	}
 
 	GLint
 	get_uniform_i (const std::string &name) const {
-		int uid = glGetUniformLocation (this->handle, name.c_str ());
+		int uid = glGetUniformLocation (this->m_handle, name.c_str ());
 		GLint value;
 		glGetUniformiv (
-			this->handle,
+			this->m_handle,
 			uid,
 			&value
 		);
@@ -245,10 +244,10 @@ public:
 
 	GLuint
 	get_uniform_ui (const std::string &name) const {
-		int uid = glGetUniformLocation (this->handle, name.c_str ());
+		int uid = glGetUniformLocation (this->m_handle, name.c_str ());
 		GLuint value;
 		glGetUniformuiv (
-			this->handle,
+			this->m_handle,
 			uid,
 			&value
 		);
@@ -258,10 +257,10 @@ public:
 
 	GLdouble
 	get_uniform_d (const std::string &name) const {
-		int uid = glGetUniformLocation (this->handle, name.c_str ());
+		int uid = glGetUniformLocation (this->m_handle, name.c_str ());
 		GLdouble value;
 		glGetUniformdv (
-			this->handle,
+			this->m_handle,
 			uid,
 			&value
 		);
@@ -273,20 +272,20 @@ public:
 class ShaderProgramBuilder {
 
 private:
-	ShaderProgram program;
+	ShaderProgram m_program;
 
-	bool has_vert;
-	bool has_frag;
+	bool m_has_vert;
+	bool m_has_frag;
 
 	std::string
 	get_info_log (ShaderProgram program) {
 		GLint log_length;
-		glGetProgramiv (program.handle, GL_INFO_LOG_LENGTH, &log_length);
+		glGetProgramiv (program.m_handle, GL_INFO_LOG_LENGTH, &log_length);
 
 		if (0 < log_length) {
 			std::vector<char> log_buffer_vec (log_length);
 			char *log_buffer = log_buffer_vec.data ();
-			glGetProgramInfoLog (program.handle, log_length, NULL, log_buffer);
+			glGetProgramInfoLog (program.m_handle, log_length, NULL, log_buffer);
 
 			return std::string (log_buffer);
 		}
@@ -297,7 +296,7 @@ private:
 	bool
 	is_deleted (ShaderProgram program) {
 		GLint value;
-		glGetProgramiv (program.handle, GL_DELETE_STATUS, &value);
+		glGetProgramiv (program.m_handle, GL_DELETE_STATUS, &value);
 
 		if (GL_TRUE == value) {
 			return true;
@@ -313,7 +312,7 @@ private:
 	bool
 	is_linked (ShaderProgram program) {
 		GLint value;
-		glGetProgramiv (program.handle, GL_LINK_STATUS, &value);
+		glGetProgramiv (program.m_handle, GL_LINK_STATUS, &value);
 
 		if (GL_TRUE == value) {
 			return true;
@@ -329,7 +328,7 @@ private:
 	bool
 	is_validated (ShaderProgram program) {
 		GLint value;
-		glGetProgramiv (program.handle, GL_VALIDATE_STATUS, &value);
+		glGetProgramiv (program.m_handle, GL_VALIDATE_STATUS, &value);
 
 		if (GL_TRUE == value) {
 			return true;
@@ -389,8 +388,8 @@ private:
 
 public:
 	ShaderProgramBuilder (void) {
-		this->program.handle = glCreateProgram ();
-		bool invalid = GL_FALSE == glIsProgram (this->program.handle);
+		m_program.m_handle = glCreateProgram ();
+		bool invalid = GL_FALSE == glIsProgram (m_program.m_handle);
 		THROW_IF (invalid,
 			"Program handle creation failed!"
 		);
@@ -402,51 +401,51 @@ public:
 
 	ShaderProgramBuilder&
 	add_shader (VertexShader vs) {
-		this->has_vert = true;
-		glAttachShader (this->program.handle, vs.get_handle ());
+		m_has_vert = true;
+		glAttachShader (this->m_program.m_handle, vs.get_handle ());
 
 		return *this;
 	}
 
 	ShaderProgramBuilder &
 	add_shader (FragmentShader fs) {
-		this->has_frag = true;
-		glAttachShader (this->program.handle, fs.get_handle ());
+		this->m_has_frag = true;
+		glAttachShader (this->m_program.m_handle, fs.get_handle ());
 
 		return *this;
 	}
 
 	ShaderProgramBuilder &
 	bind_attribute (const std::string &name, GLuint location) {
-		glBindAttribLocation (this->program.handle, location, name.c_str ());
+		glBindAttribLocation (this->m_program.m_handle, location, name.c_str ());
 
 		return *this;
 	}
 
 	ShaderProgram
 	link (void) {
-		THROW_IF (! this->has_vert,
+		THROW_IF (false == this->m_has_vert,
 			"ShaderProgram has no vertex shader attached!"
 		);
 
-		THROW_IF (! this->has_frag,
+		THROW_IF (false == this->m_has_frag,
 			"ShaderProgram has no fragment shader attached!"
 		);
 
-		glLinkProgram (this->program.handle);
-		THROW_IF (! this->is_linked (this->program),
-			"Error linking program: ", this->get_info_log (this->program)
+		glLinkProgram (this->m_program.m_handle);
+		THROW_IF (false == this->is_linked (this->m_program),
+			"Error linking program: ", this->get_info_log (this->m_program)
 		);
 
-		glValidateProgram (this->program.handle);
-		THROW_IF (! this->is_validated (this->program),
-			"Error validating program: ", this->get_info_log (this->program)
+		glValidateProgram (this->m_program.m_handle);
+		THROW_IF (false == this->is_validated (this->m_program),
+			"Error validating program: ", this->get_info_log (this->m_program)
 		);
 
 
 		// search all active uniforms and cache their locations
 		GLint number_uniforms;
-		glGetProgramiv (this->program.handle,
+		glGetProgramiv (this->m_program.m_handle,
 			GL_ACTIVE_UNIFORMS,
 			&number_uniforms
 		);
@@ -454,9 +453,8 @@ public:
 			"No uniforms found!"
 		);
 
-		#ifdef DEBUG_MESSAGE
+		DEBUG_LOG ("In shader program", this->m_program.m_path);
 		std::cout << "Found " << number_uniforms << " uniforms" << std::endl;
-		#endif
 
 		GLuint n = static_cast<GLuint> (number_uniforms);
 		for (GLuint index = 0; index < n; ++index) {
@@ -466,7 +464,7 @@ public:
 			GLenum uniform_type;
 			GLsizei actual_size;
 
-			glGetActiveUniform (this->program.handle,
+			glGetActiveUniform (this->m_program.m_handle,
 				index,
 				name_buffer_size,
 				&actual_size,
@@ -480,7 +478,7 @@ public:
 			);
 
 			const auto &report =
-				this->program.uniforms.emplace (name_buffer, index);
+				this->m_program.m_uniforms.emplace (name_buffer, index);
 			THROW_IF (! report.second,
 				"There is already a uniform with the name ", name_buffer
 			);
@@ -495,7 +493,7 @@ public:
 		}
 
 		// voi la
-		return this->program;
+		return this->m_program;
 	}
 
 };

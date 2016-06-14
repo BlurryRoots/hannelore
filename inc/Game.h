@@ -43,32 +43,34 @@ public:
 		m_is_running = true;
 
 		//std::string basePath = "C:/Users/klabusterbeere/Workspace/Remote/hannelore/bin/Debug/";
-		std::string basePath = get_executable_path ();
+		std::string base_path = get_executable_path ();
 
 		const std::string from = "\\";
 		const std::string to = "/";
 		size_t start_pos = 0;
-		while ((start_pos = basePath.find (from, start_pos)) != std::string::npos) {
-			basePath.replace (start_pos, from.length (), to);
+		while ((start_pos = base_path.find (from, start_pos)) != std::string::npos) {
+			base_path.replace (start_pos, from.length (), to);
 			// In case 'to' contains 'from', like replacing 'x' with 'yx'
 			start_pos += to.length ();
 		}
-		basePath += "/";
+		base_path += "/";
 
 		// setup basic shaders
-		FileReader vertFile (basePath + "shaders/es/basic.vert");
-		std::string vsText = vertFile.to_string ();
-		THROW_IF (0 == vsText.size (),
+		std::string ver_path = base_path + "shaders/es/basic.vert";
+		FileReader vert_file (ver_path);
+		std::string vert_text = vert_file.to_string ();
+		THROW_IF (0 == vert_text.size (),
 			"Vertex shader is missing or empty!"
 			);
-		auto vs = VertexShader (vertFile.to_string ());
+		auto vs = VertexShader (vert_file.to_string ());
 
-		FileReader fragFile (basePath + "shaders/es/basic.frag");
-		std::string fragText = fragFile.to_string ();
-		THROW_IF (0 == fragText.size (),
+		std::string frag_path = base_path + "shaders/es/basic.frag";
+		FileReader frag_file (frag_path);
+		std::string frag_text = frag_file.to_string ();
+		THROW_IF (0 == frag_text.size (),
 			"Fragment shader is missing or empty!"
 			);
-		auto fs = FragmentShader (fragFile.to_string ());
+		auto fs = FragmentShader (frag_file.to_string ());
 
 		program = ShaderProgramBuilder ()
 			.add_shader (vs)
@@ -79,28 +81,28 @@ public:
 			.link ()
 			;
 
-		m_texture_loader.load (basePath + "textures/ground.lines.png", "ground", 0);
+		m_texture_loader.load (base_path + "textures/ground.lines.png", "ground", 0);
 		mesh_loader.load (
-			basePath + "models/objs/ground.obj", program, "ground"
+			base_path + "models/objs/ground.obj", program, "ground"
 			);
 
-		m_texture_loader.load (basePath + "textures/grass.png", "suzanne", 0);
+		m_texture_loader.load (base_path + "textures/grass.png", "suzanne", 0);
 		mesh_loader.load (
-			basePath + "models/objs/suzanne.smooth.obj", program, "suzanne"
+			base_path + "models/objs/suzanne.smooth.obj", program, "suzanne"
 			);
 		models[1].translate (glm::vec3 (0, 0.5, 1));
 		models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
-		m_texture_loader.load (basePath + "textures/light.uv.png", "light", 0);
+		m_texture_loader.load (base_path + "textures/light.uv.png", "light", 0);
 		mesh_loader.load (
-			basePath + "models/objs/light_sphere.obj", program, "light_sphere"
+			base_path + "models/objs/light_sphere.obj", program, "light_sphere"
 			);
 		models[2].translate (glm::vec3 (0, 2, -2));
 
 		//
-		m_texture_loader.load (basePath + "textures/sky.jpg", "sky", 0);
+		m_texture_loader.load (base_path + "textures/sky.jpg", "sky", 0);
 		mesh_loader.load (
-			basePath + "models/objs/skysphere.obj", program, "sky_sphere"
+			base_path + "models/objs/skysphere.obj", program, "sky_sphere"
 			);
 		models[3].translate (glm::vec3 (0, 0, 0));
 		models[3].scale (glm::vec3 (4, 4, 4));
@@ -322,6 +324,11 @@ public:
 				light_radius
 			);
 		}
+	}
+
+	void
+	on_joystick_connection (int joystick_id, bool connected) {
+
 	}
 
 	void
