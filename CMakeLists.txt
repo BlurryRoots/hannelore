@@ -51,6 +51,9 @@ set (TINYOBJ_LIB tinyobjloader)
 # catch test framework (single include file)
 include_directories (lib/catch/single_include)
 
+# fontstash-es
+include_directories (lib/fontstash-es)
+
 # app specific includes
 include_directories (inc)
 
@@ -79,9 +82,19 @@ add_executable (test-runner ${test_files})
 
 ## custom commands and targets
 
+if (UNIX)
+	set (COPY_CMD cp)
+	set (COPY_CMD_PARAMS -r)
+elseif (WIN32)
+	set (COPY_CMD xcopy)
+	set (COPY_CMD_PARAMS)
+else ()
+	message (FATAL_ERROR "Operating system not supported!")
+endif ()
+
 # command to copy resources when using default target
 add_custom_target (assets
-	COMMAND cp -r "${PROJECT_SOURCE_DIR}/res/*" $<TARGET_FILE_DIR:main>
+	COMMAND {COPY_CMD} {COPY_CMD_PARAMS} "${PROJECT_SOURCE_DIR}/res/*" $<TARGET_FILE_DIR:main>
 	DEPENDS main
 )
 

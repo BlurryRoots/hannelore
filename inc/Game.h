@@ -6,12 +6,16 @@
 #include <IGame.h>
 #include <MeshRenderSystem.h>
 #include <ShaderProgramBuilder.h>
+#define GLFONTSTASH_IMPLEMENTATION
+#include <glfontstash.h>
+
+#include <vector>
 
 class Game : public IGame {
 
 public:
 	bool m_is_running;
-	ShaderProgram program;
+	ShaderProgram m_shader_program;
 	int framebuffer_width, framebuffer_height;
 
 	TextureLoader m_texture_loader;
@@ -36,6 +40,11 @@ public:
 
 	bool fullscreen;
 
+	FONScontext* m_font_context;
+	fsuint m_text_buffer;;
+	std::vector<fsuint> m_text_ids;
+	float m_dpi_ratio;
+	long m_framecounter = 0;
 
 public:
 	void
@@ -63,7 +72,7 @@ public:
 			);
 		auto fs = FragmentShader (frag_file.to_string ());
 
-		program = ShaderProgramBuilder ()
+		m_shader_program = ShaderProgramBuilder ()
 			.add_shader (vs)
 			.add_shader (fs)
 			.bind_attribute ("vertex_position", 0)
@@ -74,26 +83,26 @@ public:
 
 		m_texture_loader.load (base_path + "textures/ground.lines.png", "ground", 0);
 		mesh_loader.load (
-			base_path + "models/objs/ground.obj", program, "ground"
+			base_path + "models/objs/ground.obj", m_shader_program, "ground"
 			);
 
 		m_texture_loader.load (base_path + "textures/grass.png", "suzanne", 0);
 		mesh_loader.load (
-			base_path + "models/objs/suzanne.smooth.obj", program, "suzanne"
+			base_path + "models/objs/suzanne.smooth.obj", m_shader_program, "suzanne"
 			);
 		models[1].translate (glm::vec3 (0, 0.5, 1));
 		models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 
 		m_texture_loader.load (base_path + "textures/light.uv.png", "light", 0);
 		mesh_loader.load (
-			base_path + "models/objs/light_sphere.obj", program, "light_sphere"
+			base_path + "models/objs/light_sphere.obj", m_shader_program, "light_sphere"
 			);
 		models[2].translate (glm::vec3 (0, 2, -2));
 
 		//
 		m_texture_loader.load (base_path + "textures/sky.jpg", "sky", 0);
 		mesh_loader.load (
-			base_path + "models/objs/skysphere.obj", program, "sky_sphere"
+			base_path + "models/objs/skysphere.obj", m_shader_program, "sky_sphere"
 			);
 		models[3].translate (glm::vec3 (0, 0, 0));
 		models[3].scale (glm::vec3 (4, 4, 4));
@@ -128,6 +137,20 @@ public:
 		light_intensity = 2.0f;
 		light_color = glm::vec3 (1.0, 0.8, 0.8);
 		complex_attenuation = true;
+
+		// initilize the font system
+		{
+			GLFONSparams font_parameters;
+			font_parameters.useGLBackend = true;
+			std::string font_name = "Arial";
+			std::string font_path = base_path + "fonts/OpenSansRegular.ttf";
+			m_font_context = glfonsCreate (512, 512, FONS_ZERO_TOPLEFT | FONS_NORMALIZE_TEX_COORDS, font_parameters, nullptr);
+			THROW_IF (FONS_INVALID == fonsAddFont (m_font_context, font_name.c_str (), font_path.c_str ()),
+				"Could not open font!");
+
+			// set the screen size for font context transformations
+			glfonsScreenSize (m_font_context, framebuffer_height, framebuffer_height);
+		}
 	}
 
 	void
@@ -143,6 +166,9 @@ public:
 		glViewport (0, 0,
 			framebuffer_width, framebuffer_height
 		);
+
+		glfonsScreenSize (m_font_context, framebuffer_width, framebuffer_height);
+
 		camera_processor.on_viewport_changed (
 			framebuffer_width, framebuffer_height
 		);
@@ -170,6 +196,42 @@ public:
 		// light size according to radius
 		models[2].reset_scale ();
 		models[2].scale (glm::vec3 (light_radius));
+
+		std::string fps;
+		if (0.0 < dt) {
+			fps = std::to_string (1.0 / dt);
+		}
+
+		glfonsBufferDelete (m_font_context, m_text_buffer);
+		m_text_ids.clear ();
+
+		// create and bind buffer
+		glfonsBufferCreate (m_font_context, &m_text_buffer);
+		glfonsBindBuffer (m_font_context, m_text_buffer);
+
+		// ready two places
+		m_text_ids.push_back (0);
+		m_text_ids.push_back (0);
+		// generate text ids for the currently bound text buffer
+		glfonsGenText (m_font_context, m_text_ids.size (), m_text_ids.data ());
+
+		glfonsBindBuffer (m_font_context, m_text_buffer);
+		// rasterize some text
+		fonsSetBlur (m_font_context, 2.5);
+		fonsSetBlurType (m_font_context, FONS_EFFECT_DISTANCE_FIELD);
+		fonsSetSize (m_font_context, 20.0);
+		//glfonsSetColor (m_font_context, 0x000000);
+		glfonsRasterize (m_font_context, m_text_ids[0], ("fps: " + fps).c_str ());
+		glfonsRasterize (m_font_context, m_text_ids[1], ("frame: " + std::to_string (m_framecounter)).c_str ());
+
+		for (int i = 0; i < m_text_ids.size (); ++i) {
+			glfonsTransform (m_font_context, m_text_ids[i], 100.0, (100.0 + i * 50.0), 0.0, 1.0);
+		}
+
+		// upload rasterized data of currently bound buffer to gpu
+		glfonsUpdateBuffer (m_font_context);
+
+		++m_framecounter;
 	}
 
 	void
@@ -177,25 +239,25 @@ public:
 		glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
 		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		program.use ();
+		m_shader_program.use ();
 
-		camera_processor.on_render (program);
+		camera_processor.on_render (m_shader_program);
 
 		// ambient light
-		program.set_uniform_i ("complex_attenuation",
+		m_shader_program.set_uniform_i ("complex_attenuation",
 			static_cast<int> (complex_attenuation)
 			);
 
 		// ambient light
-		program.set_uniform_vec3 ("ambient_light",
+		m_shader_program.set_uniform_vec3 ("ambient_light",
 			glm::vec3 (0.08, 0.08, 0.2)
 			);
 
 		// point light
-		program.set_uniform_vec4 ("point_light_color",
+		m_shader_program.set_uniform_vec4 ("point_light_color",
 			glm::vec4 (light_color, light_intensity)
 			);
-		program.set_uniform_vec4 ("point_light",
+		m_shader_program.set_uniform_vec4 ("point_light",
 			glm::vec4 (
 				Transform::to_position (models[2].to_translation ()),
 				light_radius
@@ -207,7 +269,7 @@ public:
 			models[0],
 			"ground",
 			m_texture_loader,
-			program
+			m_shader_program
 			);
 
 		MeshRenderSystem::render_model (
@@ -215,7 +277,7 @@ public:
 			models[1],
 			"suzanne",
 			m_texture_loader,
-			program
+			m_shader_program
 			);
 
 		MeshRenderSystem::render_model (
@@ -223,7 +285,7 @@ public:
 			models[2],
 			"light",
 			m_texture_loader,
-			program
+			m_shader_program
 			);
 
 		MeshRenderSystem::render_model (
@@ -231,10 +293,13 @@ public:
 			models[3],
 			"sky",
 			m_texture_loader,
-			program
+			m_shader_program
 			);
 
-		program.deactivate ();
+		m_shader_program.deactivate ();
+
+		glfonsBindBuffer (m_font_context, m_text_buffer);
+		glfonsDraw (m_font_context);
 	}
 	
 	void
@@ -329,7 +394,9 @@ public:
 
 	void
 	on_dispose (void) {
-		program.dispose ();
+		glfonsDelete (m_font_context);
+
+		m_shader_program.dispose ();
 
 		m_texture_loader.dispose ();
 

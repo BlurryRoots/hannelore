@@ -4,6 +4,7 @@
 #include <IGame.h>
 #include <Util.h>
 
+//#define GLFW_INCLUDE_ES2
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
