@@ -143,7 +143,7 @@ public:
 			GLFONSparams font_parameters;
 			font_parameters.useGLBackend = true;
 			std::string font_name = "Arial";
-			std::string font_path = base_path + "fonts/OpenSansRegular.ttf";
+			std::string font_path = base_path + "fonts/liberation-sans/LiberationSans-Regular.ttf";
 			m_font_context = glfonsCreate (512, 512, FONS_ZERO_TOPLEFT | FONS_NORMALIZE_TEX_COORDS, font_parameters, nullptr);
 			THROW_IF (FONS_INVALID == fonsAddFont (m_font_context, font_name.c_str (), font_path.c_str ()),
 				"Could not open font!");
