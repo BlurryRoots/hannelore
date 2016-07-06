@@ -1,10 +1,14 @@
-#ifndef CAMERA_PROCESSOR_H
-#define CAMERA_PROCESSOR_H
+#ifndef hannelore_CameraProcessor_h
+#define hannelore_CameraProcessor_h
 
-#include <unordered_map>
-#include <unordered_set>
-#include <functional>
-#include <sstream>
+#define PI 3.1415f
+#define PI_OVER_4 PI / 4.0f
+#define HORIZONTAL_MOUSE_LOOK_FACTOR -1.0f * PI_OVER_4 / 150.0f
+
+#include <Transform.h>
+#include <KeyCode.h>
+#include <CameraData.h>
+#include <yanecos/IDataProcessor.h>
 
 #include <GLFW/glfw3.h>
 
@@ -17,56 +21,30 @@
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 #include <glm/gtc/epsilon.hpp> // glm::epsilonEqual
 
-#include <Transform.h>
-#include <KeyCode.h>
+#include <unordered_map>
+#include <unordered_set>
+#include <functional>
+#include <sstream>
 
-#define PI 3.1415f
-#define PI_OVER_4 PI / 4.0f
-#define HORIZONTAL_MOUSE_LOOK_FACTOR -1.0f * PI_OVER_4 / 150.0f
-
-struct CameraData {
-	float field_of_view;
-	float near;
-	float far;
-	float aspect_ratio;
-
-	glm::mat4 view;
-	glm::mat4 projection;
-
-	int yaw;
-	int pitch;
-	glm::vec3 movement;
-
-	glm::mat4 rotation;
-	glm::mat4 translation;
-};
-
-class CameraProcessor {
-
-private:
-	bool is_running;
+class CameraProcessor : public blurryroots::yanecos::IDataProcessor {
 
 public:
 	Transform transform;
 	CameraData data;
 
-	CameraProcessor ()
-	: is_running (true)
-	, transform ()
-	, data () {}
-
+public:
 	void
-	activate () {
+	activate (void) override final {
 		this->is_running = true;
 	}
 
 	void
-	deactivate () {
+	deactivate (void) override final {
 		this->is_running = false;
 	}
 
 	void
-	on_initialize (void) {
+	on_initialize (void) override final {
 		this->data.field_of_view = 70.0f;
 		this->data.near = 0.1f;
 		this->data.far = 100.0f;
@@ -74,8 +52,8 @@ public:
 	}
 
 	void
-	on_update (double dt) {
-		if (! this->is_running) {
+	on_update (double dt) override final {
+		if (false == this->is_running) {
 			return;
 		}
 
@@ -113,19 +91,19 @@ public:
 
 			auto zero_movement =
 				glm::epsilonEqual (Transform::ZERO, this->data.movement, 0.01f);
-			if (! zero_movement.x) {
+			if (false == zero_movement.x) {
 				glm::vec3 direction = this->data.movement.x * right;
 				this->transform.translate (
 					fdt * speed * direction
 				);
 			}
-			if (! zero_movement.y) {
+			if (false == zero_movement.y) {
 				glm::vec3 direction = this->data.movement.y * Transform::UP;
 				this->transform.translate (
 					fdt * speed * direction
 				);
 			}
-			if (! zero_movement.z) {
+			if (false == zero_movement.z) {
 				glm::vec3 direction = this->data.movement.z * forward;
 				this->transform.translate (
 					fdt * speed * direction
@@ -139,7 +117,7 @@ public:
 	}
 
 	void
-	on_render (ShaderProgram &program) {
+	on_render (ShaderProgram& program) override final {
 		program.set_uniform_mat4 ("v", this->data.view);
 		program.set_uniform_mat4 ("p", this->data.projection);
 	}
@@ -276,6 +254,15 @@ public:
 
 		return ss.str ();
 	}
+
+	CameraProcessor ()
+	: is_running (true)
+	, transform ()
+	, data () {}
+
+private:
+	bool is_running;
+
 };
 
 #endif
