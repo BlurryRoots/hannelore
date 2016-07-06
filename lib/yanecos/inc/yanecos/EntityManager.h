@@ -70,23 +70,6 @@ struct all_derived_from_data
 
 class EntityManager {
 
-private:
-	DataMap data;
-	DataOwnerMap data_owner;
-	DataTypeLookupMap type_lookup;
-
-	DataID data_id_counter;
-	DataID generate_data_id () {
-		return ++this->data_id_counter;
-	}
-
-	EntityDataMap entity_data;
-
-	EntityID entity_id_counter;
-	EntityID generate_entity_id () {
-		return ++this->entity_id_counter;
-	}
-
 public:
 	EntityManager ()
 	: data ()
@@ -156,7 +139,7 @@ public:
 	template<class TDataType> TDataType*
 	get_entity_data (EntityID entity_id) const {
 		static_assert (
-			all_derived_from_data<TDataType>::value,
+			std::is_base_of<Data<TDataType>, TDataType>::value,
 			"Given type has to be derived from Data<>!"
 		);
 
@@ -187,7 +170,7 @@ public:
 	template<class TDataType, class... TArgs> TDataType*
 	add_data (EntityID entity_id, TArgs&&... args) {
 		static_assert (
-			all_derived_from_data<TDataType>::value,
+			std::is_base_of<Data<TDataType>, TDataType>::value,
 			"Given type has to be derived from Data<>!"
 		);
 
@@ -240,7 +223,7 @@ public:
 	template<class TDataType> EntityCollection
 	get_entities_with (void) const {
 		static_assert (
-			all_derived_from_data<TDataType>::value,
+			std::is_base_of<Data<TDataType>, TDataType>::value,
 			"Given type has to be derived from Data<>!"
 		);
 
@@ -257,10 +240,11 @@ public:
 
 	template<class... TDataType> EntityCollection
 	get_entities_with_all (void) const {
-		static_assert (
-			all_derived_from_data<TDataType...>::value,
-			"All types must be derived from Data<>"
-		);
+		// TODO: check boolean unpacking template class helper, msvc compiler fuck-up?
+		//static_assert (
+			//all_derived_from_data<TDataType...>::value,
+			//"All types must be derived from Data<>"
+		//);
 
 		std::unordered_set<std::type_index> types {
 			std::type_index (typeid (TDataType))...
@@ -275,6 +259,26 @@ public:
 
 		return EntityCollection (ids.begin (), ids.end ());
 	}
+
+private:
+	DataID
+	generate_data_id () {
+		return ++this->data_id_counter;
+	}
+
+	EntityID
+	generate_entity_id () {
+		return ++this->entity_id_counter;
+	}
+
+	EntityID entity_id_counter;
+	DataID data_id_counter;
+
+	EntityDataMap entity_data;
+
+	DataMap data;
+	DataOwnerMap data_owner;
+	DataTypeLookupMap type_lookup;
 
 };
 
