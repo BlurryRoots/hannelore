@@ -202,6 +202,9 @@ public:
 			fps = std::to_string (1.0 / dt);
 		}
 
+
+		// TODO: put font stuff (at least screen space ui stuff) into
+		// separate component / system structure
 		glfonsBufferDelete (m_font_context, m_text_buffer);
 		m_text_ids.clear ();
 
@@ -410,7 +413,7 @@ public:
 
 	void
 	quit (void) {
-
+		m_is_running = false;
 	}
 	
 private:
@@ -419,13 +422,14 @@ private:
 		DEBUG_LOG ("Toggled attenuation");
 	}
 
-	bool change_intensity = false;
 	void signal_intensity_toggle () {
 		change_intensity = ! change_intensity;
 		DEBUG_LOG ("Toggled intensity to %i",
 			change_intensity
 		);
 	}
+
+	bool change_intensity = false;
 	float suzanne_speed = 0.8f;
 
 };
