@@ -6,6 +6,9 @@
 #include <IGame.h>
 #include <MeshRenderSystem.h>
 #include <ShaderProgramBuilder.h>
+
+#include <yanecos/EntityManager.h>
+
 #define GLFONTSTASH_IMPLEMENTATION
 #include <glfontstash.h>
 
@@ -415,6 +418,11 @@ public:
 	quit (void) {
 		m_is_running = false;
 	}
+
+	Game (void) 
+	: change_intensity (false)
+	, suzanne_speed (0.8f)
+	, entities () {}
 	
 private:
 	void toggle_attenuation_complexity () {
@@ -429,8 +437,9 @@ private:
 		);
 	}
 
-	bool change_intensity = false;
-	float suzanne_speed = 0.8f;
+	bool change_intensity;
+	float suzanne_speed;
+	blurryroots::yanecos::EntityManager entities;
 
 };
 
