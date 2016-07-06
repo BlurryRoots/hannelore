@@ -5,7 +5,7 @@
 
 SCENARIO () {
 	GIVEN ("An entitie manager") {
-		Yanecos::EntityManager entities;
+		blurryroots::yanecos::EntityManager entities;
 
 		WHEN ("query for all entities is made") {
 			auto result = entities.get_all_entities ();
