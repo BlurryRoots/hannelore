@@ -110,7 +110,7 @@ public:
 		models[3].translate (glm::vec3 (0, 0, 0));
 		models[3].scale (glm::vec3 (4, 4, 4));
 		{
-			auto *ground = mesh_loader.get ("ground");
+			auto* ground = mesh_loader.get ("ground");
 			float max_ground_dim = ground->dimensions[0].x;
 			max_ground_dim = glm::max (ground->dimensions[0].y,
 				max_ground_dim
@@ -121,19 +121,36 @@ public:
 			models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
 		}
 
+		{
+			auto camera = m_entities.create_entity ();
+
+			static_assert (
+				std::is_base_of<blurryroots::yanecos::Data<CameraData>, CameraData>::value,
+				"WTF DUDE!"
+			);
+
+			auto cameraData = m_entities.add_data<CameraData> (camera);
+			cameraData->field_of_view = 70.0f;
+			cameraData->near = 0.1f;
+			cameraData->far = 100.0f;
+			cameraData->aspect_ratio = 4.0f / 3.0f;
+
+			auto cameraTransform = m_entities.add_data<Transform> (camera);
+			cameraTransform->translate (glm::vec3 (0, 6, -6));
+			cameraTransform->rotate (
+				-PI_OVER_2 * 1.5f, Transform::UP
+			);
+			glm::mat4 inv_rotation = glm::inverse (
+				cameraTransform->to_rotation ()
+			);
+			glm::vec3 right = Transform::to_right (inv_rotation);
+			cameraTransform->rotate (PI_OVER_2 * 0.5f, right);
+		}
+
 		camera_processor.on_initialize ();
-		camera_processor.transform.translate (glm::vec3 (0, 6, -6));
-		camera_processor.transform.rotate (
-			-PI_OVER_2 * 1.5f, Transform::UP
-			);
-		glm::mat4 inv_rotation = glm::inverse (
-			camera_processor.transform.to_rotation ()
-			);
-		glm::vec3 right = Transform::to_right (inv_rotation);
-		camera_processor.transform.rotate (PI_OVER_2 * 0.5f, right);
 		/*camera_processor.on_viewport_changed (
-			framebuffer_width, framebuffer_height
-			);*/
+		framebuffer_width, framebuffer_height
+		);*/
 		// TODO: figure out a way to change camera view to initial framebuffer size
 
 		light_radius = 1.0f;
@@ -190,10 +207,10 @@ public:
 			models[1].to_translation ()
 			);
 		if (-6 > pos.z || 2 < pos.z) {
-			suzanne_speed *= -1;
+			m_suzanne_speed *= -1;
 		}
 
-		float speed = suzanne_speed * dt;
+		float speed = m_suzanne_speed * dt;
 		models[1].translate (glm::vec3 (0, 0, speed));
 
 		// light size according to radius
@@ -364,7 +381,7 @@ public:
 
 	void
 	on_mouse_scroll (double xoffset, double yoffset) {
-		if (change_intensity) {
+		if (m_change_intensity) {
 			light_intensity += (float)yoffset / 10.f;
 			light_intensity = light_intensity < 0
 				? 0
@@ -420,9 +437,10 @@ public:
 	}
 
 	Game (void) 
-	: change_intensity (false)
-	, suzanne_speed (0.8f)
-	, entities () {}
+	: m_change_intensity (false)
+	, m_suzanne_speed (0.8f)
+	, m_entities ()
+	, camera_processor (m_entities) {}
 	
 private:
 	void toggle_attenuation_complexity () {
@@ -431,15 +449,15 @@ private:
 	}
 
 	void signal_intensity_toggle () {
-		change_intensity = ! change_intensity;
+		m_change_intensity = ! m_change_intensity;
 		DEBUG_LOG ("Toggled intensity to %i",
-			change_intensity
+			m_change_intensity
 		);
 	}
 
-	bool change_intensity;
-	float suzanne_speed;
-	blurryroots::yanecos::EntityManager entities;
+	bool m_change_intensity;
+	float m_suzanne_speed;
+	blurryroots::yanecos::EntityManager m_entities;
 
 };
 
