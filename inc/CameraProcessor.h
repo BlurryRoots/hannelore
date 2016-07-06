@@ -9,6 +9,7 @@
 #include <KeyCode.h>
 #include <CameraData.h>
 #include <yanecos/IDataProcessor.h>
+#include <yanecos/EntityManager.h>
 
 #include <GLFW/glfw3.h>
 
@@ -29,97 +30,100 @@
 class CameraProcessor : public blurryroots::yanecos::IDataProcessor {
 
 public:
-	Transform transform;
-	CameraData data;
+	glm::vec3 m_movement;
 
 public:
 	void
 	activate (void) override final {
-		this->is_running = true;
+		this->m_is_running = true;
 	}
 
 	void
 	deactivate (void) override final {
-		this->is_running = false;
+		this->m_is_running = false;
 	}
 
 	void
-	on_initialize (void) override final {
-		this->data.field_of_view = 70.0f;
-		this->data.near = 0.1f;
-		this->data.far = 100.0f;
-		this->data.aspect_ratio = 4.0f / 3.0f;
-	}
+	on_initialize (void) override final {}
 
 	void
 	on_update (double dt) override final {
-		if (false == this->is_running) {
+		if (false == this->m_is_running) {
 			return;
 		}
 
 		float fdt = static_cast<float> (dt);
 
-		{
-			glm::mat4 inv_rotation = glm::inverse (this->transform.to_rotation ());
-			glm::vec3 right   = Transform::to_right (inv_rotation);
-			//glm::vec3 up      = Transform::to_up (inv_rotation);
+		for (auto cameraId : m_entities.get_entities_with_all<Transform, CameraData> ()) {
+			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
+			auto transform = m_entities.get_entity_data<Transform> (cameraId);
 
-			if (0 != this->data.yaw) {
-				// Use the world up vector to create a obsever like camera look.
-				// If you want to create a spaceship like camera use the local
-				// up vector.
-				float v = static_cast<float> (this->data.yaw) * fdt;
-				this->transform.rotate (
-					v, Transform::UP
-				);
+			{
+				glm::mat4 inv_rotation = glm::inverse (transform->to_rotation ());
+				glm::vec3 right   = Transform::to_right (inv_rotation);
+				//glm::vec3 up      = Transform::to_up (inv_rotation);
+
+				if (0 != camera->yaw) {
+					// Use the world up vector to create a obsever like camera look.
+					// If you want to create a spaceship like camera use the local
+					// up vector.
+					float v = static_cast<float> (camera->yaw) * fdt;
+					transform->rotate (
+						v, Transform::UP
+					);
+				}
+
+				if (0 != camera->pitch) {
+					float v = static_cast<float> (camera->pitch) * fdt;
+					transform->rotate (
+						v, right
+					);
+				}
 			}
 
-			if (0 != this->data.pitch) {
-				float v = static_cast<float> (this->data.pitch) * fdt;
-				this->transform.rotate (
-					v, right
-				);
+			{
+				float speed = 1.618f;
+				glm::mat4 inv_rotation = glm::inverse (transform->to_rotation ());
+				glm::vec3 right   = Transform::to_right (inv_rotation);
+				//glm::vec3 up      = Transform::to_up (inv_rotation);
+				glm::vec3 forward = Transform::to_forward (inv_rotation);
+
+				auto zero_movement =
+					glm::epsilonEqual (Transform::ZERO, m_movement, 0.01f);
+				if (false == zero_movement.x) {
+					glm::vec3 direction = m_movement.x * right;
+					transform->translate (
+						fdt * speed * direction
+					);
+				}
+				if (false == zero_movement.y) {
+					glm::vec3 direction = m_movement.y * Transform::UP;
+					transform->translate (
+						fdt * speed * direction
+					);
+				}
+				if (false == zero_movement.z) {
+					glm::vec3 direction = m_movement.z * forward;
+					transform->translate (
+						fdt * speed * direction
+					);
+				}
 			}
+
+			camera->view = transform->to_rotation ()
+				* glm::inverse (transform->to_translation ())
+				;
 		}
-
-		{
-			float speed = 1.618f;
-			glm::mat4 inv_rotation = glm::inverse (this->transform.to_rotation ());
-			glm::vec3 right   = Transform::to_right (inv_rotation);
-			//glm::vec3 up      = Transform::to_up (inv_rotation);
-			glm::vec3 forward = Transform::to_forward (inv_rotation);
-
-			auto zero_movement =
-				glm::epsilonEqual (Transform::ZERO, this->data.movement, 0.01f);
-			if (false == zero_movement.x) {
-				glm::vec3 direction = this->data.movement.x * right;
-				this->transform.translate (
-					fdt * speed * direction
-				);
-			}
-			if (false == zero_movement.y) {
-				glm::vec3 direction = this->data.movement.y * Transform::UP;
-				this->transform.translate (
-					fdt * speed * direction
-				);
-			}
-			if (false == zero_movement.z) {
-				glm::vec3 direction = this->data.movement.z * forward;
-				this->transform.translate (
-					fdt * speed * direction
-				);
-			}
-		}
-
-		this->data.view = this->transform.to_rotation ()
-			* glm::inverse (this->transform.to_translation ())
-			;
 	}
 
 	void
 	on_render (ShaderProgram& program) override final {
-		program.set_uniform_mat4 ("v", this->data.view);
-		program.set_uniform_mat4 ("p", this->data.projection);
+		for (auto cameraId : m_entities.get_entities_with<CameraData> ()) {
+			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
+
+			program.set_uniform_mat4 ("v", camera->view);
+			program.set_uniform_mat4 ("p", camera->projection);
+		}
 	}
 
 	void
@@ -129,112 +133,125 @@ public:
 			return;
 		}
 
-		this->data.aspect_ratio = width / height;
+		for (auto cameraId : m_entities.get_entities_with<CameraData> ()) {
+			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
 
-		this->data.projection = glm::perspective (
-			this->data.field_of_view,
-			this->data.aspect_ratio,
-			this->data.near,
-			this->data.far
-		);
+			camera->aspect_ratio = width / height;
+
+			camera->projection = glm::perspective (
+				camera->field_of_view,
+				camera->aspect_ratio,
+				camera->near,
+				camera->far
+			);
+		}
 	}
 
 	void
 	on_key_up (KeyCode key, KeyModifier mods) {
-		if (KeyCode::left == key) {
-			this->data.yaw += 1;
-		}
+		for (auto cameraId : m_entities.get_entities_with_all<Transform, CameraData> ()) {
+			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
+			auto transform = m_entities.get_entity_data<Transform> (cameraId);
 
-		if (KeyCode::right == key) {
-			this->data.yaw -= 1;
-		}
+			if (KeyCode::left == key) {
+				camera->yaw += 1;
+			}
 
-		if (KeyCode::up == key) {
-			this->data.pitch += 1;
-		}
+			if (KeyCode::right == key) {
+				camera->yaw -= 1;
+			}
 
-		if (KeyCode::down == key) {
-			this->data.pitch -= 1;
+			if (KeyCode::up == key) {
+				camera->pitch += 1;
+			}
+
+			if (KeyCode::down == key) {
+				camera->pitch -= 1;
+			}
+
+			if (KeyCode::space == key) {
+				DEBUG_LOG ("Camera @ %s",
+					vec3_to_string (Transform::to_position (
+						glm::inverse (transform->to_translation ())
+					))
+				);
+			}
+
+			if (KeyCode::escape == key) {
+				transform->reset_translation ();
+				transform->reset_rotation ();
+			}
 		}
 
 		if (KeyCode::w == key) {
-			this->data.movement.z += 1;
+			this->m_movement.z += 1;
 		}
 
 		if (KeyCode::s == key) {
-			this->data.movement.z -= 1;
+			this->m_movement.z -= 1;
 		}
 
 		if (KeyCode::a == key) {
-			this->data.movement.x += 1;
+			this->m_movement.x += 1;
 		}
 
 		if (KeyCode::d == key) {
-			this->data.movement.x -= 1;
+			this->m_movement.x -= 1;
 		}
 
 		if (KeyCode::q == key) {
-			this->data.movement.y -= 1;
+			this->m_movement.y -= 1;
 		}
 
 		if (KeyCode::e == key) {
-			this->data.movement.y += 1;
-		}
-
-		if (KeyCode::space == key) {
-			DEBUG_LOG ("Camera @ %s",
-				vec3_to_string (Transform::to_position (
-					glm::inverse (this->transform.to_translation ())
-					))
-				);
-		}
-
-		if (KeyCode::escape == key) {
-			this->transform.reset_translation ();
-			this->transform.reset_rotation ();
+			this->m_movement.y += 1;
 		}
 	}
 
 	void
 	on_key_down (KeyCode key, KeyModifier mods) {
-		if (KeyCode::left == key) {
-			this->data.yaw -= 1;
-		}
+		for (auto cameraId : m_entities.get_entities_with<CameraData> ()) {
+			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
 
-		if (KeyCode::right == key) {
-			this->data.yaw += 1;
-		}
+			if (KeyCode::left == key) {
+				camera->yaw -= 1;
+			}
 
-		if (KeyCode::up == key) {
-			this->data.pitch -= 1;
-		}
+			if (KeyCode::right == key) {
+				camera->yaw += 1;
+			}
 
-		if (KeyCode::down == key) {
-			this->data.pitch += 1;
+			if (KeyCode::up == key) {
+				camera->pitch -= 1;
+			}
+
+			if (KeyCode::down == key) {
+				camera->pitch += 1;
+			}
 		}
 
 		if (KeyCode::w == key) {
-			this->data.movement.z -= 1;
+			this->m_movement.z -= 1;
 		}
 
 		if (KeyCode::s == key) {
-			this->data.movement.z += 1;
+			this->m_movement.z += 1;
 		}
 
 		if (KeyCode::a == key) {
-			this->data.movement.x -= 1;
+			this->m_movement.x -= 1;
 		}
 
 		if (KeyCode::d == key) {
-			this->data.movement.x += 1;
+			this->m_movement.x += 1;
 		}
 
 		if (KeyCode::q == key) {
-			this->data.movement.y += 1;
+			this->m_movement.y += 1;
 		}
 
 		if (KeyCode::e == key) {
-			this->data.movement.y -= 1;
+			this->m_movement.y -= 1;
 		}
 	}
 
@@ -255,13 +272,14 @@ public:
 		return ss.str ();
 	}
 
-	CameraProcessor ()
-	: is_running (true)
-	, transform ()
-	, data () {}
+	CameraProcessor (blurryroots::yanecos::EntityManager& entities)
+	: m_is_running (true)
+	, m_entities (entities)
+	, m_movement () {}
 
 private:
-	bool is_running;
+	bool m_is_running;
+	const blurryroots::yanecos::EntityManager& m_entities;
 
 };
 

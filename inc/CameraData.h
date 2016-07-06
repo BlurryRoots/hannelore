@@ -5,6 +5,7 @@
 #include <glm/mat4x4.hpp> // glm::mat4
 
 struct CameraData : public blurryroots::yanecos::Data<CameraData> {
+
 	float field_of_view;
 	float near;
 	float far;
@@ -17,7 +18,7 @@ struct CameraData : public blurryroots::yanecos::Data<CameraData> {
 	int pitch;
 
 	bool is_currently_controlled_camera;
-	glm::vec3 movement;
+
 };
 
 #endif
