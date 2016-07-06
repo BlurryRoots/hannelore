@@ -1,20 +1,22 @@
-#ifndef __DATA_H__
-#define __DATA_H__
+#ifndef yanecos_Data_h
+#define yanecos_Data_h
 
 #include <string>
 #include <typeinfo>
 
 #include <yanecos/IData.h>
 
-namespace Yanecos {
+namespace blurryroots { namespace yanecos {
 
 template<class TDataType>
 class Data : public IData {
 
-private:
-	std::string type;
-
 public:
+	const std::string&
+	get_type (void) const override final {
+		return this->type;
+	}
+
 	Data (void) {
 		this->type = typeid (TDataType).name ();
 	};
@@ -22,13 +24,11 @@ public:
 	virtual
 	~Data (void) {}
 
-	const std::string&
-	get_type (void) const override {
-		return this->type;
-	}
+private:
+	std::string type;
 
 };
 
-}
+}}
 
 #endif

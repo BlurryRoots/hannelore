@@ -1,9 +1,9 @@
-#ifndef __IDATA_H__
-#define __IDATA_H__
+#ifndef yanecos_IData_h
+#define yanecos_IData_h
 
 #include <string>
 
-namespace Yanecos {
+namespace blurryroots { namespace yanecos {
 
 struct IData {
 
@@ -15,6 +15,6 @@ struct IData {
 
 };
 
-}
+}}
 
 #endif

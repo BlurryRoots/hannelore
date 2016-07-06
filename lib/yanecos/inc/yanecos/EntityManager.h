@@ -1,5 +1,5 @@
-#ifndef __ENTITYMANAGER_H__
-#define __ENTITYMANAGER_H__
+#ifndef yanecso_EntityManager_h
+#define yanecso_EntityManager_h
 
 #include <unordered_map>
 #include <unordered_set>
@@ -17,7 +17,7 @@
 
 #include <json.hpp>
 
-namespace Yanecos {
+namespace blurryroots { namespace yanecos {
 
 typedef
 	unsigned long long int
@@ -94,16 +94,13 @@ public:
 	, type_lookup ()
 	, data_id_counter (0)
 	, entity_data ()
-	, entity_id_counter (0) {
-		//
-	};
+	, entity_id_counter (0) {};
 
 	virtual
-	~EntityManager () {
-	}
+	~EntityManager () {}
 
 	void
-	dispose () {
+	dispose (void) {
 #ifdef DEBUG_SERIALIZE
 		std::cout << this->serialize () << std::endl << std::endl;
 #endif
@@ -121,7 +118,7 @@ public:
 	}
 
 	std::string
-	serialize () {
+	serialize (void) {
 		using json = nlohmann::json;
 
 		json j;
@@ -230,7 +227,7 @@ public:
 	}
 
 	EntityCollection
-	get_all_entities () {
+	get_all_entities (void) const {
 		EntityCollection collection;
 
 		for (auto &entry : this->entity_data) {
@@ -241,7 +238,7 @@ public:
 	}
 
 	template<class TDataType> EntityCollection
-	get_entities_with () {
+	get_entities_with (void) const {
 		static_assert (
 			all_derived_from_data<TDataType>::value,
 			"Given type has to be derived from Data<>!"
@@ -253,13 +250,13 @@ public:
 		return this->data_owner.at (type_name);
 	}
 
-	template<class TArg>
-	std::string get_type_name (TArg arg) {
+	template<class TArg> std::string
+	get_type_name (TArg arg) const {
 		return typeid (TArg).name ();
 	}
 
 	template<class... TDataType> EntityCollection
-	get_entities_with_all () {
+	get_entities_with_all (void) const {
 		static_assert (
 			all_derived_from_data<TDataType...>::value,
 			"All types must be derived from Data<>"
@@ -281,6 +278,6 @@ public:
 
 };
 
-}
+}}
 
 #endif
