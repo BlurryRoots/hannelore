@@ -12,7 +12,7 @@ template<class TDataType>
 class Data : public IData {
 
 public:
-	const std::string&
+	const std::string
 	get_type (void) const override final {
 		return this->type;
 	}

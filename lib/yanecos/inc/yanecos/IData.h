@@ -10,7 +10,7 @@ struct IData {
 	virtual
 	~IData (void) {};
 
-	virtual const std::string&
+	virtual const std::string
 	get_type (void) const = 0;
 
 };
