@@ -13,6 +13,20 @@ file (GLOB_RECURSE source_files ${PROJECT_SOURCE_DIR}/src/*)
 # find every test file
 file (GLOB_RECURSE test_files ${PROJECT_SOURCE_DIR}/test/*)
 
+## building
+
+# c++11 activation
+list (APPEND CMAKE_CXX_FLAGS "-std=c++11")
+# compilation flags
+add_definitions (-Wall)
+
+# system libraries
+set (SYSTEM_LIBS)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	list (APPEND SYSTEM_LIBS z)
+	list (APPEND SYSTEM_LIBS pthread)
+endif ()
+
 ## dependencies
 
 # glfw
@@ -56,20 +70,6 @@ include_directories (lib/fontstash-es)
 
 # app specific includes
 include_directories (inc)
-
-## building
-
-# c++11 activation
-list (APPEND CMAKE_CXX_FLAGS "-std=c++11")
-# compilation flags
-add_definitions (-Wall)
-
-# system libraries
-set (SYSTEM_LIBS)
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	list (APPEND SYSTEM_LIBS z)
-	list (APPEND SYSTEM_LIBS pthread)
-endif ()
 
 ## executables
 
