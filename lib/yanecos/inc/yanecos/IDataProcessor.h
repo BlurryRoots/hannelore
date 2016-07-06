@@ -6,22 +6,22 @@ namespace blurryroots { namespace yanecos {
 struct IDataProcessor {
 
 	virtual void
-		activate (void) = 0;
+	activate (void) = 0;
 
 	virtual void
-		deactivate (void) = 0;
+	deactivate (void) = 0;
 
 	virtual void
-		on_initialize (void) = 0;
+	on_initialize (void) = 0;
 
 	virtual void
-		on_update (double dt) = 0;
+	on_update (double dt) = 0;
 
 	virtual void
-		on_render (ShaderProgram& program) = 0;
+	on_render (ShaderProgram& program) = 0;
 
 	virtual
-		~IDataProcessor (void) {}
+	~IDataProcessor (void) {}
 
 };
 
