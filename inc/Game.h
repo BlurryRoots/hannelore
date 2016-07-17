@@ -64,7 +64,7 @@ public:
 		auto vert_text = vert_file.to_string ();
 		THROW_IF (0 == vert_text.size (),
 			"Vertex shader is missing or empty!"
-			);
+		);
 		auto vs = VertexShader (vert_file.to_string ());
 
 		auto frag_path = base_path + "shaders/es/basic.frag";
@@ -163,10 +163,20 @@ public:
 			GLFONSparams font_parameters;
 			font_parameters.useGLBackend = true;
 			std::string font_name = "Arial";
-			std::string font_path = base_path + "fonts/liberation-sans/LiberationSans-Regular.ttf";
-			m_font_context = glfonsCreate (512, 512, FONS_ZERO_TOPLEFT | FONS_NORMALIZE_TEX_COORDS, font_parameters, nullptr);
-			THROW_IF (FONS_INVALID == fonsAddFont (m_font_context, font_name.c_str (), font_path.c_str ()),
-				"Could not open font!");
+			std::string font_path = base_path +
+				"fonts/liberation-sans/LiberationSans-Regular.ttf";
+			m_font_context = glfonsCreate (
+				512, 512,
+				FONS_ZERO_TOPLEFT | FONS_NORMALIZE_TEX_COORDS,
+				font_parameters, 
+				nullptr
+			);
+			THROW_IF (
+				FONS_INVALID == fonsAddFont (m_font_context, 
+					font_name.c_str (), font_path.c_str ()
+				),
+				"Could not open font!"
+			);
 
 			// set the screen size for font context transformations
 			glfonsScreenSize (m_font_context, framebuffer_height, framebuffer_height);
@@ -245,10 +255,14 @@ public:
 		fonsSetSize (m_font_context, 20.0);
 		//glfonsSetColor (m_font_context, 0x000000);
 		glfonsRasterize (m_font_context, m_text_ids[0], ("fps: " + fps).c_str ());
-		glfonsRasterize (m_font_context, m_text_ids[1], ("frame: " + std::to_string (m_framecounter)).c_str ());
+		glfonsRasterize (m_font_context, 
+			m_text_ids[1], ("frame: " + std::to_string (m_framecounter)).c_str ()
+		);
 
 		for (int i = 0; i < m_text_ids.size (); ++i) {
-			glfonsTransform (m_font_context, m_text_ids[i], 100.0, (100.0 + i * 50.0), 0.0, 1.0);
+			glfonsTransform (m_font_context,
+				m_text_ids[i], 100.0, (100.0 + i * 50.0), 0.0, 1.0
+			);
 		}
 
 		// upload rasterized data of currently bound buffer to gpu
