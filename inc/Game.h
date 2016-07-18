@@ -7,6 +7,10 @@
 #include <MeshRenderSystem.h>
 #include <ShaderProgramBuilder.h>
 
+#include <Hashing.h>
+#define SID (s) \
+	blurryroots::hashing::djb::hash (s)
+
 #include <yanecos/EntityManager.h>
 
 #define GLFONTSTASH_IMPLEMENTATION
