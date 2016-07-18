@@ -6,6 +6,8 @@
 #include <IGame.h>
 #include <MeshRenderSystem.h>
 #include <ShaderProgramBuilder.h>
+#include <CameraData.h>
+#include <Util.h>
 
 #include <Hashing.h>
 #define SID (s) \
@@ -25,32 +27,18 @@ public:
 	ShaderProgram m_shader_program;
 	int framebuffer_width, framebuffer_height;
 
-	TextureLoader m_texture_loader;
-	blurryroots::model::MeshLoader mesh_loader;
+	struct LightData {
+		float light_radius;
+		float light_intensity;
+		glm::vec3 light_color;
+		bool complex_attenuation;
+	} m_light_data;
 
-	struct {
-		glm::mat4 model;
-		glm::mat4 view;
-		glm::mat4 projection;
-	} matrices;
-
-	float light_radius;
-	float light_intensity;
-	glm::vec3 light_color;
-	float light_color_factor;
-	float light_color_base;
-	bool complex_attenuation;
-
-	Transform models[4];
-
-	CameraProcessor camera_processor;
-
-	bool fullscreen;
+	//Transform models[4];
 
 	FONScontext* m_font_context;
 	fsuint m_text_buffer;;
 	std::vector<fsuint> m_text_ids;
-	float m_dpi_ratio;
 	long m_framecounter = 0;
 
 public:
@@ -61,6 +49,9 @@ public:
 
 		std::string base_path = blurryroots::util::get_executable_path ();
 		base_path = blurryroots::util::normalize_file_path (base_path);
+
+		// TODO: reference shader by name? register shader in mesh render system
+		// when loading, look-up already build shaders, just reference
 
 		// setup basic shaders
 		auto ver_path = base_path + "shaders/es/basic.vert";
@@ -87,42 +78,124 @@ public:
 			.bind_attribute ("vertex_normal", 2)
 			.link ()
 			;
-
-		m_texture_loader.load (base_path + "textures/ground.lines.png", "ground", 0);
-		mesh_loader.load (
-			base_path + "models/objs/ground.obj", m_shader_program, "ground"
-			);
-
-		m_texture_loader.load (base_path + "textures/grass.png", "suzanne", 0);
-		mesh_loader.load (
-			base_path + "models/objs/suzanne.smooth.obj", m_shader_program, "suzanne"
-			);
-		models[1].translate (glm::vec3 (0, 0.5, 1));
-		models[1].rotate (-PI_OVER_2 * 2.0f, Transform::UP);
-
-		m_texture_loader.load (base_path + "textures/light.uv.png", "light", 0);
-		mesh_loader.load (
-			base_path + "models/objs/light_sphere.obj", m_shader_program, "light_sphere"
-			);
-		models[2].translate (glm::vec3 (0, 2, -2));
-
-		//
-		m_texture_loader.load (base_path + "textures/sky.jpg", "sky", 0);
-		mesh_loader.load (
-			base_path + "models/objs/skysphere.obj", m_shader_program, "sky_sphere"
-			);
-		models[3].translate (glm::vec3 (0, 0, 0));
-		models[3].scale (glm::vec3 (4, 4, 4));
+		
 		{
-			auto* ground = mesh_loader.get ("ground");
-			float max_ground_dim = ground->dimensions[0].x;
-			max_ground_dim = glm::max (ground->dimensions[0].y,
-				max_ground_dim
+			auto id = m_entities.create_entity ();
+
+			auto material_path = base_path + "textures/sky.jpg";
+			auto texture_unit = 0;
+			auto material_data = m_entities.add_data<MaterialData> (id);
+			material_data->texture_name = "sky";
+			m_texture_loader.load (
+				material_path,
+				material_data->texture_name,
+				texture_unit
 				);
-			max_ground_dim = glm::max (ground->dimensions[0].z,
-				max_ground_dim
+
+			auto mesh_path = base_path + "models/objs/skysphere.obj";
+			auto mesh_data = m_entities.add_data<MeshData> (id);
+			mesh_data->key = "skysphere";
+			m_mesh_loader.load (
+				mesh_path,
+				m_shader_program,
+				mesh_data->key
 				);
-			models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
+
+			auto transform = m_entities.add_data<Transform> (id);
+			//models[3].translate (glm::vec3 (0, 0, 0));
+			transform->translate (glm::vec3 (0, 0, 0));
+			//models[3].scale (glm::vec3 (4, 4, 4));
+			transform->scale (glm::vec3 (4, 4, 4));
+		}
+
+		{
+			auto id = m_entities.create_entity ();
+
+			auto material_data = m_entities.add_data<MaterialData> (id);
+			material_data->texture_name = "ground.lines";
+			auto texture_path = base_path + "textures/ground.lines.png";
+			m_texture_loader.load (
+				texture_path,
+				material_data->texture_name,
+				0
+			);
+
+			auto mesh_data = m_entities.add_data<MeshData> (id);
+			mesh_data->key = "ground";
+			auto mesh_path = base_path + "models/objs/ground.obj";
+			m_mesh_loader.load (
+				mesh_path,
+				m_shader_program,
+				mesh_data->key
+			);
+
+			auto transform = m_entities.add_data<Transform> (id);
+			/*{
+				auto* ground = m_mesh_loader.get (mesh_data->key);
+				float max_ground_dim = ground->dimensions[0].x;
+				max_ground_dim = glm::max (ground->dimensions[0].y,
+					max_ground_dim
+					);
+				max_ground_dim = glm::max (ground->dimensions[0].z,
+					max_ground_dim
+					);
+				//models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
+				transform->scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
+			}*/
+		}
+
+		{
+			m_suzanne_id = m_entities.create_entity ();
+
+			auto material_data = m_entities.add_data<MaterialData> (m_suzanne_id);
+			material_data->texture_name = "grass";
+			auto texture_unit = 0;
+			auto texture_path = base_path + "textures/grass.png";
+			m_texture_loader.load (
+				texture_path,
+				material_data->texture_name,
+				texture_unit
+			);
+
+			auto mesh_data = m_entities.add_data<MeshData> (m_suzanne_id);
+			mesh_data->key = "suzanne";
+			auto mesh_path = base_path + "models/objs/suzanne.smooth.obj";
+			m_mesh_loader.load (
+				mesh_path,
+				m_shader_program,
+				mesh_data->key
+				);
+
+			auto transform = m_entities.add_data<Transform> (m_suzanne_id);
+			transform->translate (glm::vec3 (0, 0.5, 1));
+			transform->rotate (-PI_OVER_2 * 2.0f, Transform::UP);
+		}
+
+		{
+			m_light_id = m_entities.create_entity ();
+
+			auto texture_path = base_path + "textures/light.uv.png";
+			auto texture_unit = 0;
+			auto material_data = m_entities.add_data<MaterialData> (m_light_id);
+			material_data->texture_name = "light.uv";
+			m_texture_loader.load (
+				texture_path,
+				material_data->texture_name,
+				texture_unit
+			);
+
+			auto mesh_path = base_path + "models/objs/light_sphere.obj";
+			auto mesh_data = m_entities.add_data<MeshData> (m_light_id);
+			mesh_data->key = "light_sphere";
+			m_mesh_loader.load (
+				mesh_path,
+				m_shader_program,
+				mesh_data->key
+			);
+
+			auto transform = m_entities.add_data<Transform> (m_light_id);
+			//models[2].translate (glm::vec3 (0, 2, -2));
+			transform->translate (glm::vec3 (0, 2, -2));
 		}
 
 		{
@@ -151,16 +224,16 @@ public:
 			cameraTransform->rotate (PI_OVER_2 * 0.5f, right);
 		}
 
-		camera_processor.on_initialize ();
-		/*camera_processor.on_viewport_changed (
+		m_camera_processor.on_initialize ();
+		/*m_camera_processor.on_viewport_changed (
 		framebuffer_width, framebuffer_height
 		);*/
 		// TODO: figure out a way to change camera view to initial framebuffer size
 
-		light_radius = 1.0f;
-		light_intensity = 2.0f;
-		light_color = glm::vec3 (1.0, 0.8, 0.8);
-		complex_attenuation = true;
+		m_light_data.light_radius = 1.0f;
+		m_light_data.light_intensity = 2.0f;
+		m_light_data.light_color = glm::vec3 (1.0, 0.8, 0.8);
+		m_light_data.complex_attenuation = true;
 
 		// initilize the font system
 		{
@@ -203,7 +276,7 @@ public:
 
 		glfonsScreenSize (m_font_context, framebuffer_width, framebuffer_height);
 
-		camera_processor.on_viewport_changed (
+		m_camera_processor.on_viewport_changed (
 			framebuffer_width, framebuffer_height
 		);
 	}
@@ -215,21 +288,28 @@ public:
 
 	void
 	on_update (double dt) {
-		camera_processor.on_update (dt);
+		m_camera_processor.on_update (dt);
 
-		glm::vec3 pos = Transform::to_position (
-			models[1].to_translation ()
-			);
-		if (-6 > pos.z || 2 < pos.z) {
-			m_suzanne_speed *= -1;
+		{
+			auto transform = m_entities.get_entity_data<Transform> (m_suzanne_id);
+			glm::vec3 pos = Transform::to_position (
+				transform->to_translation ()
+				);
+			if (-6 > pos.z || 2 < pos.z) {
+				m_suzanne_speed *= -1;
+			}
+
+			float speed = m_suzanne_speed * dt;
+			transform->translate (glm::vec3 (0, 0, speed));
 		}
 
-		float speed = m_suzanne_speed * dt;
-		models[1].translate (glm::vec3 (0, 0, speed));
+		{
+			auto transform = m_entities.get_entity_data<Transform> (m_light_id);
 
-		// light size according to radius
-		models[2].reset_scale ();
-		models[2].scale (glm::vec3 (light_radius));
+			// light size according to radius
+			transform->reset_scale ();
+			transform->scale (glm::vec3 (m_light_data.light_radius));
+		}
 
 		std::string fps;
 		if (0.0 < dt) {
@@ -249,6 +329,7 @@ public:
 		// ready two places
 		m_text_ids.push_back (0);
 		m_text_ids.push_back (0);
+		m_text_ids.push_back (0);
 		// generate text ids for the currently bound text buffer
 		glfonsGenText (m_font_context, m_text_ids.size (), m_text_ids.data ());
 
@@ -259,9 +340,15 @@ public:
 		fonsSetSize (m_font_context, 20.0);
 		//glfonsSetColor (m_font_context, 0x000000);
 		glfonsRasterize (m_font_context, m_text_ids[0], ("fps: " + fps).c_str ());
-		glfonsRasterize (m_font_context, 
-			m_text_ids[1], ("frame: " + std::to_string (m_framecounter)).c_str ()
-		);
+		glfonsRasterize (m_font_context,
+			m_text_ids[1],
+			("frame: " + std::to_string (m_framecounter) /*+ "\nkeks mhh lecker!"*/).c_str ());
+		// TODO: decide on how new lines are handled,
+		// ? parse string and create multiple lines
+		// ? just do not allow special characters
+		//glfonsRasterize (m_font_context, m_text_ids[2], std::string("schnurpel\nkeks mhh lecker!").c_str ());
+		glfonsRasterize (m_font_context,
+			m_text_ids[2], std::string ("keks mhh lecker!").c_str ());
 
 		for (int i = 0; i < m_text_ids.size (); ++i) {
 			glfonsTransform (m_font_context,
@@ -282,11 +369,11 @@ public:
 
 		m_shader_program.use ();
 
-		camera_processor.on_render (m_shader_program);
+		m_camera_processor.on_render (m_shader_program);
 
 		// ambient light
 		m_shader_program.set_uniform_i ("complex_attenuation",
-			static_cast<int> (complex_attenuation)
+			static_cast<int> (m_light_data.complex_attenuation)
 			);
 
 		// ambient light
@@ -295,47 +382,49 @@ public:
 			);
 
 		// point light
+		auto light_transform = m_entities.get_entity_data<Transform> (m_light_id);
 		m_shader_program.set_uniform_vec4 ("point_light_color",
-			glm::vec4 (light_color, light_intensity)
-			);
+			glm::vec4 (m_light_data.light_color, m_light_data.light_intensity)
+		);
 		m_shader_program.set_uniform_vec4 ("point_light",
 			glm::vec4 (
-				Transform::to_position (models[2].to_translation ()),
-				light_radius
-				)
-			);
+				Transform::to_position (light_transform->to_translation ()),
+				m_light_data.light_radius
+			)
+		);
 
-		MeshRenderSystem::render_model (
-			mesh_loader.get ("ground"),
+		m_mesh_render_processor.on_render (m_shader_program);
+		/*MeshRenderSystem::render_model (
+			m_mesh_loader.get ("ground"),
 			models[0],
 			"ground",
 			m_texture_loader,
 			m_shader_program
-			);
+			);*/
 
-		MeshRenderSystem::render_model (
-			mesh_loader.get ("suzanne"),
+		/*MeshRenderSystem::render_model (
+			m_mesh_loader.get ("suzanne"),
 			models[1],
 			"suzanne",
 			m_texture_loader,
 			m_shader_program
-			);
+			);*/
 
-		MeshRenderSystem::render_model (
-			mesh_loader.get ("light_sphere"),
+		/*MeshRenderSystem::render_model (
+			m_mesh_loader.get ("light_sphere"),
 			models[2],
 			"light",
 			m_texture_loader,
 			m_shader_program
-			);
+			);*/
 
-		MeshRenderSystem::render_model (
-			mesh_loader.get ("sky_sphere"),
+		/*MeshRenderSystem::render_model (
+			m_mesh_loader.get ("sky_sphere"),
 			models[3],
 			"sky",
 			m_texture_loader,
 			m_shader_program
-			);
+			);*/
 
 		m_shader_program.deactivate ();
 
@@ -347,7 +436,7 @@ public:
 	on_key_down (KeyCode key, int scancode, KeyModifier mods) {
 		DEBUG_LOG ("on_key_down ", key);
 
-		camera_processor.on_key_down (key, mods);
+		m_camera_processor.on_key_down (key, mods);
 
 		if (mods & GLFW_MOD_CONTROL) {
 			signal_intensity_toggle ();
@@ -358,14 +447,14 @@ public:
 	on_key_up (KeyCode key, int scancode, KeyModifier mods) {
 		DEBUG_LOG ("on_key_up ", key);
 
-		camera_processor.on_key_up (key, mods);
+		m_camera_processor.on_key_up (key, mods);
 
 		if (GLFW_KEY_ESCAPE == key) {
 			m_is_running = false;
 		}
 
 		if (GLFW_KEY_SPACE == key) {
-			DEBUG_LOG ("Current light radius @ %i", light_radius);
+			DEBUG_LOG ("Current light radius @ %i", m_light_data.light_radius);
 		}
 
 		if (mods & KeyModifier::control) {
@@ -379,12 +468,12 @@ public:
 
 	void
 	on_mouse_enter (void) {
-		camera_processor.activate ();
+		m_camera_processor.activate ();
 	}
 
 	void
 	on_mouse_leave (void) {
-		camera_processor.deactivate ();
+		m_camera_processor.deactivate ();
 	}
 
 	void
@@ -394,31 +483,31 @@ public:
 
 	void
 	on_mouse_move (double xpos, double ypos) {
-		camera_processor.on_cursor_position (xpos, ypos);
+		m_camera_processor.on_cursor_position (xpos, ypos);
 	}
 
 	void
 	on_mouse_scroll (double xoffset, double yoffset) {
 		if (m_change_intensity) {
-			light_intensity += (float)yoffset / 10.f;
-			light_intensity = light_intensity < 0
+			m_light_data.light_intensity += (float)yoffset / 10.f;
+			m_light_data.light_intensity = m_light_data.light_intensity < 0
 				? 0
-				: light_intensity
+				: m_light_data.light_intensity
 				;
 
 			DEBUG_LOG ("Changed light_intensity to %i",
-				light_intensity
+				m_light_data.light_intensity
 			);
 		}
 		else {
-			light_radius += (float)yoffset / 10.f;
-			light_radius = light_radius < 0
+			m_light_data.light_radius += (float)yoffset / 10.f;
+			m_light_data.light_radius = m_light_data.light_radius < 0
 				? 0
-				: light_radius
+				: m_light_data.light_radius
 				;
 
 			DEBUG_LOG ("Changed light_radius to %i",
-				light_radius
+				m_light_data.light_radius
 			);
 		}
 	}
@@ -441,7 +530,7 @@ public:
 
 		m_texture_loader.dispose ();
 
-		mesh_loader.dispose ();
+		m_mesh_loader.dispose ();
 	}
 
 	bool
@@ -458,11 +547,14 @@ public:
 	: m_change_intensity (false)
 	, m_suzanne_speed (0.8f)
 	, m_entities ()
-	, camera_processor (m_entities) {}
+	, m_mesh_loader ()
+	, m_texture_loader ()
+	, m_camera_processor (m_entities)
+	, m_mesh_render_processor (m_entities, m_mesh_loader, m_texture_loader) {}
 	
 private:
 	void toggle_attenuation_complexity () {
-		complex_attenuation = ! complex_attenuation;
+		m_light_data.complex_attenuation = ! m_light_data.complex_attenuation;
 		DEBUG_LOG ("Toggled attenuation");
 	}
 
@@ -476,6 +568,15 @@ private:
 	bool m_change_intensity;
 	float m_suzanne_speed;
 	blurryroots::yanecos::EntityManager m_entities;
+
+	TextureLoader m_texture_loader;
+	blurryroots::model::MeshLoader m_mesh_loader;
+
+	CameraProcessor m_camera_processor;
+	MeshRenderSystem m_mesh_render_processor;
+
+	blurryroots::yanecos::EntityID m_suzanne_id;
+	blurryroots::yanecos::EntityID m_light_id;
 
 };
 

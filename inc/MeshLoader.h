@@ -1,28 +1,23 @@
-#ifndef __MESHLOADER_H__
-#define __MESHLOADER_H__
-
-#include <unordered_map>
-#include <functional>
-
-#include <tiny_obj_loader.h>
-
-// GLM
-#include <glm/glm.hpp>
- // glm::vec3
-#include <glm/vec3.hpp>
+#ifndef blurryroots_model_MeshLoader
+#define blurryroots_model_MeshLoader
 
 #include <IDisposable.h>
 #include <MeshLoader.h>
 #include <Util.h>
 
+#include <tiny_obj_loader.h>
+
+#include <glm/glm.hpp> 
+#include <glm/vec3.hpp>
+
+#include <unordered_map>
+#include <functional>
+
 namespace blurryroots { namespace model {
 
-class MeshLoader
-: IDisposable {
+class MeshLoader : IDisposable {
 
 public:
-	MeshLoader (void) {}
-	MeshLoader (const MeshLoader &other) {}
 
 	void
 	dispose (void) {
@@ -37,7 +32,7 @@ public:
 	}
 
 	void
-	dispose (Mesh *mesh) {
+	dispose (Mesh* mesh) {
 		THROW_IF (nullptr == mesh,
 			"Trying to dispose unvalid mesh pointer!"
 		);
@@ -53,9 +48,9 @@ public:
 
 	void
 	load (
-		const std::string &path,
-		ShaderProgram &program,
-		const std::string &key
+		const std::string& path,
+		ShaderProgram& program,
+		const std::string& key
 	) {
 		THROW_IF (0 < this->meshes.count (key),
 			"Key is already used! (Key: ", key, ")"
@@ -159,6 +154,9 @@ public:
 
 		return mesh;
 	}
+
+	MeshLoader (void) {}
+	MeshLoader (const MeshLoader& other) {}
 
 private:
 	std::unordered_map<std::string, Mesh*> meshes;

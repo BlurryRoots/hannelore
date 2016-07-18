@@ -54,9 +54,10 @@ public:
 
 		float fdt = static_cast<float> (dt);
 
-		for (auto cameraId : m_entities.get_entities_with_all<Transform, CameraData> ()) {
-			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
-			auto transform = m_entities.get_entity_data<Transform> (cameraId);
+		auto camera_ids = m_entities.get_entities_with_all<Transform, CameraData> ();
+		for (auto entity_id : camera_ids) {
+			auto camera = m_entities.get_entity_data<CameraData> (entity_id);
+			auto transform = m_entities.get_entity_data<Transform> (entity_id);
 
 			{
 				glm::mat4 inv_rotation = glm::inverse (transform->to_rotation ());
@@ -118,8 +119,8 @@ public:
 
 	void
 	on_render (ShaderProgram& program) override final {
-		for (auto cameraId : m_entities.get_entities_with<CameraData> ()) {
-			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
+		for (auto entity_id : m_entities.get_entities_with<CameraData> ()) {
+			auto camera = m_entities.get_entity_data<CameraData> (entity_id);
 
 			program.set_uniform_mat4 ("v", camera->view);
 			program.set_uniform_mat4 ("p", camera->projection);
@@ -133,8 +134,8 @@ public:
 			return;
 		}
 
-		for (auto cameraId : m_entities.get_entities_with<CameraData> ()) {
-			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
+		for (auto entity_id : m_entities.get_entities_with<CameraData> ()) {
+			auto camera = m_entities.get_entity_data<CameraData> (entity_id);
 
 			camera->aspect_ratio = width / height;
 
@@ -149,9 +150,9 @@ public:
 
 	void
 	on_key_up (KeyCode key, KeyModifier mods) {
-		for (auto cameraId : m_entities.get_entities_with_all<Transform, CameraData> ()) {
-			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
-			auto transform = m_entities.get_entity_data<Transform> (cameraId);
+		for (auto entity_id : m_entities.get_entities_with_all<Transform, CameraData> ()) {
+			auto camera = m_entities.get_entity_data<CameraData> (entity_id);
+			auto transform = m_entities.get_entity_data<Transform> (entity_id);
 
 			if (KeyCode::left == key) {
 				camera->yaw += 1;
@@ -210,8 +211,8 @@ public:
 
 	void
 	on_key_down (KeyCode key, KeyModifier mods) {
-		for (auto cameraId : m_entities.get_entities_with<CameraData> ()) {
-			auto camera = m_entities.get_entity_data<CameraData> (cameraId);
+		for (auto entity_id : m_entities.get_entities_with<CameraData> ()) {
+			auto camera = m_entities.get_entity_data<CameraData> (entity_id);
 
 			if (KeyCode::left == key) {
 				camera->yaw -= 1;
