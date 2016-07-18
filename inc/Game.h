@@ -8,10 +8,10 @@
 #include <ShaderProgramBuilder.h>
 #include <CameraData.h>
 #include <Util.h>
+#include <MaterialData.h>
+#include <MeshData.h>
 
 #include <Hashing.h>
-#define SID (s) \
-	blurryroots::hashing::djb::hash (s)
 
 #include <yanecos/EntityManager.h>
 
@@ -19,6 +19,9 @@
 #include <glfontstash.h>
 
 #include <vector>
+
+#define SID(s) \
+	blurryroots::hashing::djb::hash (s)
 
 class Game : public IGame {
 
@@ -347,8 +350,11 @@ public:
 		// ? parse string and create multiple lines
 		// ? just do not allow special characters
 		//glfonsRasterize (m_font_context, m_text_ids[2], std::string("schnurpel\nkeks mhh lecker!").c_str ());
+		auto hanswurst = SID ("hanswurst");
 		glfonsRasterize (m_font_context,
-			m_text_ids[2], std::string ("keks mhh lecker!").c_str ());
+			m_text_ids[2],
+			(std::string ("keks mhh lecker! ") + std::to_string (hanswurst)).c_str ()
+		);
 
 		for (int i = 0; i < m_text_ids.size (); ++i) {
 			glfonsTransform (m_font_context,
