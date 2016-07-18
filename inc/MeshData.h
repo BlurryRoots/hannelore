@@ -3,14 +3,10 @@
 
 #include <yanecos/Data.h>
 
-struct MeshData : public Yanecos::Data<MeshData> {
+struct MeshData : public blurryroots::yanecos::Data<MeshData> {
+
 	std::string key;
 
-	MeshData (const std::string &key)
-	: key (key) {}
-
-	virtual
-	~MeshData () {}
 };
 
 #endif
