@@ -96,7 +96,7 @@ extern DebugLogLevel log_level;
 template<class... TArgs> static void
 throw_if (bool premise, TArgs... args) {
 	// if the error condition is not met, abort.
-	if (! premise) {
+	if (false == premise) {
 		return;
 	}
 
