@@ -240,24 +240,50 @@ public:
 
 	template<class... TDataType> EntityCollection
 	get_entities_with_all (void) const {
-		// TODO: check boolean unpacking template class helper, msvc compiler fuck-up?
+		// TODO: check boolean unpacking template class helper,
+		// msvc compiler fuck-up?
 		//static_assert (
 			//all_derived_from_data<TDataType...>::value,
 			//"All types must be derived from Data<>"
 		//);
 
-		std::unordered_set<std::type_index> types {
+		// TODO: build static assert checking if a data type has
+		// been used multiple times in the template list
+
+		// unpack varadic template arguments
+		std::vector<std::type_index> types {
 			std::type_index (typeid (TDataType))...
 		};
 
-		std::unordered_set<EntityID> ids;
-		for (auto &type : types) {
-			for (auto &id : this->data_owner.at (type.name ())) {
-				ids.emplace (id);
+		// fill the id table with the first type
+		EntityCollection initial_ids;
+		auto initial_type = types[0].name ();
+		for (auto& entity_id : data_owner.at (initial_type)) {
+			initial_ids.insert (entity_id);
+		}
+
+		// reduce the id list to ids commonly shared between
+		// all types provided
+		EntityCollection ids;
+		for (auto& entity_id : initial_ids) {
+			bool has_all_data = true;
+
+			for (std::size_t i_type = 1; i_type < types.size (); ++i_type) {
+				const auto type = types[i_type].name ();
+				EntityCollection with_data = data_owner.at (type);
+				
+				if (with_data.end () == with_data.find (entity_id)) {
+					has_all_data = false;
+					break;
+				}
+			}
+
+			if (has_all_data) {
+				ids.insert (entity_id);
 			}
 		}
 
-		return EntityCollection (ids.begin (), ids.end ());
+		return ids;
 	}
 
 private:
