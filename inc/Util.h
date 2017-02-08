@@ -132,3 +132,11 @@ log (std::string prefix, std::string location, std::string msg, TArgs... args) {
 }}
 
 #endif
+
+namespace blurryroots { namespace util {
+
+
+bool
+has_only_spaces(const std::string& in);
+
+}}

@@ -56,8 +56,9 @@ public:
 			"Key is already used! (Key: ", key, ")"
 		);
 
+		auto mesh = this->create_mesh (path, program);
 		this->meshes.emplace (key,
-			new Mesh (this->create_mesh (path, program))
+			new Mesh (mesh)
 		);
 	}
 
@@ -77,7 +78,8 @@ public:
 				mesh.shapes, mesh.materials,
 				path.c_str ()
 			);
-			THROW_IF (! err.empty (),
+						
+			THROW_IF (false == err.empty () && false == blurryroots::util::has_only_spaces (err),
 				err
 			);
 		}
@@ -201,8 +203,9 @@ private:
 		GLenum buffer_type,
 		GLenum buffer_strategy
 	) {
+		const GLvoid* bare_data = reinterpret_cast<const GLvoid*> (data_vector.data());
 		load_attributed_buffer_data (
-			reinterpret_cast<const GLvoid*> (data_vector.data ()),
+			bare_data,
 			sizeof (float) * data_vector.size (),
 			GL_FLOAT,
 			target_buffer_id,
