@@ -7,12 +7,6 @@ project (hannelore)
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set (ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
-# find every source file
-file (GLOB_RECURSE source_files ${PROJECT_SOURCE_DIR}/src/*)
-
-# find every test file
-file (GLOB_RECURSE test_files ${PROJECT_SOURCE_DIR}/test/*)
-
 ## building
 
 # c++11 activation
@@ -73,10 +67,16 @@ include_directories (inc)
 
 ## executables
 
+# find every source file
+file (GLOB_RECURSE main_source_files ${PROJECT_SOURCE_DIR}/src/*)
+file (GLOB_RECURSE main_inc_files ${PROJECT_SOURCE_DIR}/inc/*)
+
 # build main executable
-add_executable (main ${source_files})
+add_executable (main ${main_inc_files} ${main_source_files})
 target_link_libraries (main ${GLFW} ${GLEW} ${TINYOBJ_LIB} ${SYSTEM_LIBS})
 
+# find every test file
+file (GLOB_RECURSE test_files ${PROJECT_SOURCE_DIR}/test/*)
 # build test executable
 add_executable (test-runner ${test_files})
 
