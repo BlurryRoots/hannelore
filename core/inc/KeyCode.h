@@ -1,5 +1,7 @@
-#ifndef KeyCode_H
-#define KeyCode_H
+#pragma once
+
+#ifndef KeyCode_h
+#define KeyCode_h
 
 
 enum KeyCode {

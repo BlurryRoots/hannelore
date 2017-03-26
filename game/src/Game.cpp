@@ -243,6 +243,11 @@ Game::on_framebuffer (int width, int height) {
 }
 
 void
+Game::on_window_closing_request (void) {
+	m_is_running = false;
+}
+
+void
 Game::on_update (double dt) {
 	m_camera_processor.on_update (dt);
 
@@ -454,7 +459,7 @@ Game::on_mouse_scroll (double xoffset, double yoffset) {
 			: m_light_data.light_intensity
 			;
 
-		DEBUG_LOG ("Changed light_intensity to %i",
+		DEBUG_LOG ("Changed light_intensity to: %i",
 			m_light_data.light_intensity
 			);
 	}

@@ -1,5 +1,7 @@
-#ifndef TEXTUREINFORMATION_H
-#define TEXTUREINFORMATION_H
+#pragma once
+
+#ifndef hannelore_TextureInformation_h
+#define hannelore_TextureInformation_h
 
 #include <GLHelper.h>
 

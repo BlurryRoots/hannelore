@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef blurryroots_Hashing_h
 #define blurryroots_Hashing_h
 

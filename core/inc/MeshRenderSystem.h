@@ -1,5 +1,7 @@
-#ifndef MeshRenderSystem_h
-#define MeshRenderSystem_h
+#pragma once
+
+#ifndef hannelore_MeshRenderSystem_h
+#define hannelore_MeshRenderSystem_h
 
 #include <Mesh.h>
 #include <MeshLoader.h>

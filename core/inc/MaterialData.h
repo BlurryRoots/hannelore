@@ -1,5 +1,7 @@
-#ifndef blurryroots_MaterialData
-#define blurryroots_MaterialData
+#pragma once
+
+#ifndef blurryroots_MaterialData_h
+#define blurryroots_MaterialData_h
 
 #include <yanecos/Data.h>
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef blurryroots_EventManager_h
 #define blurryroots_EventManager_h
 

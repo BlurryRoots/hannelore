@@ -1,5 +1,7 @@
-#ifndef __VERTEXSHADER_H__
-#define __VERTEXSHADER_H__
+#pragma once
+
+#ifndef hannelore_VertexShader_h
+#define hannelore_VertexShader_h
 
 #include <Shader.h>
 

@@ -1,5 +1,7 @@
-#ifndef IResource_H
-#define IResource_H
+#pragma once
+
+#ifndef IResource_h
+#define IResource_h
 
 class IResource {
 

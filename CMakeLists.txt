@@ -62,26 +62,20 @@ include_directories (lib/catch/single_include)
 # fontstash-es
 include_directories (lib/fontstash-es)
 
-# core specific includes
-include_directories (core/inc)
-
-## executables
-
-# find every source file
-#file (GLOB_RECURSE core_src_files ${PROJECT_SOURCE_DIR}/core/src/*)
-#file (GLOB_RECURSE core_inc_files ${PROJECT_SOURCE_DIR}/core/inc/*)
-file (GLOB_RECURSE game_files ${PROJECT_SOURCE_DIR}/game/*)
-
 # hannelore core
+include_directories (core/inc)
 file (GLOB_RECURSE core_files ${PROJECT_SOURCE_DIR}/core/*)
-include_directories (${PROJECT_SOURCE_DIR}/core/inc)
 add_library (hannelore-core STATIC
 	${core_files}
 )
 set (HANNELORE_CORE_LIB hannelore-core)
 
-# build core executable
+
+## executables
+
+# core executable
 include_directories (game/inc)
+file (GLOB_RECURSE game_files ${PROJECT_SOURCE_DIR}/game/*)
 add_executable (game ${game_files})
 target_link_libraries (game ${HANNELORE_CORE_LIB} ${GLFW} ${GLEW} ${TINYOBJ_LIB} ${SYSTEM_LIBS})
 

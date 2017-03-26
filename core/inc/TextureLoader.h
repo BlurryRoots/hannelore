@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef blurryroots_TextureLoader_h
 #define blurryroots_TextureLoader_h
 

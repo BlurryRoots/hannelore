@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef blurryroots_ScreenSpaceTextProcessor_h
 #define blurryroots_ScreenSpaceTextProcessor_h
 

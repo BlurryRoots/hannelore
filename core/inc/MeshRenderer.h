@@ -1,5 +1,7 @@
-#ifndef MESHRENDERER_H
-#define MESHRENDERER_H
+#pragma once
+
+#ifndef hannelore_MeshRenderer_h
+#define hannelore_MeshRenderer_h
 
 #include <MeshData.h>
 #include <Util.h>

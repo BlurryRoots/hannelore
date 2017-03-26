@@ -1,5 +1,7 @@
-#ifndef FileReader_H
-#define FileReader_H
+#pragma once
+
+#ifndef FileReader_h
+#define FileReader_h
 
 #include <string>
 

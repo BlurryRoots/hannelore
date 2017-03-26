@@ -1,5 +1,7 @@
-#ifndef blurryroots_model_MeshLoader
-#define blurryroots_model_MeshLoader
+#pragma once
+
+#ifndef blurryroots_model_MeshLoader_h
+#define blurryroots_model_MeshLoader_h
 
 #include <IDisposable.h>
 #include <Mesh.h>

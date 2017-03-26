@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef Game_h
 #define Game_h
 
@@ -58,9 +60,7 @@ public:
 	on_framebuffer (int width, int height);
 
 	void
-	on_window_closing_request (void) {
-		m_is_running = false;
-	}
+	on_window_closing_request (void);
 
 	void
 	on_update (double dt);

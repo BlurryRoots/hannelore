@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef blurryroots_PathUtil_h
 #define blurryroots_PathUtil_h
 

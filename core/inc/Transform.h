@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef hannelore_Transform_h
 #define hannelore_Transform_h
 

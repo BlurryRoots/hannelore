@@ -1,5 +1,7 @@
-#ifndef MESH_H
-#define MESH_H
+#pragma once
+
+#ifndef blurryroots_Mesh_h
+#define blurryroots_Mesh_h
 
 #include <tiny_obj_loader.h>
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef blurryroots_Util_h
 #define blurryroots_Util_h
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef hannelore_CameraProcessor_h
 #define hannelore_CameraProcessor_h
 

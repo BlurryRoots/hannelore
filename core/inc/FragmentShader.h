@@ -1,5 +1,7 @@
-#ifndef __FRAGMENTSHADER_H__
-#define __FRAGMENTSHADER_H__
+#pragma once
+
+#ifndef blurryroot_FragmentShader_h
+#define blurryroot_FragmentShader_h
 
 #include <Shader.h>
 

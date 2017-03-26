@@ -1,5 +1,7 @@
-#ifndef Window_h
-#define Window_h
+#pragma once
+
+#ifndef hannelore_Window_h
+#define hannelore_Window_h
 
 #include <IGame.h>
 #include <Util.h>

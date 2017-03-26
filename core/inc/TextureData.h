@@ -1,5 +1,7 @@
-#ifndef TEXTUREDATA_H
-#define TEXTUREDATA_H
+#pragma once
+
+#ifndef hannelore_TextureData_h
+#define hannelore_TextureData_h
 
 #include <yanecos/Data.h>
 

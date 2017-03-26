@@ -1,5 +1,7 @@
-#ifndef __MESHDATA_H__
-#define __MESHDATA_H__
+#pragma once
+
+#ifndef hannelore_MeshData_h
+#define hannelore_MeshData_h
 
 #include <yanecos/Data.h>
 

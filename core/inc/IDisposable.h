@@ -1,5 +1,7 @@
-#ifndef IDISPOSABLE_H
-#define IDISPOSABLE_H
+#pragma once
+
+#ifndef IDisposable_h
+#define IDisposable_h
 
 struct IDisposable {
 	virtual

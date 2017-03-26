@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef hannelore_CameraData_h
 #define hannelore_CameraData_h
 

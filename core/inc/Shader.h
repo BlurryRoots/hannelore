@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef blurryroots_Shader_h
 #define blurryroots_Shader_h
 
