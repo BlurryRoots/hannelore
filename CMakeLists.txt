@@ -62,23 +62,34 @@ include_directories (lib/catch/single_include)
 # fontstash-es
 include_directories (lib/fontstash-es)
 
-# app specific includes
-include_directories (inc)
+# core specific includes
+include_directories (core/inc)
 
 ## executables
 
 # find every source file
-file (GLOB_RECURSE main_source_files ${PROJECT_SOURCE_DIR}/src/*)
-file (GLOB_RECURSE main_inc_files ${PROJECT_SOURCE_DIR}/inc/*)
+#file (GLOB_RECURSE core_src_files ${PROJECT_SOURCE_DIR}/core/src/*)
+#file (GLOB_RECURSE core_inc_files ${PROJECT_SOURCE_DIR}/core/inc/*)
+file (GLOB_RECURSE game_files ${PROJECT_SOURCE_DIR}/game/*)
 
-# build main executable
-add_executable (main ${main_inc_files} ${main_source_files})
-target_link_libraries (main ${GLFW} ${GLEW} ${TINYOBJ_LIB} ${SYSTEM_LIBS})
+# hannelore core
+file (GLOB_RECURSE core_files ${PROJECT_SOURCE_DIR}/core/*)
+include_directories (${PROJECT_SOURCE_DIR}/core/inc)
+add_library (hannelore-core STATIC
+	${core_files}
+)
+set (HANNELORE_CORE_LIB hannelore-core)
+
+# build core executable
+include_directories (game/inc)
+add_executable (game ${game_files})
+target_link_libraries (game ${HANNELORE_CORE_LIB} ${GLFW} ${GLEW} ${TINYOBJ_LIB} ${SYSTEM_LIBS})
 
 # find every test file
 file (GLOB_RECURSE test_files ${PROJECT_SOURCE_DIR}/test/*)
 # build test executable
 add_executable (test-runner ${test_files})
+target_link_libraries (test-runner ${HANNELORE_CORE_LIB})
 
 ## custom commands and targets
 
@@ -94,13 +105,13 @@ endif ()
 
 # command to copy resources when using default target
 add_custom_target (assets
-	COMMAND {COPY_CMD} {COPY_CMD_PARAMS} "${PROJECT_SOURCE_DIR}/res/*" $<TARGET_FILE_DIR:main>
-	DEPENDS main
+	COMMAND {COPY_CMD} {COPY_CMD_PARAMS} "${PROJECT_SOURCE_DIR}/res/*" $<TARGET_FILE_DIR:game>
+	DEPENDS game
 )
 
-# 'make run' execute main into the bin directory
+# 'make run' execute game into the bin directory
 add_custom_target (run
-	COMMAND ${EXECUTABLE_OUTPUT_PATH}/main
+	COMMAND ${EXECUTABLE_OUTPUT_PATH}/game
 		DEPENDS assets
 		WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
 )
