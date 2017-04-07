@@ -27,6 +27,9 @@ public:
 	void
 	rotate (float angle, const glm::vec3& axis);
 
+	glm::vec3
+	get_position (void) const;
+
 	glm::mat4
 	to_translation (void) const;
 

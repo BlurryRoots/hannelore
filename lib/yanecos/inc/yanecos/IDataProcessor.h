@@ -21,6 +21,9 @@ struct IDataProcessor {
 	virtual void
 	on_render (ShaderProgram& program) = 0;
 
+	virtual void
+	on_viewport_changed (int width, int height) = 0;
+
 	virtual
 	~IDataProcessor (void) {}
 

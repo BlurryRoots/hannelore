@@ -1,7 +1,7 @@
 #include <MeshRenderSystem.h>
 
 void
-MeshRenderSystem::render_model (
+MeshRenderProcessor::render_model (
 	const blurryroots::model::Mesh* mesh,
 	const Transform& transform,
 	const std::string& texture_key,
@@ -40,27 +40,31 @@ MeshRenderSystem::render_model (
 }
 
 void
-MeshRenderSystem::activate (void) {
+MeshRenderProcessor::activate (void) {
 
 }
 
 void
-MeshRenderSystem::deactivate (void) {
+MeshRenderProcessor::deactivate (void) {
 
 }
 
 void
-MeshRenderSystem::on_initialize (void) {
+MeshRenderProcessor::on_initialize (void) {
+
+}
+void
+MeshRenderProcessor::on_viewport_changed (int width, int height) {
 
 }
 
 void
-MeshRenderSystem::on_update (double dt) {
+MeshRenderProcessor::on_update (double dt) {
 
 }
 
 void
-MeshRenderSystem::on_render (ShaderProgram& program) {
+MeshRenderProcessor::on_render (ShaderProgram& program) {
 	for (auto entity_id : m_entities.get_entities_with_all<Transform, MeshData, MaterialData> ()) {
 		auto material_data = m_entities.get_entity_data<MaterialData> (entity_id);
 
@@ -69,11 +73,11 @@ MeshRenderSystem::on_render (ShaderProgram& program) {
 
 		auto transform = m_entities.get_entity_data<Transform> (entity_id);
 
-		MeshRenderSystem::render_model (mesh, *transform, material_data->texture_name, m_texture_loader, program);
+		MeshRenderProcessor::render_model (mesh, *transform, material_data->texture_name, m_texture_loader, program);
 	}
 }
 
-MeshRenderSystem::MeshRenderSystem (
+MeshRenderProcessor::MeshRenderProcessor (
 	blurryroots::yanecos::EntityManager& entities,
 	blurryroots::model::MeshLoader& mesh_loader,
 	TextureLoader& texture_loader
