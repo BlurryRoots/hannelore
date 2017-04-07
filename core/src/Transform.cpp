@@ -26,6 +26,11 @@ Transform::rotate (float angle, const glm::vec3& axis) {
 		);
 }
 
+glm::vec3
+Transform::get_position (void) const {
+	return Transform::to_position (this->translation);
+}
+
 glm::mat4
 Transform::to_translation (void) const {
 	return glm::mat4 (1)

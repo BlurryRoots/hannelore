@@ -63,14 +63,14 @@ Game::on_initialize (void) {
 			);
 
 		auto transform = m_entities.add_data<Transform> (id);
-		//models[3].translate (glm::vec3 (0, 0, 0));
 		transform->translate (glm::vec3 (0, 0, 0));
-		//models[3].scale (glm::vec3 (4, 4, 4));
-		transform->scale (glm::vec3 (4, 4, 4));
+		transform->scale (glm::vec3 (40, 40, 40));
 	}
 
 	{
 		auto id = m_entities.create_entity ();
+
+		auto transform = m_entities.add_data<Transform> (id);
 
 		auto material_data = m_entities.add_data<MaterialData> (id);
 		material_data->texture_name = "ground.lines";
@@ -89,20 +89,6 @@ Game::on_initialize (void) {
 			m_shader_program,
 			mesh_data->key
 			);
-
-		auto transform = m_entities.add_data<Transform> (id);
-		/*{
-		auto* ground = m_mesh_loader.get (mesh_data->key);
-		float max_ground_dim = ground->dimensions[0].x;
-		max_ground_dim = glm::max (ground->dimensions[0].y,
-		max_ground_dim
-		);
-		max_ground_dim = glm::max (ground->dimensions[0].z,
-		max_ground_dim
-		);
-		//models[3].scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
-		transform->scale (glm::vec3 (max_ground_dim * glm::sqrt (2)));
-		}*/
 	}
 
 	{
@@ -155,7 +141,6 @@ Game::on_initialize (void) {
 			);
 
 		auto transform = m_entities.add_data<Transform> (m_light_id);
-		//models[2].translate (glm::vec3 (0, 2, -2));
 		transform->translate (glm::vec3 (0, 2, -2));
 	}
 
@@ -186,10 +171,6 @@ Game::on_initialize (void) {
 	}
 
 	m_camera_processor.on_initialize ();
-	/*m_camera_processor.on_viewport_changed (
-	framebuffer_width, framebuffer_height
-	);*/
-	// TODO: figure out a way to change camera view to initial framebuffer size
 
 	m_light_data.light_radius = 1.0f;
 	m_light_data.light_intensity = 2.0f;
@@ -277,51 +258,7 @@ Game::on_update (double dt) {
 		fps = std::to_string (1.0 / dt);
 	}
 
-
-	// TODO: put font stuff (at least screen space ui stuff) into
-	// separate component / system structure
-	glfonsBufferDelete (m_font_context, m_text_buffer);
-	m_text_ids.clear ();
-
-	// create and bind buffer
-	glfonsBufferCreate (m_font_context, &m_text_buffer);
-	glfonsBindBuffer (m_font_context, m_text_buffer);
-
-	// ready two places
-	m_text_ids.push_back (0);
-	m_text_ids.push_back (0);
-	m_text_ids.push_back (0);
-	// generate text ids for the currently bound text buffer
-	glfonsGenText (m_font_context, m_text_ids.size (), m_text_ids.data ());
-
-	glfonsBindBuffer (m_font_context, m_text_buffer);
-	// rasterize some text
-	fonsSetBlur (m_font_context, 2.5);
-	fonsSetBlurType (m_font_context, FONS_EFFECT_DISTANCE_FIELD);
-	fonsSetSize (m_font_context, 20.0);
-	//glfonsSetColor (m_font_context, 0x000000);
-	glfonsRasterize (m_font_context, m_text_ids[0], ("fps: " + fps).c_str ());
-	glfonsRasterize (m_font_context,
-		m_text_ids[1],
-		("frame: " + std::to_string (m_framecounter) /*+ "\nkeks mhh lecker!"*/).c_str ());
-	// TODO: decide on how new lines are handled,
-	// ? parse string and create multiple lines
-	// ? just do not allow special characters
-	//glfonsRasterize (m_font_context, m_text_ids[2], std::string("schnurpel\nkeks mhh lecker!").c_str ());
-	sid_t hanswurst = SID ("hanswurst");
-	glfonsRasterize (m_font_context,
-		m_text_ids[2],
-		(std::string ("keks mhh lecker! ") + std::to_string (hanswurst)).c_str ()
-		);
-
-	for (int i = 0; i < m_text_ids.size (); ++i) {
-		glfonsTransform (m_font_context,
-			m_text_ids[i], 100.0, (100.0 + i * 50.0), 0.0, 1.0
-			);
-	}
-
-	// upload rasterized data of currently bound buffer to gpu
-	glfonsUpdateBuffer (m_font_context);
+	// upload and update text here
 
 	++m_framecounter;
 }
@@ -358,7 +295,7 @@ Game::on_render (void) {
 		);
 
 	m_mesh_render_processor.on_render (m_shader_program);
-	/*MeshRenderSystem::render_model (
+	/*MeshRenderProcessor::render_model (
 	m_mesh_loader.get ("ground"),
 	models[0],
 	"ground",
@@ -366,7 +303,7 @@ Game::on_render (void) {
 	m_shader_program
 	);*/
 
-	/*MeshRenderSystem::render_model (
+	/*MeshRenderProcessor::render_model (
 	m_mesh_loader.get ("suzanne"),
 	models[1],
 	"suzanne",
@@ -374,7 +311,7 @@ Game::on_render (void) {
 	m_shader_program
 	);*/
 
-	/*MeshRenderSystem::render_model (
+	/*MeshRenderProcessor::render_model (
 	m_mesh_loader.get ("light_sphere"),
 	models[2],
 	"light",
@@ -382,7 +319,7 @@ Game::on_render (void) {
 	m_shader_program
 	);*/
 
-	/*MeshRenderSystem::render_model (
+	/*MeshRenderProcessor::render_model (
 	m_mesh_loader.get ("sky_sphere"),
 	models[3],
 	"sky",
@@ -392,8 +329,8 @@ Game::on_render (void) {
 
 	m_shader_program.deactivate ();
 
-	glfonsBindBuffer (m_font_context, m_text_buffer);
-	glfonsDraw (m_font_context);
+	//glfonsBindBuffer (m_font_context, m_text_buffer);
+	//glfonsDraw (m_font_context);
 }
 
 void
@@ -519,14 +456,4 @@ Game::signal_intensity_toggle () {
 	DEBUG_LOG ("Toggled intensity to %i",
 		m_change_intensity
 		);
-}
-
-Game::Game (void)
-	: m_change_intensity (false)
-	, m_suzanne_speed (0.8f)
-	, m_entities ()
-	, m_mesh_loader ()
-	, m_texture_loader ()
-	, m_camera_processor (m_entities)
-	, m_mesh_render_processor (m_entities, m_mesh_loader, m_texture_loader) {
 }

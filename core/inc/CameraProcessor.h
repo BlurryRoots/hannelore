@@ -53,7 +53,7 @@ public:
 	on_render (ShaderProgram& program) override final;
 
 	void
-	on_viewport_changed (int width, int height);
+	on_viewport_changed (int width, int height) override final;
 
 	void
 	on_key_up (KeyCode key, KeyModifier mods);

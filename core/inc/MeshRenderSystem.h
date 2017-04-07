@@ -18,7 +18,7 @@
 
 #include <string>
 
-class MeshRenderSystem : blurryroots::yanecos::IDataProcessor {
+class MeshRenderProcessor : blurryroots::yanecos::IDataProcessor {
 
 public:
 	static void
@@ -45,7 +45,10 @@ public:
 	void
 	on_render (ShaderProgram& program) override final;
 
-	MeshRenderSystem (
+	void
+	on_viewport_changed (int width, int height) override final;
+
+	MeshRenderProcessor (
 		blurryroots::yanecos::EntityManager& entities,
 		blurryroots::model::MeshLoader& mesh_loader,
 		TextureLoader& texture_loader

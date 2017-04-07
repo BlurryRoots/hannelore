@@ -17,6 +17,7 @@
 #include <MeshLoader.h>
 #include <ShaderProgram.h>
 #include <TextureLoader.h>
+#include <ScreenSpaceTextProcessor.h>
 
 #include <Hashing.h>
 
@@ -104,7 +105,15 @@ public:
 	void
 	quit (void);
 
-	Game (void);
+	Game (void)
+	: m_change_intensity (false)
+	, m_suzanne_speed (0.8f)
+	, m_entities ()
+	, m_mesh_loader ()
+	, m_texture_loader ()
+	, m_camera_processor (m_entities)
+	, m_mesh_render_processor (m_entities, m_mesh_loader, m_texture_loader)
+	, m_ss_text_processor (m_entities) {}
 	
 private:
 	void
@@ -122,7 +131,8 @@ private:
 	blurryroots::model::MeshLoader m_mesh_loader;
 
 	CameraProcessor m_camera_processor;
-	MeshRenderSystem m_mesh_render_processor;
+	MeshRenderProcessor m_mesh_render_processor;
+	ScreenSpaceTextProcessor m_ss_text_processor;
 
 	blurryroots::yanecos::EntityID m_suzanne_id;
 	blurryroots::yanecos::EntityID m_light_id;
