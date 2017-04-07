@@ -1,6 +1,7 @@
 #ifndef yanecos_IDataProcessor_h
 #define yanecos_IDataProcessor_h
 
+class ShaderProgram;
 namespace blurryroots { namespace yanecos {
 
 struct IDataProcessor {
