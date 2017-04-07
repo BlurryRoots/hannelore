@@ -67,7 +67,7 @@ MeshLoader::create_mesh (const std::string& path, ShaderProgram& program) {
 			mesh.shapes, mesh.materials,
 			path.c_str ()
 			);
-		THROW_IF (! err.empty (),
+		THROW_IF(false == err.empty() && false == util::has_only_spaces(err),
 			err
 			);
 	}
