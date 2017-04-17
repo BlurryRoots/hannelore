@@ -1,4 +1,4 @@
-#include <Window.h>
+﻿#include <Window.h>
 
 #include <GLHelper.h>
 
@@ -24,7 +24,7 @@ WindowManager::register_handler (IGame *handler) {
 }
 
 Window
-WindowManager::open_window (const std::string &title, bool fullscreen) {
+WindowManager::open_window (const std::string &title, bool fullscreen, bool resizable, bool decorated) {
 	const GLFWvidmode *mode = glfwGetVideoMode (m_primary_monitor);
 	THROW_IF (nullptr == mode,
 		"Could not get video mode for primary monitor!"
@@ -34,6 +34,8 @@ WindowManager::open_window (const std::string &title, bool fullscreen) {
 	glfwWindowHint (GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint (GLFW_REFRESH_RATE, mode->refreshRate);
 	glfwWindowHint (GLFW_VISIBLE, GL_FALSE);
+	glfwWindowHint (GLFW_RESIZABLE, resizable ? GL_TRUE : GL_FALSE);
+	glfwWindowHint (GLFW_DECORATED, decorated ? GL_TRUE : GL_FALSE);
 
 	glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -230,6 +232,29 @@ WindowManager::on_key (GLFWwindow *window, int key, int scancode, int action, in
 
 void
 WindowManager::on_framebuffer (GLFWwindow *window, int width, int height) {
+	// update opengl viewport
+	glViewport (0, 0, width, height);
+
+	// retrieve the new size of the window (including borders if applicable)
+	int new_window_width, new_window_height;
+	glfwGetWindowSize (window, &new_window_width, &new_window_height);
+	
+	// reset framebuffer values for given window
+	for (size_t i_window = 0; i_window < m_windows.size (); ++i_window) {
+		Window w = m_windows[i_window];
+
+		if (w.m_window == window) {
+			w.m_framebuffer_width = width;
+			w.m_framebuffer_height = height;
+
+			w.m_window_width = new_window_width;
+			w.m_window_height = new_window_height;
+
+			break;
+		}
+	}
+
+	// call handler functions
 	for (size_t i_handler = 0; i_handler < m_handlers.size (); ++i_handler) {
 		IGame *handler = m_handlers[i_handler];
 

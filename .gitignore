@@ -3,3 +3,4 @@ bin/
 lib/*.a
 log/
 tmp/
+hannelore-core.dir/

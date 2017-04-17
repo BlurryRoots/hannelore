@@ -21,6 +21,7 @@ struct Window {
 	GLFWwindow *m_window;
 	int m_window_width, m_window_height;
 	int m_framebuffer_width, m_framebuffer_height;
+	float m_aspect_ratio;
 	std::string m_title;
 	bool m_is_fullscreen;
 
@@ -36,7 +37,7 @@ public:
 	register_handler (IGame *handler);
 
 	static Window
-	open_window (const std::string &title, bool fullscreen);
+	open_window (const std::string &title, bool fullscreen = false, bool resizable = false, bool decorated = true);
 
 	static void
 	update (void);

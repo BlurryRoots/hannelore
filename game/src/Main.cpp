@@ -1,4 +1,4 @@
-/*
+﻿/*
 OpenGL ES 2.0
 Built-In Variable	Precision	Data Type
 
@@ -69,7 +69,7 @@ main (void) {
 	try {
 		hannelore::WindowManager::initialize ();
 		hannelore::WindowManager::register_handler (&game);
-		hannelore::Window w = hannelore::WindowManager::open_window (TITLE, false);
+		hannelore::Window w = hannelore::WindowManager::open_window (TITLE, true);
 
 		// initialize the game
 		game.on_initialize ();

@@ -213,10 +213,6 @@ Game::on_framebuffer (int width, int height) {
 	framebuffer_width = width;
 	framebuffer_height = height;
 
-	glViewport (0, 0,
-		framebuffer_width, framebuffer_height
-		);
-
 	m_camera_processor.on_viewport_changed (
 		framebuffer_width, framebuffer_height
 		);
