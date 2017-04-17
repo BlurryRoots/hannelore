@@ -3,7 +3,7 @@
 #include <GLHelper.h>
 
 void
-TextureLoader::dispose (void) {
+TextureLoader::on_dispose (void) {
 	for (auto entry : m_texture_infos) {
 		auto info = entry.second;
 

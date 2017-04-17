@@ -1,4 +1,4 @@
-#include <ScreenSpaceTextProcessor.h>
+﻿#include <ScreenSpaceTextProcessor.h>
 #include <PathUtil.h>
 #include <Transform.h>
 
@@ -33,6 +33,7 @@ ScreenSpaceTextProcessor::on_initialize (void) {
 	std::string base_path = blurryroots::util::get_executable_path ();
 	base_path = blurryroots::util::normalize_file_path (base_path);
 
+	// load font data
 	std::string font_name = "Arial";
 	std::string font_path = base_path +
 		"fonts/liberation-sans/LiberationSans-Regular.ttf";
@@ -43,6 +44,16 @@ ScreenSpaceTextProcessor::on_initialize (void) {
 		"Could not open font!"
 		);
 
+	// set the screen size for font context transformations
+	glfonsScreenSize(m_font_context, buffer_width, buffer_height);
+}
+
+void
+ScreenSpaceTextProcessor::on_dispose (void) {
+	//TODO: dont forget to delete buffer, create shutdown method in dataprocessor interface
+	glfonsBufferDelete (m_font_context, m_buffer_data.text_buffer_id);
+
+	glfonsDelete (m_font_context);
 }
 
 void
@@ -74,6 +85,9 @@ ScreenSpaceTextProcessor::on_update (double dt) {
 		m_buffer_data.text_ids.data ()
 		);
 
+	// bind buffer
+	//glfonsBindBuffer (m_font_context, m_buffer_data.text_buffer_id);
+
 	int text_id_index = 0;
 	for (auto entity_id : entities) {
 		auto transform = m_entities.get_entity_data<Transform> (entity_id);
@@ -100,10 +114,10 @@ ScreenSpaceTextProcessor::on_update (double dt) {
 		glfonsTransform (m_font_context, text_id,
 			position.x, position.y, 0.0, 1.0
 			);
-
-		// upload rasterized data of currently bound buffer to gpu
-		glfonsUpdateBuffer (m_font_context);
 	}
+
+	// upload rasterized data of currently bound buffer to gpu
+	glfonsUpdateBuffer (m_font_context);
 }
 
 void

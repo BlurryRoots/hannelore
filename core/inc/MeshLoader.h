@@ -15,11 +15,11 @@
 
 namespace blurryroots { namespace model {
 
-class MeshLoader : IDisposable {
+class MeshLoader : public IDisposable {
 
 public:
 	void
-	dispose (void);
+	on_dispose (void);
 
 	void
 	dispose (Mesh* mesh);

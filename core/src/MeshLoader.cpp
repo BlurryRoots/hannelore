@@ -10,7 +10,7 @@ namespace blurryroots {
 namespace model {
 
 void
-MeshLoader::dispose (void) {
+MeshLoader::on_dispose (void) {
 	for (auto &entry : this->meshes) {
 		auto *mesh = entry.second;
 		this->dispose (mesh);

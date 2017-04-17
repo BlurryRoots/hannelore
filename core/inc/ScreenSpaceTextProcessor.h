@@ -9,6 +9,7 @@
 
 #include <Fonts.h>
 #include <ShaderProgram.h>
+#include <IDisposable.h>
 #include <Util.h>
 
 #include <string>
@@ -37,7 +38,9 @@ struct ScreenSpaceText : public blurryroots::yanecos::Data<ScreenSpaceText> {
 
 };
 
-class ScreenSpaceTextProcessor : blurryroots::yanecos::IDataProcessor {
+class ScreenSpaceTextProcessor
+: public blurryroots::yanecos::IDataProcessor,
+  public IDisposable {
 
 public:
 	void
@@ -48,6 +51,9 @@ public:
 
 	void
 	on_initialize (void) override final;
+
+	void
+	on_dispose (void) override;
 
 	void
 	on_update (double dt) override final;

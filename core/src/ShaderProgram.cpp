@@ -1,4 +1,4 @@
-#include <ShaderProgram.h>
+﻿#include <ShaderProgram.h>
 
 void
 ShaderProgram::use (void) {
@@ -13,7 +13,7 @@ ShaderProgram::deactivate (void) {
 }
 
 void
-ShaderProgram::dispose (void) {
+ShaderProgram::on_dispose (void) {
 	glDeleteProgram (m_handle);
 }
 

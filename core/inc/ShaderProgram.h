@@ -4,6 +4,7 @@
 #define blurryroots_ShaderProgram_h
 
 #include <Util.h>
+#include <IDisposable.h>
 
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp> // glm::vec3
@@ -21,7 +22,8 @@
 #include <stdexcept>
 #include <vector>
 
-class ShaderProgram {
+class ShaderProgram : public IDisposable {
+
 friend class ShaderProgramBuilder;
 
 public:
@@ -32,7 +34,7 @@ public:
 	deactivate (void);
 
 	void
-	dispose (void);
+	on_dispose (void) override;
 
 	GLuint
 	get_handle (void) const;

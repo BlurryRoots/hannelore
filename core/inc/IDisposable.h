@@ -8,7 +8,7 @@ struct IDisposable {
 	~IDisposable (void) {}
 
 	virtual void
-	dispose (void) = 0;
+	on_dispose (void) = 0;
 };
 
 #endif

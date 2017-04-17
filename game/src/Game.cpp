@@ -1,4 +1,4 @@
-#include <Game.h>
+﻿#include <Game.h>
 
 #include <Util.h>
 #include <PathUtil.h>
@@ -40,6 +40,7 @@ Game::on_initialize (void) {
 		.link ()
 		;
 
+	// build skysphere
 	{
 		auto id = m_entities.create_entity ();
 
@@ -67,6 +68,7 @@ Game::on_initialize (void) {
 		transform->scale (glm::vec3 (40, 40, 40));
 	}
 
+	// build ground
 	{
 		auto id = m_entities.create_entity ();
 
@@ -91,6 +93,7 @@ Game::on_initialize (void) {
 			);
 	}
 
+	// build suzanne head
 	{
 		m_suzanne_id = m_entities.create_entity ();
 
@@ -118,6 +121,7 @@ Game::on_initialize (void) {
 		transform->rotate (-PI_OVER_2 * 2.0f, Transform::UP);
 	}
 
+	// build light sphere
 	{
 		m_light_id = m_entities.create_entity ();
 
@@ -144,6 +148,7 @@ Game::on_initialize (void) {
 		transform->translate (glm::vec3 (0, 2, -2));
 	}
 
+	// build camera
 	{
 		auto camera = m_entities.create_entity ();
 
@@ -170,36 +175,32 @@ Game::on_initialize (void) {
 		cameraTransform->rotate (PI_OVER_2 * 0.5f, right);
 	}
 
-	m_camera_processor.on_initialize ();
-
-	m_light_data.light_radius = 1.0f;
-	m_light_data.light_intensity = 2.0f;
-	m_light_data.light_color = glm::vec3 (1.0, 0.8, 0.8);
-	m_light_data.complex_attenuation = true;
-
-	// initilize the font system
+	// build fps text
 	{
-		GLFONSparams font_parameters;
-		font_parameters.useGLBackend = true;
-		std::string font_name = "Arial";
-		std::string font_path = base_path +
-			"fonts/liberation-sans/LiberationSans-Regular.ttf";
-		m_font_context = glfonsCreate (
-			512, 512,
-			FONS_ZERO_TOPLEFT | FONS_NORMALIZE_TEX_COORDS,
-			font_parameters,
-			nullptr
-			);
-		THROW_IF (
-			FONS_INVALID == fonsAddFont (m_font_context,
-				font_name.c_str (), font_path.c_str ()
-				),
-			"Could not open font!"
-			);
+		auto fps_text_id = m_entities.create_entity ();
 
-		// set the screen size for font context transformations
-		glfonsScreenSize (m_font_context, framebuffer_height, framebuffer_height);
+		auto transform = m_entities.add_data<Transform> (fps_text_id);
+		transform->translate (glm::vec3{100, 100, 0});
+
+		auto ss_text = m_entities.add_data<ScreenSpaceText> (fps_text_id);
+		ss_text->blur_strength = 2.5;
+		ss_text->blur_type = FONSeffectType::FONS_EFFECT_DISTANCE_FIELD;
+		ss_text->font_size = 20.0;
+		ss_text->text = "FPS: 0";
+		ss_text->color = glfonsRGBA (255, 255, 255, 255);
 	}
+
+	// build point light
+	{
+		m_light_data.light_radius = 1.0f;
+		m_light_data.light_intensity = 2.0f;
+		m_light_data.light_color = glm::vec3 (1.0, 0.8, 0.8);
+		m_light_data.complex_attenuation = true;
+	}
+
+	// initialize subsystems
+	m_camera_processor.on_initialize ();
+	m_ss_text_processor.on_initialize ();
 }
 
 void
@@ -216,11 +217,11 @@ Game::on_framebuffer (int width, int height) {
 		framebuffer_width, framebuffer_height
 		);
 
-	glfonsScreenSize (m_font_context, framebuffer_width, framebuffer_height);
-
 	m_camera_processor.on_viewport_changed (
 		framebuffer_width, framebuffer_height
 		);
+
+	m_ss_text_processor.on_viewport_changed (width, height);
 }
 
 void
@@ -231,6 +232,7 @@ Game::on_window_closing_request (void) {
 void
 Game::on_update (double dt) {
 	m_camera_processor.on_update (dt);
+	m_ss_text_processor.on_update (dt);
 
 	{
 		auto transform = m_entities.get_entity_data<Transform> (m_suzanne_id);
@@ -258,7 +260,18 @@ Game::on_update (double dt) {
 		fps = std::to_string (1.0 / dt);
 	}
 
-	// upload and update text here
+	// upload text here
+	{
+		auto ss_text_ids = m_entities.get_entities_with<ScreenSpaceText> ();
+		blurryroots::yanecos::EntityID fps_text_id = 0;
+		for (auto ss_text_id : ss_text_ids) {
+			fps_text_id = ss_text_id;
+			break;
+		}
+
+		auto ss_text = m_entities.get_entity_data<ScreenSpaceText> (fps_text_id);
+		ss_text->text = "FPS: " + fps;
+	}
 
 	++m_framecounter;
 }
@@ -295,42 +308,10 @@ Game::on_render (void) {
 		);
 
 	m_mesh_render_processor.on_render (m_shader_program);
-	/*MeshRenderProcessor::render_model (
-	m_mesh_loader.get ("ground"),
-	models[0],
-	"ground",
-	m_texture_loader,
-	m_shader_program
-	);*/
 
-	/*MeshRenderProcessor::render_model (
-	m_mesh_loader.get ("suzanne"),
-	models[1],
-	"suzanne",
-	m_texture_loader,
-	m_shader_program
-	);*/
-
-	/*MeshRenderProcessor::render_model (
-	m_mesh_loader.get ("light_sphere"),
-	models[2],
-	"light",
-	m_texture_loader,
-	m_shader_program
-	);*/
-
-	/*MeshRenderProcessor::render_model (
-	m_mesh_loader.get ("sky_sphere"),
-	models[3],
-	"sky",
-	m_texture_loader,
-	m_shader_program
-	);*/
+	m_ss_text_processor.on_render (m_shader_program);
 
 	m_shader_program.deactivate ();
-
-	//glfonsBindBuffer (m_font_context, m_text_buffer);
-	//glfonsDraw (m_font_context);
 }
 
 void
@@ -425,13 +406,13 @@ Game::on_quit (void) {
 
 void
 Game::on_dispose (void) {
-	glfonsDelete (m_font_context);
+	m_ss_text_processor.on_dispose ();
 
-	m_shader_program.dispose ();
+	m_shader_program.on_dispose ();
 
-	m_texture_loader.dispose ();
+	m_texture_loader.on_dispose ();
 
-	m_mesh_loader.dispose ();
+	m_mesh_loader.on_dispose ();
 }
 
 bool

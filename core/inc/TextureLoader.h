@@ -12,12 +12,11 @@
 #include <unordered_map>
 #include <stdexcept>
 
-class TextureLoader
-: IDisposable {
+class TextureLoader : public IDisposable {
 
 public:
 	void
-	dispose (void);
+	on_dispose (void) override;
 
 	void
 	load (std::string path, std::string key, GLuint texture_unit);
