@@ -9,34 +9,51 @@ Game::on_initialize (void) {
 	m_is_running = true;
 
 	std::string base_path = blurryroots::util::get_executable_path ();
+	base_path = blurryroots::util::get_directory (base_path);
+	printf("base_path before %s\n", base_path.c_str());
 	base_path = blurryroots::util::normalize_file_path (base_path);
+
+	/*std::string game_exec = "./game";
+	std::size_t found = base_path.rfind (game_exec);
+	base_path.replace(found, game_exec.size(), "../res");*/
+	
+
+	printf("base_path %s\n", base_path.c_str());
 
 	// TODO: reference shader by name? register shader in mesh render system
 	// when loading, look-up already build shaders, just reference
+	std::string shader_errors;
 
 	// setup basic shaders
-	auto ver_path = base_path + "shaders/es/basic.vert";
+	auto ver_path = base_path + "shaders/330core/basic.vert";
 	auto vert_file = FileReader (ver_path);
 	auto vert_text = vert_file.to_string ();
 	THROW_IF (0 == vert_text.size (),
 		"Vertex shader is missing or empty!"
 		);
 	auto vs = VertexShader (vert_file.to_string ());
+	if (vs.has_errors (shader_errors)) {
+		printf("vs error: %s\n", shader_errors.c_str());
+	}
 
-	auto frag_path = base_path + "shaders/es/basic.frag";
+	auto frag_path = base_path + "shaders/330core/basic.frag";
 	auto frag_file = FileReader (frag_path);
 	auto frag_text = frag_file.to_string ();
 	THROW_IF (0 == frag_text.size (),
 		"Fragment shader is missing or empty!"
 		);
 	auto fs = FragmentShader (frag_file.to_string ());
+	if (fs.has_errors (shader_errors)) {
+		printf("fs error: %s\n", shader_errors.c_str());
+	}
 
 	m_shader_program = ShaderProgramBuilder ()
 		.add_shader (vs)
 		.add_shader (fs)
 		.bind_attribute ("vertex_position", 0)
-		.bind_attribute ("vertex_uv", 1)
-		.bind_attribute ("vertex_normal", 2)
+		.bind_attribute ("vertex_color", 1)
+		.bind_attribute ("vertex_uv", 2)
+		.bind_attribute ("vertex_normal", 3)
 		.link ()
 		;
 
@@ -175,6 +192,8 @@ Game::on_initialize (void) {
 		cameraTransform->rotate (PI_OVER_2 * 0.5f, right);
 	}
 
+	printf("i am %s\n", "here");
+
 	// build fps text
 	{
 		auto fps_text_id = m_entities.create_entity ();
@@ -198,6 +217,7 @@ Game::on_initialize (void) {
 		m_light_data.complex_attenuation = true;
 	}
 
+	printf("%s\n", "BÄNG");
 	// initialize subsystems
 	m_camera_processor.on_initialize ();
 	m_ss_text_processor.on_initialize ();

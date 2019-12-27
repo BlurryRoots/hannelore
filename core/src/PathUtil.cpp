@@ -2,6 +2,8 @@
 
 #include <Util.h>
 
+char* platform_get_executable_path (char* buffer, size_t buffer_size);
+
 #ifdef _WIN32
 // tells windows.h to not define macros for min () and max ()
 #define NOMINMAX 1
@@ -13,7 +15,7 @@
 #include <Shlwapi.h>
 #pragma comment (lib, "shlwapi.lib")
 
-TCHAR* get_windows_executable_path (TCHAR* path, size_t path_size) {
+TCHAR* platform_get_executable_path (TCHAR* path, size_t path_size) {
 	if (nullptr != path) {
 		if (MAX_FILE_PATH_SIZE > path_size) {
 			return nullptr;
@@ -31,26 +33,35 @@ TCHAR* get_windows_executable_path (TCHAR* path, size_t path_size) {
 
 #define MAX_FILE_PATH_SIZE 256
 
-char* get_linux_executable_path (char* buffer, size_t buffer_size) {
-	char buffer[MAX_FILE_PATH_SIZE];
-	readlink ("/proc/self/exe", buffer, sizeof (buffer));
+char* platform_get_executable_path (char* buffer, size_t buffer_size) {
+	readlink ("/proc/self/exe", buffer, buffer_size);
 
-	return std::string (buffer);
+	return buffer;
+}
+#elif defined (__APPLE__)
+#include <mach-o/dyld.h>
+#include <limits.h>
+
+#define MAX_FILE_PATH_SIZE PATH_MAX
+
+char* platform_get_executable_path (char* buffer, size_t buffer_size) {
+	uint32_t path_size = (uint32_t)buffer_size;
+	if(!_NSGetExecutablePath(buffer, &path_size)) {
+		puts(buffer);
+	}
+
+	return buffer;
 }
 #else
-assert (false && "Unkonw OS!");
+#error "Unkonw OS!"
 #endif
 
 namespace blurryroots {namespace util {
 
 std::string blurryroots::util::get_executable_path () {
-	#if defined (_WIN32)
-	TCHAR buffer[MAX_FILE_PATH_SIZE];
-	TCHAR* path = get_windows_executable_path (buffer, MAX_FILE_PATH_SIZE);
-	#elif defined (linux)
 	char buffer[MAX_FILE_PATH_SIZE];
-	char* path = get_linux_executable_path (buffer, MAX_FILE_PATH_SIZE);
-	#endif
+
+	char* path = platform_get_executable_path (buffer, MAX_FILE_PATH_SIZE);
 
 	THROW_IF (nullptr == path,
 		"Could not get path from os layer!"
@@ -77,6 +88,16 @@ std::string normalize_file_path (std::string raw_path) {
 	}
 
 	return raw_path;
+}
+
+std::string get_directory (std::string raw_path) {
+	size_t prev_dir_pos = raw_path.rfind("./", raw_path.size() - 2);
+
+	if (prev_dir_pos == std::string::npos) {
+		prev_dir_pos = raw_path.rfind("/", raw_path.size() - 2);
+	}
+
+	return raw_path.substr(0, prev_dir_pos);
 }
 
 }}

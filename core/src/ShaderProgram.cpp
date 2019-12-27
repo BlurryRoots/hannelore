@@ -50,7 +50,7 @@ ShaderProgram::set_uniform_mat4 (const std::string& name, const glm::mat4& matri
 			name.c_str ()
 			);
 		THROW_IF (0 > loc,
-			"Could not find ", name, " ", std::to_string (c)
+			"Could not find ", name, " ", std::to_string (c), "while setting mat4"
 			);
 
 		m_uniforms.emplace (name, loc);
@@ -87,7 +87,7 @@ ShaderProgram::set_uniform_vec3_array (const std::string& name, const glm::vec3*
 			name.c_str ()
 			);
 		THROW_IF (0 > loc,
-			"Could not find ", name, " ", std::to_string (c)
+			"Could not find ", name, " ", std::to_string (c), "while setting vec3_array"
 			);
 
 		m_uniforms.emplace (name, loc);
@@ -123,7 +123,7 @@ ShaderProgram::set_uniform_vec4_array (const std::string& name, const glm::vec4*
 			name.c_str ()
 			);
 		THROW_IF (0 > loc,
-			"Could not find ", name, " ", std::to_string (c)
+			"Could not find ", name, " ", std::to_string (c), "while setting vec4_array"
 			);
 
 		m_uniforms.emplace (name, loc);
@@ -142,7 +142,7 @@ ShaderProgram::set_uniform_vec4_array (const std::string& name, const glm::vec4*
 void
 ShaderProgram::set_uniform_f (const std::string& name, float value) {
 	THROW_IF (0 == m_uniforms.count (name),
-		"Could not find ", name
+		"Could not find ", name, " ", std::to_string (value), "while setting float"
 		);
 
 	THROW_IF (false == this->m_in_use,
@@ -169,7 +169,7 @@ ShaderProgram::get_uniform_f (const std::string& name) const {
 void
 ShaderProgram::set_uniform_i (const std::string& name, int value) {
 	THROW_IF (0 == m_uniforms.count (name),
-		"Could not find ", name
+		"Could not find ", name, " ", std::to_string (value), "while setting integer"
 		);
 
 	THROW_IF (false == m_in_use,

@@ -2,6 +2,8 @@
 #include <PathUtil.h>
 #include <Transform.h>
 
+#include <fontstash.h>
+
 void
 ScreenSpaceTextProcessor::activate (void) {
 
@@ -10,6 +12,39 @@ ScreenSpaceTextProcessor::activate (void) {
 void
 ScreenSpaceTextProcessor::deactivate (void) {
 
+}
+
+/*static void expandAtlas(FONScontext* stash)
+{
+	int w = 0, h = 0;
+	fonsGetAtlasSize(stash, &w, &h);
+	if (w < h)
+		w *= 2;
+	else
+		h *= 2;
+	fonsExpandAtlas(stash, w, h);
+	printf("expanded atlas to %d x %d\n", w, h);
+}*/
+
+void
+stash_error (void* uptr, int error, int val) {
+	(void)uptr;
+	FONScontext* stash = (FONScontext*)uptr;
+	switch (error) {
+	case FONS_ATLAS_FULL:
+		printf("atlas full\n");
+		/*expandAtlas(stash);*/
+		break;
+	case FONS_SCRATCH_FULL:
+		printf("scratch full, tried to allocate %d has %d\n", val, 160000);
+		break;
+	case FONS_STATES_OVERFLOW:
+		printf("states overflow\n");
+		break;
+	case FONS_STATES_UNDERFLOW:
+		printf("statels underflow\n");
+		break;
+	}
 }
 
 void
@@ -30,13 +65,17 @@ ScreenSpaceTextProcessor::on_initialize (void) {
 		"Could not initialize font context!"
 		);
 
+	fonsSetErrorCallback (m_font_context, stash_error , m_font_context);
+
 	std::string base_path = blurryroots::util::get_executable_path ();
+	base_path = blurryroots::util::get_directory(base_path);
 	base_path = blurryroots::util::normalize_file_path (base_path);
 
 	// load font data
 	std::string font_name = "Arial";
 	std::string font_path = base_path +
 		"fonts/liberation-sans/LiberationSans-Regular.ttf";
+	printf("looking at font at %s\n", font_path.c_str());
 	int font_loading_status = fonsAddFont (m_font_context,
 		font_name.c_str (), font_path.c_str ()
 		);

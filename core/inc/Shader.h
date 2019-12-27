@@ -27,13 +27,13 @@ public:
 	GLuint
 	get_handle (void) const;
 
+	bool
+	has_errors (std::string& error_message);
+
 protected:
 	Shader (std::string source_code, GLenum type);
 
 private:
-	bool
-	has_errors (std::string& error_message);
-
 	GLuint m_handle;
 	GLenum m_type;
 

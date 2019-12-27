@@ -2,6 +2,8 @@
 
 #include <GLHelper.h>
 
+#include <cstdio>
+
 using namespace blurryroots::hannelore;
 
 std::vector<IGame*> WindowManager::m_handlers;
@@ -14,7 +16,6 @@ bool WindowManager::m_is_opengl_initialized;
 
 void
 WindowManager::initialize (void) {
-
 	initialize_glfw ();
 }
 
@@ -37,8 +38,16 @@ WindowManager::open_window (const std::string &title, bool fullscreen, bool resi
 	glfwWindowHint (GLFW_RESIZABLE, resizable ? GL_TRUE : GL_FALSE);
 	glfwWindowHint (GLFW_DECORATED, decorated ? GL_TRUE : GL_FALSE);
 
+#if defined (__APPLE__)
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#else
 	glfwWindowHint (GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 	glfwWindowHint (GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint (GLFW_CONTEXT_VERSION_MINOR, 1);
+#endif
 
 	Window new_window;
 	new_window.m_window_width = mode->width / 2;
@@ -147,11 +156,17 @@ WindowManager::shut_down (void) {
 	glfwTerminate ();
 }
 
+void error_callback (int error, const char* description) {
+    fprintf (stderr, "glfw error(%i): %s\n", error, description);
+}
+
 void
 WindowManager::initialize_glfw (void) {
 	if (m_is_glew_initialized) {
 		return;
 	}
+
+	glfwSetErrorCallback (error_callback);
 
 	// Initialize GLFW
 	THROW_IF (GL_TRUE != glfwInit (),

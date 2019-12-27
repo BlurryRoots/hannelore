@@ -87,7 +87,7 @@ target_link_libraries (test-runner ${HANNELORE_CORE_LIB})
 
 ## custom commands and targets
 
-if (UNIX)
+if (${UNIX} OR ${APPLE})
 	set (COPY_CMD cp)
 	set (COPY_CMD_PARAMS -r)
 elseif (WIN32)
@@ -99,7 +99,7 @@ endif ()
 
 # command to copy resources when using default target
 add_custom_target (assets
-	COMMAND {COPY_CMD} {COPY_CMD_PARAMS} "${PROJECT_SOURCE_DIR}/res/*" $<TARGET_FILE_DIR:game>
+	COMMAND ${COPY_CMD} ${COPY_CMD_PARAMS} "${PROJECT_SOURCE_DIR}/res/*" $<TARGET_FILE_DIR:game>
 	DEPENDS game
 )
 

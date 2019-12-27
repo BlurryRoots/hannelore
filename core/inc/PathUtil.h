@@ -11,6 +11,8 @@ std::string get_executable_path ();
 
 std::string normalize_file_path (std::string raw_path);
 
+std::string get_directory (std::string raw_path);
+
 }}
 
 #endif

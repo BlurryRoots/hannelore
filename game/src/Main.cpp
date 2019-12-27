@@ -69,7 +69,7 @@ main (void) {
 	try {
 		hannelore::WindowManager::initialize ();
 		hannelore::WindowManager::register_handler (&game);
-		hannelore::Window w = hannelore::WindowManager::open_window (TITLE, true);
+		hannelore::Window w = hannelore::WindowManager::open_window (TITLE, false);
 
 		// initialize the game
 		game.on_initialize ();

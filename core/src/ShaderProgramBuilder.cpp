@@ -38,10 +38,10 @@ ShaderProgramBuilder::link (void) {
 		"Error linking program: ", this->get_info_log (m_program)
 		);
 
-	glValidateProgram (m_program.m_handle);
+	/*glValidateProgram (m_program.m_handle);
 	THROW_IF (false == this->is_validated (m_program),
 		"Error validating program: ", this->get_info_log (m_program)
-		);
+		);*/
 
 
 	// search all active uniforms and cache their locations
